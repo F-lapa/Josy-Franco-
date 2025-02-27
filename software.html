@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Josy Franco Terapeuta</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Incluindo IMask.js -->
+    <script src="https://unpkg.com/imask"></script>
     <style>
         * {
             margin: 0;
@@ -212,6 +214,17 @@
             text-align: center;
         }
 
+        .debug-container {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #333;
+        }
+
         .modal-buttons {
             display: flex;
             gap: 15px;
@@ -250,6 +263,19 @@
             margin-top: 15px;
             font-weight: 500;
         }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 1001;
+        }
     </style>
 </head>
 <body>
@@ -271,7 +297,7 @@
             </div>
             <div class="form-group">
                 <label for="telefone">Telefone</label>
-                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" maxlength="14" required oninput="formatPhone(this)">
+                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" required>
             </div>
             <div class="form-group">
                 <label for="dataNascimento">Data de Nascimento</label>
@@ -317,9 +343,12 @@
         </div>
     </div>
 
+    <div class="debug-container" id="debugLog"></div>
+    <div class="loading" id="loading">Carregando...</div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, updateDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBl55ZrLR6Bgy0WHa-HoACm25mC8_l4awY",
@@ -334,9 +363,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Função para exibir logs na página
+        function logMessage(message) {
+            const debugLog = document.getElementById('debugLog');
+            const p = document.createElement('p');
+            p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            debugLog.appendChild(p);
+            debugLog.scrollTop = debugLog.scrollHeight; // Rola para o final
+        }
+
+        // Função para mostrar/esconder o loading
+        function toggleLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'block' : 'none';
+        }
+
+        // Verifica se é um dispositivo móvel
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+            logMessage('[INFO] Detectado dispositivo móvel');
+        }
+
         // Função para alternar abas
-        window.openTab = function(tabId) {
-            console.log(`Tentando abrir aba: ${tabId}`);
+        window.openTab = function (tabId) {
+            logMessage(`[DEBUG] Tentando abrir aba: ${tabId}`);
             const tabs = document.querySelectorAll('.tab-content');
             const buttons = document.querySelectorAll('.tab-button');
             tabs.forEach(tab => tab.classList.remove('active'));
@@ -346,140 +396,252 @@
             if (selectedTab && selectedButton) {
                 selectedTab.classList.add('active');
                 selectedButton.classList.add('active');
-                console.log(`Aba ${tabId} aberta com sucesso`);
+                logMessage(`[SUCCESS] Aba ${tabId} aberta com sucesso`);
             } else {
-                console.error('Erro: Tab ou botão não encontrados', { tabId, selectedTab, selectedButton });
+                logMessage(`[ERROR] Erro: Tab ou botão não encontrados`, { tabId, selectedTab, selectedButton });
             }
         };
 
-        // Formatar telefone automaticamente
-        function formatPhone(input) {
-            let value = input.value.replace(/\D/g, ''); // Remove tudo que não é número
-            console.log('Valor bruto:', value); // Depuração
-            value = value.substring(0, 11); // Limita a 11 dígitos (DDD + 9 dígitos)
-            let formatted = '';
-
-            if (value.length > 0) {
-                formatted = '(' + value.substring(0, 2); // (DD
-                if (value.length > 2) {
-                    formatted += ') '; // (DD)
-                    if (value.length > 6) {
-                        formatted += value.substring(2, 7); // 12345
-                        if (value.length > 10) {
-                            formatted += '-' + value.substring(7, 11); // -6789
-                        } else if (value.length > 7) {
-                            formatted += '-' + value.substring(7); // -67 (incompleto)
-                        }
-                    } else {
-                        formatted += value.substring(2); // 123 (incompleto)
+        // Aplicar máscara de telefone com IMask
+        document.addEventListener('DOMContentLoaded', () => {
+            const phoneMask = IMask(document.getElementById('telefone'), {
+                mask: '(00) 00000-0000',
+                lazy: false,
+                blocks: {
+                    '00': {
+                        mask: IMask.MaskedRange,
+                        from: 1,
+                        to: 99,
+                        maxLength: 2
+                    },
+                    '00000': {
+                        mask: IMask.MaskedRange,
+                        from: 0,
+                        to: 99999,
+                        maxLength: 5
+                    },
+                    '0000': {
+                        mask: IMask.MaskedRange,
+                        from: 0,
+                        to: 9999,
+                        maxLength: 4
                     }
+                },
+                onAccept: (value) => {
+                    logMessage(`[DEBUG] Telefone aceito com IMask: ${value}`);
+                },
+                onComplete: (value) => {
+                    logMessage(`[SUCCESS] Telefone formatado com IMask: ${value}`);
                 }
-            }
-            console.log('Valor formatado:', formatted); // Depuração
-            input.value = formatted;
-            // Garante que o maxlength (14) seja respeitado
-            if (input.value.length > input.maxLength) {
-                input.value = input.value.slice(0, input.maxLength);
-            }
-        }
+            });
 
-        // Carregar clientes
+            const editPhoneMask = IMask(document.getElementById('editTelefone'), {
+                mask: '(00) 00000-0000',
+                lazy: false,
+                blocks: {
+                    '00': {
+                        mask: IMask.MaskedRange,
+                        from: 1,
+                        to: 99,
+                        maxLength: 2
+                    },
+                    '00000': {
+                        mask: IMask.MaskedRange,
+                        from: 0,
+                        to: 99999,
+                        maxLength: 5
+                    },
+                    '0000': {
+                        mask: IMask.MaskedRange,
+                        from: 0,
+                        to: 9999,
+                        maxLength: 4
+                    }
+                },
+                onAccept: (value) => {
+                    logMessage(`[DEBUG] Telefone editado aceito com IMask: ${value}`);
+                },
+                onComplete: (value) => {
+                    logMessage(`[SUCCESS] Telefone editado formatado com IMask: ${value}`);
+                }
+            });
+        });
+
+        // Cache local para listas
+        let clientCache = new Map();
+        let appointmentCache = new Map();
+
+        // Carregar clientes com otimização
         async function loadClientes() {
             const clienteList = document.getElementById('clienteList');
             const clienteSelect = document.getElementById('cliente');
             clienteList.innerHTML = '';
             clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
 
+            toggleLoading(true);
             try {
-                const querySnapshot = await getDocs(collection(db, 'clientes'));
+                const cacheKey = 'clients';
+                if (clientCache.has(cacheKey)) {
+                    logMessage('[DEBUG] Usando cache para clientes');
+                    const cachedData = clientCache.get(cacheKey);
+                    renderClientes(cachedData);
+                    return;
+                }
+
+                const q = query(collection(db, 'clientes'), orderBy('nome'), limit(50)); // Limita para 50 itens
+                const querySnapshot = await getDocs(q);
+                const clients = [];
                 querySnapshot.forEach(doc => {
                     const cliente = doc.data();
-                    const item = document.createElement('div');
-                    item.className = 'list-item';
-                    const info = document.createElement('div');
-                    info.className = 'info';
-                    info.textContent = `${cliente.nome}`;
-                    item.appendChild(info);
-                    const deleteButton = document.createElement('button');
-                    deleteButton.className = 'delete-btn';
-                    deleteButton.textContent = 'Excluir';
-                    deleteButton.onclick = (e) => {
-                        e.stopPropagation();
-                        openDeleteModal('cliente', doc.id, cliente.nome);
-                        console.log('Clicou em Excluir cliente com ID:', doc.id);
-                    };
-                    item.appendChild(deleteButton);
-                    item.onclick = () => openClientModal(doc.id, cliente);
-                    clienteList.appendChild(item);
-                    clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
+                    clients.push({ id: doc.id, ...cliente });
                 });
-                console.log('Clientes carregados com sucesso');
+
+                clientCache.set(cacheKey, clients);
+                renderClientes(clients);
+                logMessage('[SUCCESS] Clientes carregados com sucesso');
             } catch (error) {
-                console.error('Erro ao carregar clientes:', error);
+                logMessage(`[ERROR] Erro ao carregar clientes: ${error.message}`);
                 document.getElementById('cadastroError').textContent = 'Erro ao carregar clientes. Verifique a conexão ou as regras do Firebase.';
+            } finally {
+                toggleLoading(false);
             }
         }
 
-        // Carregar agendamentos
+        // Renderizar clientes
+        function renderClientes(clients) {
+            const clienteList = document.getElementById('clienteList');
+            const clienteSelect = document.getElementById('cliente');
+            clients.forEach(cliente => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                const info = document.createElement('div');
+                info.className = 'info';
+                info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`;
+                item.appendChild(info);
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-btn';
+                deleteButton.textContent = 'Excluir';
+                deleteButton.onclick = (e) => {
+                    e.stopPropagation();
+                    openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`);
+                    logMessage(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
+                };
+                item.appendChild(deleteButton);
+                item.onclick = () => openClientModal(cliente.id, cliente);
+                clienteList.appendChild(item);
+                clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
+            });
+        }
+
+        // Carregar agendamentos com otimização
         async function loadAgendamentos() {
             const agendamentoList = document.getElementById('agendamentoList');
             agendamentoList.innerHTML = '';
+
+            toggleLoading(true);
             try {
-                const querySnapshot = await getDocs(collection(db, 'agendamentos'));
+                const cacheKey = 'appointments';
+                if (appointmentCache.has(cacheKey)) {
+                    logMessage('[DEBUG] Usando cache para agendamentos');
+                    const cachedData = appointmentCache.get(cacheKey);
+                    renderAgendamentos(cachedData);
+                    return;
+                }
+
+                const q = query(collection(db, 'agendamentos'), orderBy('data'), limit(50)); // Limita para 50 itens
+                const querySnapshot = await getDocs(q);
+                const appointments = [];
                 querySnapshot.forEach(doc => {
                     const agendamento = doc.data();
-                    const item = document.createElement('div');
-                    item.className = 'list-item';
-                    const info = document.createElement('div');
-                    info.className = 'info';
-                    const [year, month, day] = agendamento.data.split('-');
-                    const formattedDate = `${day}/${month}/${year}`;
-                    info.textContent = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`;
-                    item.appendChild(info);
-                    const deleteButton = document.createElement('button');
-                    deleteButton.className = 'delete-btn';
-                    deleteButton.textContent = 'Excluir';
-                    deleteButton.onclick = (e) => {
-                        e.stopPropagation();
-                        openDeleteModal('agendamento', doc.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`);
-                        console.log('Clicou em Excluir agendamento com ID:', doc.id);
-                    };
-                    item.appendChild(deleteButton);
-                    item.onclick = () => openEditModal(doc.id, agendamento);
-                    agendamentoList.appendChild(item);
+                    appointments.push({ id: doc.id, ...agendamento });
                 });
-                console.log('Agendamentos carregados com sucesso');
+
+                appointmentCache.set(cacheKey, appointments);
+                renderAgendamentos(appointments);
+                logMessage('[SUCCESS] Agendamentos carregados com sucesso');
             } catch (error) {
-                console.error('Erro ao carregar agendamentos:', error);
+                logMessage(`[ERROR] Erro ao carregar agendamentos: ${error.message}`);
                 document.getElementById('agendamentoError').textContent = 'Erro ao carregar agendamentos. Verifique a conexão ou as regras do Firebase.';
+            } finally {
+                toggleLoading(false);
             }
+        }
+
+        // Renderizar agendamentos
+        function renderAgendamentos(appointments) {
+            const agendamentoList = document.getElementById('agendamentoList');
+            appointments.forEach(agendamento => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                const info = document.createElement('div');
+                info.className = 'info';
+                const [year, month, day] = agendamento.data.split('-');
+                const formattedDate = `${day}/${month}/${year}`;
+                info.textContent = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`;
+                item.appendChild(info);
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-btn';
+                deleteButton.textContent = 'Excluir';
+                deleteButton.onclick = (e) => {
+                    e.stopPropagation();
+                    openDeleteModal('agendamento', agendamento.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`);
+                    logMessage(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
+                };
+                item.appendChild(deleteButton);
+                item.onclick = () => openEditModal(agendamento.id, agendamento);
+                agendamentoList.appendChild(item);
+            });
+        }
+
+        // Função auxiliar para exibir telefone formatado
+        function formatPhoneDisplay(telefone) {
+            const value = telefone.replace(/\D/g, '').substring(0, 11);
+            let formatted = '';
+            if (value.length > 0) {
+                formatted = '(' + value.substring(0, 2);
+                if (value.length > 2) {
+                    formatted += ') ' + value.substring(2, 7);
+                    if (value.length > 6) {
+                        formatted += '-' + value.substring(7, 11);
+                    }
+                }
+            }
+            return formatted || telefone;
         }
 
         // Cadastrar cliente
         document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('nome').value.trim();
-            const telefone = document.getElementById('telefone').value.replace(/\D/g, '').substring(0, 11);
+            const telefoneInput = document.getElementById('telefone');
+            const telefoneMasked = telefoneInput._value; // Valor mascarado pelo IMask
+            const telefone = telefoneMasked.replace(/\D/g, '').substring(0, 11); // Extrai apenas números
             const dataNascimento = document.getElementById('dataNascimento').value;
             const errorMessage = document.getElementById('cadastroError');
+
+            logMessage(`[DEBUG] Valores do formulário: Nome=${nome}, Telefone (mascarado)=${telefoneMasked}, Telefone (números)=${telefone}, Data=${dataNascimento}`);
 
             if (!nome || !telefone || !dataNascimento) {
                 errorMessage.textContent = 'Por favor, preencha todos os campos.';
                 return;
             }
 
+            toggleLoading(true);
             try {
-                console.log('Tentando cadastrar cliente:', { nome, telefone, dataNascimento });
+                logMessage('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, dataNascimento });
                 await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
                 errorMessage.textContent = 'Cliente cadastrado com sucesso!';
                 errorMessage.style.color = '#10b981';
                 e.target.reset();
+                clientCache.clear(); // Limpa cache para recarregar
                 loadClientes();
                 setTimeout(() => errorMessage.textContent = '', 3000);
-                console.log('Cliente cadastrado com sucesso');
+                logMessage('[SUCCESS] Cliente cadastrado com sucesso');
             } catch (error) {
-                console.error('Erro ao cadastrar cliente:', error);
+                logMessage(`[ERROR] Erro ao cadastrar cliente: ${error.message}`);
                 errorMessage.textContent = 'Erro ao cadastrar cliente. Verifique a conexão ou as regras do Firebase.';
+            } finally {
+                toggleLoading(false);
             }
         });
 
@@ -496,24 +658,29 @@
                 return;
             }
 
+            toggleLoading(true);
             try {
-                console.log('Tentando agendar:', { cliente, data, hora });
+                logMessage('[DEBUG] Tentando agendar:', { cliente, data, hora });
                 await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
                 errorMessage.textContent = 'Agendamento realizado com sucesso!';
                 errorMessage.style.color = '#10b981';
                 e.target.reset();
+                appointmentCache.clear(); // Limpa cache para recarregar
                 loadAgendamentos();
                 setTimeout(() => errorMessage.textContent = '', 3000);
-                console.log('Agendamento realizado com sucesso');
+                logMessage('[SUCCESS] Agendamento realizado com sucesso');
             } catch (error) {
-                console.error('Erro ao agendar:', error);
+                logMessage(`[ERROR] Erro ao agendar: ${error.message}`);
                 errorMessage.textContent = 'Erro ao realizar agendamento. Verifique a conexão ou as regras do Firebase.';
+            } finally {
+                toggleLoading(false);
             }
         });
 
         // Modal de detalhes e edição do cliente
         function openClientModal(docId, cliente) {
             const modal = document.getElementById('modal');
+            logMessage(`[DEBUG] Abrindo modal de cliente com ID: ${docId}`);
             document.getElementById('modalTitle').textContent = 'Detalhes do Cliente';
             document.getElementById('modalContent').innerHTML = `
                 <div class="form-group">
@@ -522,7 +689,7 @@
                 </div>
                 <div class="form-group">
                     <label for="editTelefone">Telefone</label>
-                    <input type="tel" id="editTelefone" value="${cliente.telefone}" required oninput="formatPhone(this)" maxlength="14">
+                    <input type="tel" id="editTelefone" value="${formatPhoneDisplay(cliente.telefone)}" required>
                 </div>
                 <div class="form-group">
                     <label for="editDataNascimento">Data de Nascimento</label>
@@ -539,26 +706,36 @@
         // Salvar alterações do cliente
         async function saveClientChanges(docId) {
             const nome = document.getElementById('editNome').value.trim();
-            const telefone = document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11);
+            const telefoneInput = document.getElementById('editTelefone');
+            const telefoneMasked = telefoneInput._value; // Valor mascarado pelo IMask
+            const telefone = telefoneMasked.replace(/\D/g, '').substring(0, 11); // Extrai apenas números
             const dataNascimento = document.getElementById('editDataNascimento').value;
             if (!nome || !telefone || !dataNascimento) {
                 alert('Por favor, preencha todos os campos.');
                 return;
             }
+
+            toggleLoading(true);
             try {
+                logMessage(`[DEBUG] Tentando salvar alterações do cliente com ID: ${docId}`, { nome, telefone, dataNascimento });
                 await updateDoc(doc(db, 'clientes', docId), { nome, telefone, dataNascimento });
+                logMessage('[SUCCESS] Cliente atualizado com sucesso');
                 alert('Cliente atualizado com sucesso!');
                 closeModal();
+                clientCache.clear(); // Limpa cache para recarregar
                 loadClientes();
             } catch (error) {
-                console.error('Erro ao atualizar cliente:', error);
+                logMessage(`[ERROR] Erro ao atualizar cliente: ${error.message}`);
                 alert('Erro ao salvar alterações. Verifique a conexão ou as regras do Firebase.');
+            } finally {
+                toggleLoading(false);
             }
         }
 
         // Modal de remarcação de agendamento
         function openEditModal(id, agendamento) {
             const modal = document.getElementById('modal');
+            logMessage(`[DEBUG] Abrindo modal de agendamento com ID: ${id}`);
             document.getElementById('modalTitle').textContent = 'Remarcar Agendamento';
             document.getElementById('modalContent').innerHTML = `
                 <div class="form-group">
@@ -585,20 +762,28 @@
                 alert('Preencha todos os campos para remarcar.');
                 return;
             }
+
+            toggleLoading(true);
             try {
+                logMessage(`[DEBUG] Tentando salvar alterações do agendamento com ID: ${id}`);
                 await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora });
+                logMessage('[SUCCESS] Agendamento atualizado com sucesso');
                 alert('Agendamento atualizado!');
                 closeModal();
+                appointmentCache.clear(); // Limpa cache para recarregar
                 loadAgendamentos();
             } catch (error) {
-                console.error('Erro ao atualizar:', error);
+                logMessage(`[ERROR] Erro ao atualizar agendamento: ${error.message}`);
                 alert('Erro ao salvar alterações. Verifique a conexão ou as regras do Firebase.');
+            } finally {
+                toggleLoading(false);
             }
         }
 
         // Modal de confirmação de exclusão
         function openDeleteModal(type, id, name) {
             const modal = document.getElementById('modal');
+            logMessage(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
             document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
             document.getElementById('modalContent').innerHTML = `
                 <p>Tem certeza de que deseja excluir "${name}"?</p>
@@ -608,27 +793,37 @@
                 </div>
             `;
             modal.classList.add('active');
-            console.log(`Modal de exclusão aberto para ${type} com ID: ${id}`);
         }
 
         // Confirmar exclusão
         async function confirmDelete(type, id) {
-            console.log(`Confirmando exclusão de ${type} com ID: ${id}`);
+            logMessage(`[DEBUG] Confirmando exclusão de ${type} com ID: ${id}`);
+            toggleLoading(true);
             try {
                 if (type === 'cliente') {
+                    logMessage('[DEBUG] Tentando excluir cliente');
                     await deleteDoc(doc(db, 'clientes', id));
-                    console.log('Cliente excluído com sucesso');
+                    logMessage('[SUCCESS] Cliente excluído com sucesso');
                 } else if (type === 'agendamento') {
+                    logMessage('[DEBUG] Tentando excluir agendamento');
                     await deleteDoc(doc(db, 'agendamentos', id));
-                    console.log('Agendamento excluído com sucesso');
+                    logMessage('[SUCCESS] Agendamento excluído com sucesso');
                 }
-                closeModal(); // Fecha o modal após a exclusão
-                if (type === 'cliente') loadClientes();
-                else loadAgendamentos();
+                closeModal(); // Fecha o modal após a exclusão bem-sucedida
+                if (type === 'cliente') {
+                    clientCache.clear();
+                    loadClientes();
+                } else {
+                    appointmentCache.clear();
+                    loadAgendamentos();
+                }
+                logMessage(`[SUCCESS] ${type} excluído e modal fechado`);
             } catch (error) {
-                console.error('Erro ao excluir:', error.message);
-                alert('Erro ao excluir. Detalhes: ' + error.message);
+                logMessage(`[ERROR] Erro ao excluir ${type}: ${error.message}`);
+                alert(`Erro ao excluir ${type}. Detalhes: ${error.message}`);
                 closeModal(); // Fecha o modal mesmo em caso de erro
+            } finally {
+                toggleLoading(false);
             }
         }
 
@@ -636,12 +831,35 @@
         window.closeModal = function() {
             const modal = document.getElementById('modal');
             modal.classList.remove('active');
-            console.log('Modal fechado');
+            logMessage('[DEBUG] Modal fechado');
         };
 
-        // Carregar dados iniciais
+        // Carregar dados iniciais com otimização
         loadClientes();
         loadAgendamentos();
+
+        // Adicionar listener para mudanças em tempo real (opcional, para maior performance)
+        const unsubscribeClients = onSnapshot(query(collection(db, 'clientes'), orderBy('nome'), limit(50)), 
+            (snapshot) => {
+                const clients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                clientCache.set('clients', clients);
+                renderClientes(clients);
+                logMessage('[REAL-TIME] Clientes atualizados em tempo real');
+            }, 
+            (error) => {
+                logMessage(`[ERROR] Erro em tempo real para clientes: ${error.message}`);
+            });
+
+        const unsubscribeAppointments = onSnapshot(query(collection(db, 'agendamentos'), orderBy('data'), limit(50)), 
+            (snapshot) => {
+                const appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                appointmentCache.set('appointments', appointments);
+                renderAgendamentos(appointments);
+                logMessage('[REAL-TIME] Agendamentos atualizados em tempo real');
+            }, 
+            (error) => {
+                logMessage(`[ERROR] Erro em tempo real para agendamentos: ${error.message}`);
+            });
     </script>
 </body>
 </html>
