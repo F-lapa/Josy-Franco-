@@ -4,93 +4,112 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Josy Franco Terapeuta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Estilo básico para a página */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f9fafb;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff, #f9fafb);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            padding: 20px;
         }
 
         .login-container {
             background: white;
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             width: 100%;
             max-width: 400px;
             text-align: center;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .login-container h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: #374151;
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 30px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             text-align: left;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
             font-size: 14px;
             color: #4b5563;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
 
         .form-group input:focus {
-            border-color: #6366f1;
+            border-color: #4f46e5;
             outline: none;
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
         }
 
         .login-btn {
             width: 100%;
-            padding: 12px;
-            background-color: #6366f1;
+            padding: 14px;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 12px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .login-btn:hover {
-            background-color: #4f46e5;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
         }
 
         .forgot-password {
-            margin-top: 10px;
+            display: block;
+            margin-top: 15px;
             font-size: 14px;
-            color: #6366f1;
-            cursor: pointer;
+            color: #4f46e5;
             text-decoration: none;
+            transition: all 0.3s ease;
         }
 
         .forgot-password:hover {
+            color: #7c3aed;
             text-decoration: underline;
         }
 
         .error-message {
             color: #ef4444;
             font-size: 14px;
-            margin-top: 10px;
+            margin-top: 15px;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -99,11 +118,11 @@
         <h2>Login</h2>
         <form id="loginForm">
             <div class="form-group">
-                <label for="username">Login:</label>
+                <label for="username">Login</label>
                 <input type="text" id="username" placeholder="Digite seu login" required>
             </div>
             <div class="form-group">
-                <label for="password">Senha:</label>
+                <label for="password">Senha</label>
                 <input type="password" id="password" placeholder="Digite sua senha" required>
             </div>
             <button type="submit" class="login-btn">Entrar</button>
@@ -112,7 +131,27 @@
         <a href="#" class="forgot-password">Esqueci minha senha</a>
     </div>
 
-    <script>
+    <!-- Firebase SDK v9+ (Modular) - Opcional para autenticação real -->
+    <script type="module">
+        // Caso queira usar Firebase Authentication no futuro, descomente e configure:
+        /*
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "Sua-API-Key",
+            authDomain: "Seu-Dominio",
+            projectId: "Seu-Projeto",
+            storageBucket: "Seu-Bucket",
+            messagingSenderId: "Seu-Sender-ID",
+            appId: "Seu-App-ID",
+            measurementId: "Seu-Measurement-ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        */
+
         // Credenciais fixas para login
         const validCredentials = {
             username: "josy.franco",
@@ -128,12 +167,25 @@
             const errorMessage = document.getElementById("errorMessage");
 
             if (username === validCredentials.username && password === validCredentials.password) {
-                errorMessage.textContent = ""; // Limpa mensagem de erro
+                errorMessage.textContent = "";
                 alert("Login realizado com sucesso!");
                 window.location.href = "software.html"; // Redireciona para a página do sistema
             } else {
                 errorMessage.textContent = "Login ou senha incorretos. Tente novamente.";
             }
+
+            // Exemplo de integração com Firebase Authentication (descomente para usar):
+            /*
+            signInWithEmailAndPassword(auth, username, password)
+                .then((userCredential) => {
+                    alert("Login realizado com sucesso!");
+                    window.location.href = "software.html";
+                })
+                .catch((error) => {
+                    errorMessage.textContent = "Erro ao fazer login. Verifique suas credenciais.";
+                    console.error("Erro de login:", error);
+                });
+            */
         });
     </script>
 </body>
