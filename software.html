@@ -144,13 +144,13 @@
 
         .list-container {
             margin-top: 30px;
-            max-height: 300px; /* Altura máxima com rolagem */
+            max-height: 300px;
             overflow-y: auto;
         }
 
         .list-item {
             display: grid;
-            grid-template-columns: 2fr 1fr 0.5fr; /* Colunas: nome/info, telefone/data, botão excluir */
+            grid-template-columns: 2fr 1fr 0.5fr;
             align-items: center;
             padding: 15px;
             background: #f9fafb;
@@ -271,7 +271,7 @@
             </div>
             <div class="form-group">
                 <label for="telefone">Telefone</label>
-                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" required oninput="formatPhone(this)">
+                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" maxlength="14" required oninput="formatPhone(this)">
             </div>
             <div class="form-group">
                 <label for="dataNascimento">Data de Nascimento</label>
@@ -355,19 +355,32 @@
         // Formatar telefone automaticamente
         function formatPhone(input) {
             let value = input.value.replace(/\D/g, ''); // Remove tudo que não é número
+            console.log('Valor bruto:', value); // Depuração
             value = value.substring(0, 11); // Limita a 11 dígitos (DDD + 9 dígitos)
             let formatted = '';
 
             if (value.length > 0) {
-                formatted = '(' + value.substring(0, 2); // Adiciona (DD
+                formatted = '(' + value.substring(0, 2); // (DD
                 if (value.length > 2) {
-                    formatted += ') ' + value.substring(2, 7); // Adiciona) 12345
-                    if (value.length > 7) {
-                        formatted += '-' + value.substring(7, 11); // Adiciona-6789
+                    formatted += ') '; // (DD)
+                    if (value.length > 6) {
+                        formatted += value.substring(2, 7); // 12345
+                        if (value.length > 10) {
+                            formatted += '-' + value.substring(7, 11); // -6789
+                        } else if (value.length > 7) {
+                            formatted += '-' + value.substring(7); // -67 (incompleto)
+                        }
+                    } else {
+                        formatted += value.substring(2); // 123 (incompleto)
                     }
                 }
             }
+            console.log('Valor formatado:', formatted); // Depuração
             input.value = formatted;
+            // Garante que o maxlength (14) seja respeitado
+            if (input.value.length > input.maxLength) {
+                input.value = input.value.slice(0, input.maxLength);
+            }
         }
 
         // Carregar clientes
@@ -391,8 +404,9 @@
                     deleteButton.className = 'delete-btn';
                     deleteButton.textContent = 'Excluir';
                     deleteButton.onclick = (e) => {
-                        e.stopPropagation(); // Impede que o clique no botão dispare o modal
+                        e.stopPropagation();
                         openDeleteModal('cliente', doc.id, cliente.nome);
+                        console.log('Clicou em Excluir cliente com ID:', doc.id);
                     };
                     item.appendChild(deleteButton);
                     item.onclick = () => openClientModal(doc.id, cliente);
@@ -426,8 +440,9 @@
                     deleteButton.className = 'delete-btn';
                     deleteButton.textContent = 'Excluir';
                     deleteButton.onclick = (e) => {
-                        e.stopPropagation(); // Impede que o clique no botão dispare o modal de edição
+                        e.stopPropagation();
                         openDeleteModal('agendamento', doc.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`);
+                        console.log('Clicou em Excluir agendamento com ID:', doc.id);
                     };
                     item.appendChild(deleteButton);
                     item.onclick = () => openEditModal(doc.id, agendamento);
@@ -444,7 +459,7 @@
         document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('nome').value.trim();
-            const telefone = document.getElementById('telefone').value.replace(/\D/g, '').substring(0, 11); // Apenas números
+            const telefone = document.getElementById('telefone').value.replace(/\D/g, '').substring(0, 11);
             const dataNascimento = document.getElementById('dataNascimento').value;
             const errorMessage = document.getElementById('cadastroError');
 
@@ -507,7 +522,7 @@
                 </div>
                 <div class="form-group">
                     <label for="editTelefone">Telefone</label>
-                    <input type="tel" id="editTelefone" value="${cliente.telefone}" required oninput="formatPhone(this)">
+                    <input type="tel" id="editTelefone" value="${cliente.telefone}" required oninput="formatPhone(this)" maxlength="14">
                 </div>
                 <div class="form-group">
                     <label for="editDataNascimento">Data de Nascimento</label>
@@ -593,24 +608,27 @@
                 </div>
             `;
             modal.classList.add('active');
+            console.log(`Modal de exclusão aberto para ${type} com ID: ${id}`);
         }
 
         // Confirmar exclusão
         async function confirmDelete(type, id) {
+            console.log(`Confirmando exclusão de ${type} com ID: ${id}`);
             try {
                 if (type === 'cliente') {
                     await deleteDoc(doc(db, 'clientes', id));
-                    loadClientes();
                     console.log('Cliente excluído com sucesso');
                 } else if (type === 'agendamento') {
                     await deleteDoc(doc(db, 'agendamentos', id));
-                    loadAgendamentos();
                     console.log('Agendamento excluído com sucesso');
                 }
-                closeModal();
+                closeModal(); // Fecha o modal após a exclusão
+                if (type === 'cliente') loadClientes();
+                else loadAgendamentos();
             } catch (error) {
-                console.error('Erro ao excluir:', error);
-                alert('Erro ao excluir. Verifique a conexão ou as regras do Firebase.');
+                console.error('Erro ao excluir:', error.message);
+                alert('Erro ao excluir. Detalhes: ' + error.message);
+                closeModal(); // Fecha o modal mesmo em caso de erro
             }
         }
 
