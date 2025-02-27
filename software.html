@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Josy Franco Terapeuta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -226,6 +227,13 @@
             background: #4f46e5;
             color: white;
         }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -256,6 +264,7 @@
             <div class="form-group">
                 <button type="submit">Cadastrar</button>
             </div>
+            <div class="error-message" id="cadastroError"></div>
         </form>
         <div class="list-container" id="clienteList"></div>
     </div>
@@ -280,6 +289,7 @@
             <div class="form-group">
                 <button type="submit">Agendar</button>
             </div>
+            <div class="error-message" id="agendamentoError"></div>
         </form>
         <div class="list-container" id="agendamentoList"></div>
     </div>
@@ -291,7 +301,6 @@
         </div>
     </div>
 
-    <!-- Firebase SDK v9+ (Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -309,12 +318,12 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Funções de interface
         function openTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             event.currentTarget.classList.add('active');
+            console.log(`Aba ${tabId} aberta`); // Para depuração
         }
 
         async function loadClientes() {
@@ -323,42 +332,60 @@
             clienteList.innerHTML = '';
             clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
 
-            const querySnapshot = await getDocs(collection(db, 'clientes'));
-            querySnapshot.forEach(doc => {
-                const cliente = doc.data();
-                clienteList.innerHTML += `<div class="list-item">${cliente.nome} - ${cliente.telefone}</div>`;
-                clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
-            });
+            try {
+                const querySnapshot = await getDocs(collection(db, 'clientes'));
+                querySnapshot.forEach(doc => {
+                    const cliente = doc.data();
+                    clienteList.innerHTML += `<div class="list-item">${cliente.nome} - ${cliente.telefone}</div>`;
+                    clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
+                });
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+                document.getElementById('cadastroError').textContent = 'Erro ao carregar clientes. Verifique a conexão com o Firebase.';
+            }
         }
 
         async function loadAgendamentos() {
             const agendamentoList = document.getElementById('agendamentoList');
             agendamentoList.innerHTML = '';
-            const querySnapshot = await getDocs(collection(db, 'agendamentos'));
-            querySnapshot.forEach(doc => {
-                const agendamento = doc.data();
-                agendamentoList.innerHTML += `
-                    <div class="list-item">
-                        ${agendamento.cliente} - ${agendamento.data} às ${agendamento.hora}
-                        <button class="remarcar-btn" onclick="openEditModal('${doc.id}')">Remarcar</button>
-                    </div>`;
-            });
+            try {
+                const querySnapshot = await getDocs(collection(db, 'agendamentos'));
+                querySnapshot.forEach(doc => {
+                    const agendamento = doc.data();
+                    agendamentoList.innerHTML += `
+                        <div class="list-item">
+                            ${agendamento.cliente} - ${agendamento.data} às ${agendamento.hora}
+                            <button class="remarcar-btn" onclick="openEditModal('${doc.id}')">Remarcar</button>
+                        </div>`;
+                });
+            } catch (error) {
+                console.error('Erro ao carregar agendamentos:', error);
+                document.getElementById('agendamentoError').textContent = 'Erro ao carregar agendamentos. Verifique a conexão com o Firebase.';
+            }
         }
 
         document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nome = document.getElementById('nome').value;
-            const telefone = document.getElementById('telefone').value;
+            const nome = document.getElementById('nome').value.trim();
+            const telefone = document.getElementById('telefone').value.trim();
             const dataNascimento = document.getElementById('dataNascimento').value;
+            const errorMessage = document.getElementById('cadastroError');
+
+            if (!nome || !telefone || !dataNascimento) {
+                errorMessage.textContent = 'Por favor, preencha todos os campos.';
+                return;
+            }
 
             try {
                 await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
-                alert('Cliente cadastrado com sucesso!');
+                errorMessage.textContent = 'Cliente cadastrado com sucesso!';
+                errorMessage.style.color = '#10b981';
                 e.target.reset();
                 loadClientes();
+                setTimeout(() => errorMessage.textContent = '', 3000); // Limpa mensagem após 3 segundos
             } catch (error) {
-                console.error('Erro ao cadastrar:', error);
-                alert('Erro ao cadastrar cliente.');
+                console.error('Erro ao cadastrar cliente:', error);
+                errorMessage.textContent = 'Erro ao cadastrar cliente. Verifique a conexão com o Firebase ou as regras de segurança.';
             }
         });
 
@@ -367,15 +394,23 @@
             const cliente = document.getElementById('cliente').value;
             const data = document.getElementById('data').value;
             const hora = document.getElementById('hora').value;
+            const errorMessage = document.getElementById('agendamentoError');
+
+            if (!cliente || !data || !hora) {
+                errorMessage.textContent = 'Por favor, preencha todos os campos.';
+                return;
+            }
 
             try {
                 await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
-                alert('Agendamento realizado com sucesso!');
+                errorMessage.textContent = 'Agendamento realizado com sucesso!';
+                errorMessage.style.color = '#10b981';
                 e.target.reset();
                 loadAgendamentos();
+                setTimeout(() => errorMessage.textContent = '', 3000);
             } catch (error) {
                 console.error('Erro ao agendar:', error);
-                alert('Erro ao realizar agendamento.');
+                errorMessage.textContent = 'Erro ao realizar agendamento. Verifique a conexão com o Firebase.';
             }
         });
 
@@ -401,6 +436,10 @@
         window.saveChanges = async function(id) {
             const newData = document.getElementById('modalData').value;
             const newHora = document.getElementById('modalHora').value;
+            if (!newData || !newHora) {
+                alert('Preencha todos os campos para remarcar.');
+                return;
+            }
             try {
                 await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora });
                 alert('Agendamento atualizado!');
@@ -408,7 +447,7 @@
                 loadAgendamentos();
             } catch (error) {
                 console.error('Erro ao atualizar:', error);
-                alert('Erro ao salvar alterações.');
+                alert('Erro ao salvar alterações. Verifique a conexão com o Firebase.');
             }
         };
 
@@ -420,6 +459,5 @@
         loadClientes();
         loadAgendamentos();
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </body>
 </html>
