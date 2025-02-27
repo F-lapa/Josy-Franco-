@@ -144,11 +144,13 @@
 
         .list-container {
             margin-top: 30px;
+            max-height: 300px; /* Altura máxima com rolagem */
+            overflow-y: auto;
         }
 
         .list-item {
-            display: flex;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: 2fr 1fr 0.5fr; /* Colunas: nome/info, telefone/data, botão excluir */
             align-items: center;
             padding: 15px;
             background: #f9fafb;
@@ -164,9 +166,14 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
 
-        .remarcar-btn {
+        .list-item .info {
+            font-size: 16px;
+            color: #374151;
+        }
+
+        .delete-btn {
             padding: 8px 16px;
-            background: #4f46e5;
+            background: #ef4444;
             color: white;
             border: none;
             border-radius: 10px;
@@ -174,8 +181,8 @@
             transition: all 0.3s ease;
         }
 
-        .remarcar-btn:hover {
-            background: #7c3aed;
+        .delete-btn:hover {
+            background: #dc2626;
         }
 
         .modal {
@@ -202,16 +209,19 @@
             max-width: 500px;
             width: 90%;
             animation: slideDown 0.3s ease;
+            text-align: center;
         }
 
         .modal-buttons {
             display: flex;
             gap: 15px;
             margin-top: 20px;
+            justify-content: center;
         }
 
         .modal-buttons button {
             flex: 1;
+            max-width: 100px;
             padding: 12px;
             border-radius: 10px;
             font-size: 16px;
@@ -220,6 +230,11 @@
         }
 
         .cancel-btn {
+            background: #6b7280;
+            color: white;
+        }
+
+        .confirm-btn {
             background: #ef4444;
             color: white;
         }
@@ -244,7 +259,7 @@
 
     <div class="tab-container">
         <button class="tab-button active" onclick="openTab('cadastro')">Cadastro</button>
-        <button class="tab-button" onclick="openTab('agendamentos')">Agendamentos</button>
+        <button class="tab-button" onclick="openTab('novoAgendamentos')">Agendamentos</button>
     </div>
 
     <div id="cadastro" class="tab-content active">
@@ -256,7 +271,7 @@
             </div>
             <div class="form-group">
                 <label for="telefone">Telefone</label>
-                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" required>
+                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" required oninput="formatPhone(this)">
             </div>
             <div class="form-group">
                 <label for="dataNascimento">Data de Nascimento</label>
@@ -270,7 +285,7 @@
         <div class="list-container" id="clienteList"></div>
     </div>
 
-    <div id="agendamentos" class="tab-content">
+    <div id="novoAgendamentos" class="tab-content">
         <h2>Novo Agendamento</h2>
         <form id="agendamentoForm">
             <div class="form-group">
@@ -304,7 +319,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBl55ZrLR6Bgy0WHa-HoACm25mC8_l4awY",
@@ -320,19 +335,39 @@
         const db = getFirestore(app);
 
         // Função para alternar abas
-        function openTab(tabId) {
+        window.openTab = function(tabId) {
             console.log(`Tentando abrir aba: ${tabId}`);
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
             const selectedTab = document.getElementById(tabId);
-            const selectedButton = event.target; // Usando target para capturar o botão clicado
+            const selectedButton = document.querySelector(`.tab-button[onclick="openTab('${tabId}')"]`);
             if (selectedTab && selectedButton) {
                 selectedTab.classList.add('active');
                 selectedButton.classList.add('active');
                 console.log(`Aba ${tabId} aberta com sucesso`);
             } else {
-                console.error('Erro: Tab ou botão não encontrados');
+                console.error('Erro: Tab ou botão não encontrados', { tabId, selectedTab, selectedButton });
             }
+        };
+
+        // Formatar telefone automaticamente
+        function formatPhone(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove tudo que não é número
+            value = value.substring(0, 11); // Limita a 11 dígitos (DDD + 9 dígitos)
+            let formatted = '';
+
+            if (value.length > 0) {
+                formatted = '(' + value.substring(0, 2); // Adiciona (DD
+                if (value.length > 2) {
+                    formatted += ') ' + value.substring(2, 7); // Adiciona) 12345
+                    if (value.length > 7) {
+                        formatted += '-' + value.substring(7, 11); // Adiciona-6789
+                    }
+                }
+            }
+            input.value = formatted;
         }
 
         // Carregar clientes
@@ -348,8 +383,19 @@
                     const cliente = doc.data();
                     const item = document.createElement('div');
                     item.className = 'list-item';
-                    item.textContent = `${cliente.nome} - ${cliente.telefone}`;
-                    item.onclick = () => openClientModal(cliente);
+                    const info = document.createElement('div');
+                    info.className = 'info';
+                    info.textContent = `${cliente.nome}`;
+                    item.appendChild(info);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-btn';
+                    deleteButton.textContent = 'Excluir';
+                    deleteButton.onclick = (e) => {
+                        e.stopPropagation(); // Impede que o clique no botão dispare o modal
+                        openDeleteModal('cliente', doc.id, cliente.nome);
+                    };
+                    item.appendChild(deleteButton);
+                    item.onclick = () => openClientModal(doc.id, cliente);
                     clienteList.appendChild(item);
                     clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
                 });
@@ -370,7 +416,20 @@
                     const agendamento = doc.data();
                     const item = document.createElement('div');
                     item.className = 'list-item';
-                    item.textContent = `${agendamento.cliente} - ${agendamento.data} às ${agendamento.hora}`;
+                    const info = document.createElement('div');
+                    info.className = 'info';
+                    const [year, month, day] = agendamento.data.split('-');
+                    const formattedDate = `${day}/${month}/${year}`;
+                    info.textContent = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`;
+                    item.appendChild(info);
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-btn';
+                    deleteButton.textContent = 'Excluir';
+                    deleteButton.onclick = (e) => {
+                        e.stopPropagation(); // Impede que o clique no botão dispare o modal de edição
+                        openDeleteModal('agendamento', doc.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`);
+                    };
+                    item.appendChild(deleteButton);
                     item.onclick = () => openEditModal(doc.id, agendamento);
                     agendamentoList.appendChild(item);
                 });
@@ -385,7 +444,7 @@
         document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('nome').value.trim();
-            const telefone = document.getElementById('telefone').value.trim();
+            const telefone = document.getElementById('telefone').value.replace(/\D/g, '').substring(0, 11); // Apenas números
             const dataNascimento = document.getElementById('dataNascimento').value;
             const errorMessage = document.getElementById('cadastroError');
 
@@ -437,17 +496,49 @@
             }
         });
 
-        // Modal de detalhes do cliente
-        function openClientModal(cliente) {
+        // Modal de detalhes e edição do cliente
+        function openClientModal(docId, cliente) {
             const modal = document.getElementById('modal');
             document.getElementById('modalTitle').textContent = 'Detalhes do Cliente';
             document.getElementById('modalContent').innerHTML = `
-                <p><strong>Nome:</strong> ${cliente.nome}</p>
-                <p><strong>Telefone:</strong> ${cliente.telefone}</p>
-                <p><strong>Data de Nascimento:</strong> ${cliente.dataNascimento.split('-').reverse().join('/')}</p>
-                <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                <div class="form-group">
+                    <label for="editNome">Nome</label>
+                    <input type="text" id="editNome" value="${cliente.nome}" required>
+                </div>
+                <div class="form-group">
+                    <label for="editTelefone">Telefone</label>
+                    <input type="tel" id="editTelefone" value="${cliente.telefone}" required oninput="formatPhone(this)">
+                </div>
+                <div class="form-group">
+                    <label for="editDataNascimento">Data de Nascimento</label>
+                    <input type="date" id="editDataNascimento" value="${cliente.dataNascimento}" required>
+                </div>
+                <div class="modal-buttons">
+                    <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                    <button class="save-btn" onclick="saveClientChanges('${docId}')">Salvar</button>
+                </div>
             `;
             modal.classList.add('active');
+        }
+
+        // Salvar alterações do cliente
+        async function saveClientChanges(docId) {
+            const nome = document.getElementById('editNome').value.trim();
+            const telefone = document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11);
+            const dataNascimento = document.getElementById('editDataNascimento').value;
+            if (!nome || !telefone || !dataNascimento) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+            try {
+                await updateDoc(doc(db, 'clientes', docId), { nome, telefone, dataNascimento });
+                alert('Cliente atualizado com sucesso!');
+                closeModal();
+                loadClientes();
+            } catch (error) {
+                console.error('Erro ao atualizar cliente:', error);
+                alert('Erro ao salvar alterações. Verifique a conexão ou as regras do Firebase.');
+            }
         }
 
         // Modal de remarcação de agendamento
@@ -490,10 +581,45 @@
             }
         }
 
-        // Fechar modal
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
+        // Modal de confirmação de exclusão
+        function openDeleteModal(type, id, name) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
+            document.getElementById('modalContent').innerHTML = `
+                <p>Tem certeza de que deseja excluir "${name}"?</p>
+                <div class="modal-buttons">
+                    <button class="cancel-btn" onclick="closeModal()">Não</button>
+                    <button class="confirm-btn" onclick="confirmDelete('${type}', '${id}')">Sim</button>
+                </div>
+            `;
+            modal.classList.add('active');
         }
+
+        // Confirmar exclusão
+        async function confirmDelete(type, id) {
+            try {
+                if (type === 'cliente') {
+                    await deleteDoc(doc(db, 'clientes', id));
+                    loadClientes();
+                    console.log('Cliente excluído com sucesso');
+                } else if (type === 'agendamento') {
+                    await deleteDoc(doc(db, 'agendamentos', id));
+                    loadAgendamentos();
+                    console.log('Agendamento excluído com sucesso');
+                }
+                closeModal();
+            } catch (error) {
+                console.error('Erro ao excluir:', error);
+                alert('Erro ao excluir. Verifique a conexão ou as regras do Firebase.');
+            }
+        }
+
+        // Fechar modal
+        window.closeModal = function() {
+            const modal = document.getElementById('modal');
+            modal.classList.remove('active');
+            console.log('Modal fechado');
+        };
 
         // Carregar dados iniciais
         loadClientes();
