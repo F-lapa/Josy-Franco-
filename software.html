@@ -629,17 +629,20 @@
             toggleLoading(true);
             try {
                 logMessage('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, dataNascimento });
-                await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
+                const docRef = await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
+                logMessage(`[SUCCESS] Cliente cadastrado com sucesso. ID: ${docRef.id}`);
                 errorMessage.textContent = 'Cliente cadastrado com sucesso!';
                 errorMessage.style.color = '#10b981';
                 e.target.reset();
                 clientCache.clear(); // Limpa cache para recarregar
-                loadClientes();
+                await loadClientes(); // Garante recarregamento assíncrono
                 setTimeout(() => errorMessage.textContent = '', 3000);
-                logMessage('[SUCCESS] Cliente cadastrado com sucesso');
             } catch (error) {
                 logMessage(`[ERROR] Erro ao cadastrar cliente: ${error.message}`);
-                errorMessage.textContent = 'Erro ao cadastrar cliente. Verifique a conexão ou as regras do Firebase.';
+                errorMessage.textContent = 'Erro ao cadastrar cliente. Verifique a conexão, regras do Firebase ou o formato dos dados.';
+                if (error.code) {
+                    logMessage(`[ERROR] Código de erro Firebase: ${error.code}`);
+                }
             } finally {
                 toggleLoading(false);
             }
@@ -661,17 +664,20 @@
             toggleLoading(true);
             try {
                 logMessage('[DEBUG] Tentando agendar:', { cliente, data, hora });
-                await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
+                const docRef = await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
+                logMessage(`[SUCCESS] Agendamento realizado com sucesso. ID: ${docRef.id}`);
                 errorMessage.textContent = 'Agendamento realizado com sucesso!';
                 errorMessage.style.color = '#10b981';
                 e.target.reset();
                 appointmentCache.clear(); // Limpa cache para recarregar
-                loadAgendamentos();
+                await loadAgendamentos(); // Garante recarregamento assíncrono
                 setTimeout(() => errorMessage.textContent = '', 3000);
-                logMessage('[SUCCESS] Agendamento realizado com sucesso');
             } catch (error) {
                 logMessage(`[ERROR] Erro ao agendar: ${error.message}`);
-                errorMessage.textContent = 'Erro ao realizar agendamento. Verifique a conexão ou as regras do Firebase.';
+                errorMessage.textContent = 'Erro ao realizar agendamento. Verifique a conexão, regras do Firebase ou o formato dos dados.';
+                if (error.code) {
+                    logMessage(`[ERROR] Código de erro Firebase: ${error.code}`);
+                }
             } finally {
                 toggleLoading(false);
             }
@@ -718,15 +724,19 @@
             toggleLoading(true);
             try {
                 logMessage(`[DEBUG] Tentando salvar alterações do cliente com ID: ${docId}`, { nome, telefone, dataNascimento });
-                await updateDoc(doc(db, 'clientes', docId), { nome, telefone, dataNascimento });
+                const docRef = doc(db, 'clientes', docId);
+                await updateDoc(docRef, { nome, telefone, dataNascimento });
                 logMessage('[SUCCESS] Cliente atualizado com sucesso');
                 alert('Cliente atualizado com sucesso!');
                 closeModal();
                 clientCache.clear(); // Limpa cache para recarregar
-                loadClientes();
+                await loadClientes(); // Garante recarregamento assíncrono
             } catch (error) {
                 logMessage(`[ERROR] Erro ao atualizar cliente: ${error.message}`);
-                alert('Erro ao salvar alterações. Verifique a conexão ou as regras do Firebase.');
+                alert('Erro ao salvar alterações. Verifique a conexão, regras do Firebase ou o formato dos dados.');
+                if (error.code) {
+                    logMessage(`[ERROR] Código de erro Firebase: ${error.code}`);
+                }
             } finally {
                 toggleLoading(false);
             }
@@ -766,15 +776,19 @@
             toggleLoading(true);
             try {
                 logMessage(`[DEBUG] Tentando salvar alterações do agendamento com ID: ${id}`);
-                await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora });
+                const docRef = doc(db, 'agendamentos', id);
+                await updateDoc(docRef, { data: newData, hora: newHora });
                 logMessage('[SUCCESS] Agendamento atualizado com sucesso');
                 alert('Agendamento atualizado!');
                 closeModal();
                 appointmentCache.clear(); // Limpa cache para recarregar
-                loadAgendamentos();
+                await loadAgendamentos(); // Garante recarregamento assíncrono
             } catch (error) {
                 logMessage(`[ERROR] Erro ao atualizar agendamento: ${error.message}`);
-                alert('Erro ao salvar alterações. Verifique a conexão ou as regras do Firebase.');
+                alert('Erro ao salvar alterações. Verifique a conexão, regras do Firebase ou o formato dos dados.');
+                if (error.code) {
+                    logMessage(`[ERROR] Código de erro Firebase: ${error.code}`);
+                }
             } finally {
                 toggleLoading(false);
             }
