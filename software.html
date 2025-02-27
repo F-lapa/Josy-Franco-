@@ -348,7 +348,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, updateDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, updateDoc, doc, deleteDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBl55ZrLR6Bgy0WHa-HoACm25mC8_l4awY",
@@ -801,18 +801,41 @@
             toggleLoading(true);
             try {
                 logMessage(`[DEBUG] Verificando ID para exclusão: ${type}, ID: ${id}`);
-                const docRef = doc(db, type === 'cliente' ? 'clientes' : 'agendamentos', id);
+                const collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
+                const docRef = doc(db, collectionName, id);
                 logMessage(`[DEBUG] Tentando excluir documento: ${docRef.path}`);
 
-                await deleteDoc(docRef);
+                // Verificar se o documento existe antes de excluir
+                const docSnap = await getDoc(docRef);
+                if (!docSnap.exists()) {
+                    throw new Error(`Documento ${id} não encontrado na coleção ${collectionName}`);
+                }
+
+                // Tentar excluir com retry (por segurança)
+                let attempts = 0;
+                const maxAttempts = 3;
+                while (attempts < maxAttempts) {
+                    try {
+                        await deleteDoc(docRef);
+                        break;
+                    } catch (retryError) {
+                        attempts++;
+                        if (attempts === maxAttempts) {
+                            throw new Error(`Falha após ${maxAttempts} tentativas: ${retryError.message}`);
+                        }
+                        logMessage(`[WARNING] Tentativa ${attempts} de exclusão falhou: ${retryError.message}. Tentando novamente...`);
+                        await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); // Espera antes de retry
+                    }
+                }
+
                 logMessage(`[SUCCESS] ${type} excluído com sucesso do Firestore`);
                 closeModal(); // Fecha o modal após a exclusão bem-sucedida
                 if (type === 'cliente') {
                     clientCache.clear();
-                    loadClientes();
+                    await loadClientes(); // Força recarregamento assíncrono
                 } else {
                     appointmentCache.clear();
-                    loadAgendamentos();
+                    await loadAgendamentos(); // Força recarregamento assíncrono
                 }
                 logMessage(`[SUCCESS] ${type} excluído, modal fechado e lista recarregada`);
             } catch (error) {
