@@ -214,17 +214,6 @@
             text-align: center;
         }
 
-        .debug-container {
-            margin-top: 20px;
-            padding: 10px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            max-height: 100px;
-            overflow-y: auto;
-            font-size: 12px;
-            color: #333;
-        }
-
         .modal-buttons {
             display: flex;
             gap: 15px;
@@ -343,7 +332,6 @@
         </div>
     </div>
 
-    <div class="debug-container" id="debugLog"></div>
     <div class="loading" id="loading">Carregando...</div>
 
     <script type="module">
@@ -363,13 +351,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Função para exibir logs na página
+        // Função para exibir logs no console (removido da interface)
         function logMessage(message) {
-            const debugLog = document.getElementById('debugLog');
-            const p = document.createElement('p');
-            p.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            debugLog.appendChild(p);
-            debugLog.scrollTop = debugLog.scrollHeight; // Rola para o final
+            console.log(`[${new Date().toLocaleTimeString()}] ${message}`);
         }
 
         // Função para mostrar/esconder o loading
@@ -381,12 +365,12 @@
         // Verifica se é um dispositivo móvel
         const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
         if (isMobile) {
-            logMessage('[INFO] Detectado dispositivo móvel');
+            console.log('[INFO] Detectado dispositivo móvel');
         }
 
         // Função para alternar abas
         window.openTab = function (tabId) {
-            logMessage(`[DEBUG] Tentando abrir aba: ${tabId}`);
+            console.log(`[DEBUG] Tentando abrir aba: ${tabId}`);
             const tabs = document.querySelectorAll('.tab-content');
             const buttons = document.querySelectorAll('.tab-button');
             tabs.forEach(tab => tab.classList.remove('active'));
@@ -396,9 +380,9 @@
             if (selectedTab && selectedButton) {
                 selectedTab.classList.add('active');
                 selectedButton.classList.add('active');
-                logMessage(`[SUCCESS] Aba ${tabId} aberta com sucesso`);
+                console.log(`[SUCCESS] Aba ${tabId} aberta com sucesso`);
             } else {
-                logMessage(`[ERROR] Erro: Tab ou botão não encontrados`, { tabId, selectedTab, selectedButton });
+                console.error(`[ERROR] Erro: Tab ou botão não encontrados`, { tabId, selectedTab, selectedButton });
             }
         };
 
@@ -428,10 +412,10 @@
                     }
                 },
                 onAccept: (value) => {
-                    logMessage(`[DEBUG] Telefone aceito com IMask: ${value}`);
+                    console.log(`[DEBUG] Telefone aceito com IMask: ${value}`);
                 },
                 onComplete: (value) => {
-                    logMessage(`[SUCCESS] Telefone formatado com IMask: ${value}`);
+                    console.log(`[SUCCESS] Telefone formatado com IMask: ${value}`);
                 }
             });
 
@@ -459,10 +443,10 @@
                     }
                 },
                 onAccept: (value) => {
-                    logMessage(`[DEBUG] Telefone editado aceito com IMask: ${value}`);
+                    console.log(`[DEBUG] Telefone editado aceito com IMask: ${value}`);
                 },
                 onComplete: (value) => {
-                    logMessage(`[SUCCESS] Telefone editado formatado com IMask: ${value}`);
+                    console.log(`[SUCCESS] Telefone editado formatado com IMask: ${value}`);
                 }
             });
         });
@@ -482,7 +466,7 @@
             try {
                 const cacheKey = 'clients';
                 if (clientCache.has(cacheKey)) {
-                    logMessage('[DEBUG] Usando cache para clientes');
+                    console.log('[DEBUG] Usando cache para clientes');
                     const cachedData = clientCache.get(cacheKey);
                     renderClientes(cachedData);
                     return;
@@ -498,9 +482,9 @@
 
                 clientCache.set(cacheKey, clients);
                 renderClientes(clients);
-                logMessage('[SUCCESS] Clientes carregados com sucesso');
+                console.log('[SUCCESS] Clientes carregados com sucesso');
             } catch (error) {
-                logMessage(`[ERROR] Erro ao carregar clientes: ${error.message}`);
+                console.error(`[ERROR] Erro ao carregar clientes: ${error.message}`);
                 document.getElementById('cadastroError').textContent = 'Erro ao carregar clientes. Verifique a conexão ou as regras do Firebase.';
             } finally {
                 toggleLoading(false);
@@ -524,7 +508,7 @@
                 deleteButton.onclick = (e) => {
                     e.stopPropagation();
                     openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`);
-                    logMessage(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
+                    console.log(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
                 };
                 item.appendChild(deleteButton);
                 item.onclick = () => openClientModal(cliente.id, cliente);
@@ -542,7 +526,7 @@
             try {
                 const cacheKey = 'appointments';
                 if (appointmentCache.has(cacheKey)) {
-                    logMessage('[DEBUG] Usando cache para agendamentos');
+                    console.log('[DEBUG] Usando cache para agendamentos');
                     const cachedData = appointmentCache.get(cacheKey);
                     renderAgendamentos(cachedData);
                     return;
@@ -558,9 +542,9 @@
 
                 appointmentCache.set(cacheKey, appointments);
                 renderAgendamentos(appointments);
-                logMessage('[SUCCESS] Agendamentos carregados com sucesso');
+                console.log('[SUCCESS] Agendamentos carregados com sucesso');
             } catch (error) {
-                logMessage(`[ERROR] Erro ao carregar agendamentos: ${error.message}`);
+                console.error(`[ERROR] Erro ao carregar agendamentos: ${error.message}`);
                 document.getElementById('agendamentoError').textContent = 'Erro ao carregar agendamentos. Verifique a conexão ou as regras do Firebase.';
             } finally {
                 toggleLoading(false);
@@ -585,7 +569,7 @@
                 deleteButton.onclick = (e) => {
                     e.stopPropagation();
                     openDeleteModal('agendamento', agendamento.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`);
-                    logMessage(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
+                    console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
                 };
                 item.appendChild(deleteButton);
                 item.onclick = () => openEditModal(agendamento.id, agendamento);
@@ -619,7 +603,7 @@
             const dataNascimento = document.getElementById('dataNascimento').value;
             const errorMessage = document.getElementById('cadastroError');
 
-            logMessage(`[DEBUG] Valores do formulário: Nome=${nome}, Telefone (mascarado)=${telefoneMasked}, Telefone (números)=${telefone}, Data=${dataNascimento}`);
+            console.log(`[DEBUG] Valores do formulário: Nome=${nome}, Telefone (mascarado)=${telefoneMasked}, Telefone (números)=${telefone}, Data=${dataNascimento}`);
 
             if (!nome || !telefone || !dataNascimento) {
                 errorMessage.textContent = 'Por favor, preencha todos os campos.';
@@ -628,9 +612,9 @@
 
             toggleLoading(true);
             try {
-                logMessage('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, dataNascimento });
+                console.log('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, dataNascimento });
                 const docRef = await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
-                logMessage(`[SUCCESS] Cliente cadastrado com sucesso. ID: ${docRef.id}`);
+                console.log(`[SUCCESS] Cliente cadastrado com sucesso. ID: ${docRef.id}`);
                 errorMessage.textContent = 'Cliente cadastrado com sucesso!';
                 errorMessage.style.color = '#10b981';
                 e.target.reset();
@@ -638,10 +622,10 @@
                 await loadClientes(); // Garante recarregamento assíncrono
                 setTimeout(() => errorMessage.textContent = '', 3000);
             } catch (error) {
-                logMessage(`[ERROR] Erro ao cadastrar cliente: ${error.message}`);
+                console.error(`[ERROR] Erro ao cadastrar cliente: ${error.message}`);
                 errorMessage.textContent = 'Erro ao cadastrar cliente. Verifique a conexão, regras do Firebase ou o formato dos dados.';
                 if (error.code) {
-                    logMessage(`[ERROR] Código de erro Firebase: ${error.code}`);
+                    console.error(`[ERROR] Código de erro Firebase: ${error.code}`);
                 }
             } finally {
                 toggleLoading(false);
@@ -663,9 +647,9 @@
 
             toggleLoading(true);
             try {
-                logMessage('[DEBUG] Tentando agendar:', { cliente, data, hora });
+                console.log('[DEBUG] Tentando agendar:', { cliente, data, hora });
                 const docRef = await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
-                logMessage(`[SUCCESS] Agendamento realizado com sucesso. ID: ${docRef.id}`);
+                console.log(`[SUCCESS] Agendamento realizado com sucesso. ID: ${docRef.id}`);
                 errorMessage.textContent = 'Agendamento realizado com sucesso!';
                 errorMessage.style.color = '#10b981';
                 e.target.reset();
@@ -673,10 +657,10 @@
                 await loadAgendamentos(); // Garante recarregamento assíncrono
                 setTimeout(() => errorMessage.textContent = '', 3000);
             } catch (error) {
-                logMessage(`[ERROR] Erro ao agendar: ${error.message}`);
+                console.error(`[ERROR] Erro ao agendar: ${error.message}`);
                 errorMessage.textContent = 'Erro ao realizar agendamento. Verifique a conexão, regras do Firebase ou o formato dos dados.';
                 if (error.code) {
-                    logMessage(`[ERROR] Código de erro Firebase: ${error.code}`);
+                    console.error(`[ERROR] Código de erro Firebase: ${error.code}`);
                 }
             } finally {
                 toggleLoading(false);
@@ -686,7 +670,7 @@
         // Modal de detalhes e edição do cliente
         function openClientModal(docId, cliente) {
             const modal = document.getElementById('modal');
-            logMessage(`[DEBUG] Abrindo modal de cliente com ID: ${docId}`);
+            console.log(`[DEBUG] Abrindo modal de cliente com ID: ${docId}`);
             document.getElementById('modalTitle').textContent = 'Detalhes do Cliente';
             document.getElementById('modalContent').innerHTML = `
                 <div class="form-group">
@@ -723,19 +707,19 @@
 
             toggleLoading(true);
             try {
-                logMessage(`[DEBUG] Tentando salvar alterações do cliente com ID: ${docId}`, { nome, telefone, dataNascimento });
+                console.log(`[DEBUG] Tentando salvar alterações do cliente com ID: ${docId}`, { nome, telefone, dataNascimento });
                 const docRef = doc(db, 'clientes', docId);
                 await updateDoc(docRef, { nome, telefone, dataNascimento });
-                logMessage('[SUCCESS] Cliente atualizado com sucesso');
+                console.log('[SUCCESS] Cliente atualizado com sucesso');
                 alert('Cliente atualizado com sucesso!');
                 closeModal();
                 clientCache.clear(); // Limpa cache para recarregar
                 await loadClientes(); // Garante recarregamento assíncrono
             } catch (error) {
-                logMessage(`[ERROR] Erro ao atualizar cliente: ${error.message}`);
+                console.error(`[ERROR] Erro ao atualizar cliente: ${error.message}`);
                 alert('Erro ao salvar alterações. Verifique a conexão, regras do Firebase ou o formato dos dados.');
                 if (error.code) {
-                    logMessage(`[ERROR] Código de erro Firebase: ${error.code}`);
+                    console.error(`[ERROR] Código de erro Firebase: ${error.code}`);
                 }
             } finally {
                 toggleLoading(false);
@@ -745,7 +729,7 @@
         // Modal de remarcação de agendamento
         function openEditModal(id, agendamento) {
             const modal = document.getElementById('modal');
-            logMessage(`[DEBUG] Abrindo modal de agendamento com ID: ${id}`);
+            console.log(`[DEBUG] Abrindo modal de agendamento com ID: ${id}`);
             document.getElementById('modalTitle').textContent = 'Remarcar Agendamento';
             document.getElementById('modalContent').innerHTML = `
                 <div class="form-group">
@@ -775,19 +759,19 @@
 
             toggleLoading(true);
             try {
-                logMessage(`[DEBUG] Tentando salvar alterações do agendamento com ID: ${id}`);
+                console.log(`[DEBUG] Tentando salvar alterações do agendamento com ID: ${id}`);
                 const docRef = doc(db, 'agendamentos', id);
                 await updateDoc(docRef, { data: newData, hora: newHora });
-                logMessage('[SUCCESS] Agendamento atualizado com sucesso');
+                console.log('[SUCCESS] Agendamento atualizado com sucesso');
                 alert('Agendamento atualizado!');
                 closeModal();
                 appointmentCache.clear(); // Limpa cache para recarregar
                 await loadAgendamentos(); // Garante recarregamento assíncrono
             } catch (error) {
-                logMessage(`[ERROR] Erro ao atualizar agendamento: ${error.message}`);
+                console.error(`[ERROR] Erro ao atualizar agendamento: ${error.message}`);
                 alert('Erro ao salvar alterações. Verifique a conexão, regras do Firebase ou o formato dos dados.');
                 if (error.code) {
-                    logMessage(`[ERROR] Código de erro Firebase: ${error.code}`);
+                    console.error(`[ERROR] Código de erro Firebase: ${error.code}`);
                 }
             } finally {
                 toggleLoading(false);
@@ -797,7 +781,7 @@
         // Modal de confirmação de exclusão
         function openDeleteModal(type, id, name) {
             const modal = document.getElementById('modal');
-            logMessage(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
+            console.log(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
             document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
             document.getElementById('modalContent').innerHTML = `
                 <p>Tem certeza de que deseja excluir "${name}"?</p>
@@ -811,13 +795,13 @@
 
         // Confirmar exclusão
         async function confirmDelete(type, id) {
-            logMessage(`[DEBUG] Confirmando exclusão de ${type} com ID: ${id}`);
+            console.log(`[DEBUG] Confirmando exclusão de ${type} com ID: ${id}`);
             toggleLoading(true);
             try {
-                logMessage(`[DEBUG] Verificando ID para exclusão: ${type}, ID: ${id}`);
+                console.log(`[DEBUG] Verificando ID para exclusão: ${type}, ID: ${id}`);
                 const collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
                 const docRef = doc(db, collectionName, id);
-                logMessage(`[DEBUG] Tentando excluir documento: ${docRef.path}`);
+                console.log(`[DEBUG] Tentando excluir documento: ${docRef.path}`);
 
                 // Verificar se o documento existe antes de excluir
                 const docSnap = await getDoc(docRef);
@@ -837,12 +821,12 @@
                         if (attempts === maxAttempts) {
                             throw new Error(`Falha após ${maxAttempts} tentativas: ${retryError.message}`);
                         }
-                        logMessage(`[WARNING] Tentativa ${attempts} de exclusão falhou: ${retryError.message}. Tentando novamente...`);
+                        console.log(`[WARNING] Tentativa ${attempts} de exclusão falhou: ${retryError.message}. Tentando novamente...`);
                         await new Promise(resolve => setTimeout(resolve, 1000 * attempts)); // Espera antes de retry
                     }
                 }
 
-                logMessage(`[SUCCESS] ${type} excluído com sucesso do Firestore`);
+                console.log(`[SUCCESS] ${type} excluído com sucesso do Firestore`);
                 closeModal(); // Fecha o modal após a exclusão bem-sucedida
                 if (type === 'cliente') {
                     clientCache.clear();
@@ -851,9 +835,9 @@
                     appointmentCache.clear();
                     await loadAgendamentos(); // Força recarregamento assíncrono
                 }
-                logMessage(`[SUCCESS] ${type} excluído, modal fechado e lista recarregada`);
+                console.log(`[SUCCESS] ${type} excluído, modal fechado e lista recarregada`);
             } catch (error) {
-                logMessage(`[ERROR] Erro ao excluir ${type}: ${error.message}`);
+                console.error(`[ERROR] Erro ao excluir ${type}: ${error.message}`);
                 alert(`Erro ao excluir ${type}. Detalhes: ${error.message}`);
                 closeModal(); // Fecha o modal mesmo em caso de erro
             } finally {
@@ -865,7 +849,7 @@
         window.closeModal = function() {
             const modal = document.getElementById('modal');
             modal.classList.remove('active');
-            logMessage('[DEBUG] Modal fechado');
+            console.log('[DEBUG] Modal fechado');
         };
 
         // Carregar dados iniciais com otimização
@@ -878,10 +862,10 @@
                 const clients = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 clientCache.set('clients', clients);
                 renderClientes(clients);
-                logMessage('[REAL-TIME] Clientes atualizados em tempo real');
+                console.log('[REAL-TIME] Clientes atualizados em tempo real');
             }, 
             (error) => {
-                logMessage(`[ERROR] Erro em tempo real para clientes: ${error.message}`);
+                console.error(`[ERROR] Erro em tempo real para clientes: ${error.message}`);
             });
 
         const unsubscribeAppointments = onSnapshot(query(collection(db, 'agendamentos'), orderBy('data'), limit(50)), 
@@ -889,10 +873,10 @@
                 const appointments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 appointmentCache.set('appointments', appointments);
                 renderAgendamentos(appointments);
-                logMessage('[REAL-TIME] Agendamentos atualizados em tempo real');
+                console.log('[REAL-TIME] Agendamentos atualizados em tempo real');
             }, 
             (error) => {
-                logMessage(`[ERROR] Erro em tempo real para agendamentos: ${error.message}`);
+                console.error(`[ERROR] Erro em tempo real para agendamentos: ${error.message}`);
             });
     </script>
 </body>
