@@ -5,169 +5,172 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Josy Franco Terapeuta</title>
     <style>
-        /* Estilo básico para a página */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f9fafb;
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0e7ff, #f9fafb);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 20px;
         }
 
         .header {
-            background-color: #6366f1;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
             color: white;
-            padding: 20px;
+            padding: 30px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .header h1 {
-            font-size: 24px;
-            margin: 0;
+            font-size: 32px;
+            font-weight: 700;
         }
 
         .tab-container {
             display: flex;
-            justify-content: center;
-            margin-top: 20px;
-            border-bottom: 2px solid #e5e7eb;
+            gap: 10px;
+            margin: 30px 0;
+            background: white;
+            padding: 10px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
 
         .tab-button {
-            padding: 12px 24px;
+            padding: 12px 30px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 500;
-            color: #4b5563;
+            font-weight: 600;
+            color: #6b7280;
+            background: transparent;
             border: none;
-            background: none;
+            border-radius: 25px;
             transition: all 0.3s ease;
         }
 
         .tab-button.active {
-            color: #6366f1;
-            border-bottom: 2px solid #6366f1;
+            background: #4f46e5;
+            color: white;
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
         }
 
         .tab-content {
             display: none;
             width: 100%;
-            max-width: 600px;
-            margin: 20px auto;
-            padding: 20px;
+            max-width: 700px;
+            padding: 30px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.5s ease;
         }
 
         .tab-content.active {
             display: block;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: #1f2937;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
             font-size: 14px;
-            color: #374151;
+            color: #4b5563;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
 
         .form-group input, .form-group select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
         }
 
-        .form-group input:focus {
-            border-color: #6366f1;
+        .form-group input:focus, .form-group select:focus {
+            border-color: #4f46e5;
             outline: none;
+            box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
         }
 
         .form-group button {
             width: 100%;
-            padding: 12px;
-            background-color: #6366f1;
+            padding: 14px;
+            background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 12px;
             font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .form-group button:hover {
-            background-color: #4f46e5;
+            background: #7c3aed;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
         }
 
-        .success-message {
-            color: #10b981;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-        /* Estilo da lista */
         .list-container {
-            margin-top: 20px;
+            margin-top: 30px;
         }
 
         .list-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px;
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
         }
 
         .list-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: scale(1.02);
+            background: #eef2ff;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
 
-        .list-item-name {
-            font-weight: 500;
-            color: #374151;
-            font-size: 16px;
-        }
-
-        .list-item-date {
-            font-size: 14px;
-            color: #6b7280;
-            margin-right: 10px;
-        }
-
-        /* Botão Remarcar */
         .remarcar-btn {
             padding: 8px 16px;
-            background-color: #6366f1;
+            background: #4f46e5;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .remarcar-btn:hover {
-            background-color: #4f46e5;
+            background: #7c3aed;
         }
 
-        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -175,101 +178,53 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
         }
 
         .modal.active {
             display: flex;
-            opacity: 1;
         }
 
         .modal-content {
             background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 80%;
+            padding: 30px;
+            border-radius: 20px;
             max-width: 500px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transform: scale(0.9);
-            opacity: 0;
-            transition: transform 0.3s ease, opacity 0.3s ease;
+            width: 90%;
+            animation: modalPop 0.3s ease;
         }
 
-        .modal-content.show {
-            transform: scale(1);
-            opacity: 1;
+        @keyframes modalPop {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
-        .modal-content h3 {
-            margin-bottom: 15px;
-            font-size: 20px;
-            color: #374151;
-        }
-
-        .modal-content .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .modal-content .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 14px;
-            color: #4b5563;
-        }
-
-        .modal-content .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
-        }
-
-        .modal-content .form-group input:focus {
-            border-color: #6366f1;
-            outline: none;
-        }
-
-        .modal-content .modal-buttons {
+        .modal-buttons {
             display: flex;
-            justify-content: space-between;
-            gap: 10px;
+            gap: 15px;
+            margin-top: 20px;
         }
 
-        .modal-content .modal-buttons button {
+        .modal-buttons button {
             flex: 1;
             padding: 12px;
-            border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 16px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
-        .modal-content .modal-buttons .cancel-btn {
-            background-color: #ef4444;
+        .cancel-btn {
+            background: #ef4444;
             color: white;
         }
 
-        .modal-content .modal-buttons .cancel-btn:hover {
-            background-color: #dc2626;
-        }
-
-                .modal-content .modal-buttons .save-btn {
-            background-color: #6366f1;
+        .save-btn {
+            background: #4f46e5;
             color: white;
-        }
-
-        .modal-content .modal-buttons .save-btn:hover {
-            background-color: #4f46e5;
         }
     </style>
 </head>
@@ -278,89 +233,69 @@
         <h1>Josy Franco Terapeuta</h1>
     </div>
 
-    <!-- Abas -->
     <div class="tab-container">
-        <div class="tab-button active" onclick="openTab('cadastro')">Cadastro de Clientes</div>
-        <div class="tab-button" onclick="openTab('agendamento')">Agendamentos</div>
+        <button class="tab-button active" onclick="openTab('cadastro')">Cadastro</button>
+        <button class="tab-button" onclick="openTab('agendamento')">Agendamentos</button>
     </div>
 
-    <!-- Conteúdo das Abas -->
     <div id="cadastro" class="tab-content active">
-        <h2>Cadastro de Clientes</h2>
+        <h2>Cadastrar Cliente</h2>
         <form id="cadastroForm">
             <div class="form-group">
-                <label for="nome">Nome Completo:</label>
-                <input type="text" id="nome" placeholder="Ex.: João Silva" required>
+                <label for="nome">Nome Completo</label>
+                <input type="text" id="nome" placeholder="João Silva" required>
             </div>
             <div class="form-group">
-                <label for="telefone">Telefone:</label>
-                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" oninput="formatPhone(this)" onkeypress="return onlyNumbers(event)" required>
+                <label for="telefone">Telefone</label>
+                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" required>
             </div>
             <div class="form-group">
-                <label>Data de Nascimento:</label>
-                <div class="date-group">
-                    <input type="text" id="dia" placeholder="DD" maxlength="2" inputmode="numeric" oninput="handleDateInput(this, 'mes')" onkeypress="return onlyNumbers(event)" required>
-                    <input type="text" id="mes" placeholder="MM" maxlength="2" inputmode="numeric" oninput="handleDateInput(this, 'ano')" onkeypress="return onlyNumbers(event)" required>
-                    <input type="text" id="ano" placeholder="AAAA" maxlength="4" inputmode="numeric" onkeypress="return onlyNumbers(event)" required>
-                </div>
+                <label for="dataNascimento">Data de Nascimento</label>
+                <input type="date" id="dataNascimento" required>
             </div>
             <div class="form-group">
                 <button type="submit">Cadastrar</button>
             </div>
-            <div id="successMessage" class="success-message"></div>
         </form>
-
-        <!-- Lista de Clientes -->
-        <div class="list-container">
-            <h3>Clientes Cadastrados</h3>
-            <div id="clienteList"></div>
-        </div>
+        <div class="list-container" id="clienteList"></div>
     </div>
 
     <div id="agendamento" class="tab-content">
-        <h2>Agendamentos</h2>
+        <h2>Novo Agendamento</h2>
         <form id="agendamentoForm">
             <div class="form-group">
-                <label for="cliente">Cliente:</label>
+                <label for="cliente">Cliente</label>
                 <select id="cliente" required>
                     <option value="">Selecione um cliente</option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="data">Data:</label>
+                <label for="data">Data</label>
                 <input type="date" id="data" required>
             </div>
             <div class="form-group">
-                <label for="hora">Hora:</label>
+                <label for="hora">Hora</label>
                 <input type="time" id="hora" required>
             </div>
             <div class="form-group">
                 <button type="submit">Agendar</button>
             </div>
         </form>
-
-        <!-- Lista de Agendamentos -->
-        <div class="list-container">
-            <h3>Próximos Agendamentos</h3>
-            <div id="agendamentoList"></div>
-        </div>
+        <div class="list-container" id="agendamentoList"></div>
     </div>
 
-    <!-- Modal -->
     <div class="modal" id="modal">
         <div class="modal-content">
-            <h3 id="modalTitle">Detalhes</h3>
+            <h2 id="modalTitle"></h2>
             <div id="modalContent"></div>
-            <button class="modal-close" onclick="closeModal()">Fechar</button>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"></script>
+    <!-- Firebase SDK v9+ (Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-    <script>
-        // Configuração do Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyBl55ZrLR6Bgy0WHa-HoACm25mC8_l4awY",
             authDomain: "terapia-fb9b6.firebaseapp.com",
@@ -371,244 +306,120 @@
             measurementId: "G-MFFES61WRX"
         };
 
-        // Inicializa o Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
 
-        // Função para alternar entre as abas
+        // Funções de interface
         function openTab(tabId) {
-            const tabs = document.querySelectorAll('.tab-content');
-            const buttons = document.querySelectorAll('.tab-button');
-
-            tabs.forEach(tab => tab.classList.remove('active'));
-            buttons.forEach(button => button.classList.remove('active'));
-
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             event.currentTarget.classList.add('active');
         }
 
-        // Restringe o teclado para números
-        function onlyNumbers(event) {
-            return /\d/.test(event.key);
-        }
-
-        // Formatação automática do telefone
-        function formatPhone(input) {
-            let value = input.value.replace(/\D/g, ""); // Remove caracteres não numéricos
-            if (value.length > 2) {
-                value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-            }
-            if (value.length > 10) {
-                value = `${value.slice(0, 10)}-${value.slice(10, 15)}`;
-            }
-            input.value = value;
-        }
-
-        // Lógica para mover o foco entre os campos de data de nascimento
-        function handleDateInput(currentInput, nextFieldId) {
-            if (currentInput.value.length === currentInput.maxLength) {
-                document.getElementById(nextFieldId)?.focus();
-            }
-        }
-
-        // Simulação de cadastro de cliente (com Firebase)
-        document.getElementById("cadastroForm").addEventListener("submit", async function(event) {
-            event.preventDefault();
-
-            const nome = document.getElementById("nome").value;
-            const telefone = document.getElementById("telefone").value;
-            const dia = document.getElementById("dia").value.padStart(2, "0");
-            const mes = document.getElementById("mes").value.padStart(2, "0");
-            const ano = document.getElementById("ano").value;
-            const dataNascimento = `${ano}-${mes}-${dia}`;
-
-            if (nome && telefone && dia && mes && ano) {
-                try {
-                    await db.collection("clientes").add({
-                        nome,
-                        telefone,
-                        dataNascimento
-                    });
-                    alert("Cliente cadastrado com sucesso!");
-                    document.getElementById("cadastroForm").reset();
-                    loadClientes(); // Atualiza a lista de clientes
-                } catch (error) {
-                    console.error("Erro ao cadastrar cliente:", error);
-                    alert("Ocorreu um erro ao cadastrar o cliente.");
-                }
-            } else {
-                alert("Preencha todos os campos!");
-            }
-        });
-
-        // Carrega a lista de clientes do Firestore
         async function loadClientes() {
-            const clienteList = document.getElementById("clienteList");
-            clienteList.innerHTML = "";
+            const clienteList = document.getElementById('clienteList');
+            const clienteSelect = document.getElementById('cliente');
+            clienteList.innerHTML = '';
+            clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
+
+            const querySnapshot = await getDocs(collection(db, 'clientes'));
+            querySnapshot.forEach(doc => {
+                const cliente = doc.data();
+                clienteList.innerHTML += `<div class="list-item">${cliente.nome} - ${cliente.telefone}</div>`;
+                clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
+            });
+        }
+
+        async function loadAgendamentos() {
+            const agendamentoList = document.getElementById('agendamentoList');
+            agendamentoList.innerHTML = '';
+            const querySnapshot = await getDocs(collection(db, 'agendamentos'));
+            querySnapshot.forEach(doc => {
+                const agendamento = doc.data();
+                agendamentoList.innerHTML += `
+                    <div class="list-item">
+                        ${agendamento.cliente} - ${agendamento.data} às ${agendamento.hora}
+                        <button class="remarcar-btn" onclick="openEditModal('${doc.id}')">Remarcar</button>
+                    </div>`;
+            });
+        }
+
+        document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            const dataNascimento = document.getElementById('dataNascimento').value;
+
             try {
-                const snapshot = await db.collection("clientes").orderBy("nome").get();
-                snapshot.forEach((doc, index) => {
-                    const cliente = doc.data();
-                    const item = document.createElement("div");
-                    item.className = "list-item";
-                    setTimeout(() => item.classList.add("show"), index * 100); // Efeito fade-in sequencial
-                    item.innerHTML = `
-                        <span class="list-item-name">${cliente.nome}</span>
-                        <span class="list-item-contact">${cliente.telefone}</span>
-                    `;
-                    item.onclick = () => openClientModal(cliente);
-                    clienteList.appendChild(item);
-                });
-
-                // Atualiza o campo de seleção de clientes no formulário de agendamento
-                const clienteSelect = document.getElementById("cliente");
-                clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
-                snapshot.forEach(doc => {
-                    const cliente = doc.data();
-                    const option = document.createElement("option");
-                    option.value = cliente.nome;
-                    option.textContent = cliente.nome;
-                    clienteSelect.appendChild(option);
-                });
+                await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
+                alert('Cliente cadastrado com sucesso!');
+                e.target.reset();
+                loadClientes();
             } catch (error) {
-                console.error("Erro ao carregar clientes:", error);
-                alert("Ocorreu um erro ao carregar os clientes.");
-            }
-        }
-
-        // Chama a função para carregar clientes ao iniciar
-        loadClientes();
-
-        // Abre o modal com os detalhes do cliente
-        function openClientModal(cliente) {
-            const modal = document.getElementById("modal");
-            const modalContent = document.querySelector(".modal-content");
-            document.getElementById("modalTitle").textContent = "Detalhes do Cliente";
-            document.getElementById("modalContent").innerHTML = `
-                <strong>Nome:</strong> ${cliente.nome}<br>
-                <strong>Telefone:</strong> ${cliente.telefone}<br>
-                <strong>Data de Nascimento:</strong> ${cliente.dataNascimento.split("-").reverse().join("/")}`;
-            modal.classList.add("active");
-            setTimeout(() => modalContent.classList.add("show"), 100); // Efeito fade-in do modal
-        }
-
-        // Fecha o modal
-        function closeModal() {
-            const modal = document.getElementById("modal");
-            const modalContent = document.querySelector(".modal-content");
-            modalContent.classList.remove("show");
-            setTimeout(() => modal.classList.remove("active"), 300); // Efeito fade-out do modal
-        }
-
-        // Simulação de agendamento (com Firebase)
-        document.getElementById("agendamentoForm").addEventListener("submit", async function(event) {
-            event.preventDefault();
-
-            const cliente = document.getElementById("cliente").value;
-            const data = document.getElementById("data").value;
-            const hora = document.getElementById("hora").value;
-
-            if (cliente && data && hora) {
-                try {
-                    await db.collection("agendamentos").add({
-                        cliente,
-                        data,
-                        hora
-                    });
-                    alert(`Agendamento realizado:\nCliente: ${cliente}\nData: ${formatDate(data)}\nHora: ${formatTime(hora)}`);
-                    document.getElementById("agendamentoForm").reset();
-                    loadAgendamentos(); // Atualiza a lista de agendamentos
-                } catch (error) {
-                    console.error("Erro ao realizar agendamento:", error);
-                    alert("Ocorreu um erro ao realizar o agendamento.");
-                }
-            } else {
-                alert("Preencha todos os campos!");
+                console.error('Erro ao cadastrar:', error);
+                alert('Erro ao cadastrar cliente.');
             }
         });
 
-        // Carrega a lista de agendamentos do Firestore
-        async function loadAgendamentos() {
-            const agendamentoList = document.getElementById("agendamentoList");
-            agendamentoList.innerHTML = "";
+        document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const cliente = document.getElementById('cliente').value;
+            const data = document.getElementById('data').value;
+            const hora = document.getElementById('hora').value;
+
             try {
-                const snapshot = await db.collection("agendamentos").orderBy("data").get();
-                snapshot.forEach((doc, index) => {
-                    const agendamento = doc.data();
-                    const item = document.createElement("div");
-                    item.className = "list-item";
-                    setTimeout(() => item.classList.add("show"), index * 100); // Efeito fade-in sequencial
-                    item.innerHTML = `
-                        <span class="list-item-name">${agendamento.cliente}</span>
-                        <span class="list-item-date">${formatDate(agendamento.data)} às ${formatTime(agendamento.hora)}</span>
-                        <button class="remarcar-btn" onclick="openEditModal('${doc.id}')">Remarcar</button>
-                    `;
-                    agendamentoList.appendChild(item);
-                });
+                await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
+                alert('Agendamento realizado com sucesso!');
+                e.target.reset();
+                loadAgendamentos();
             } catch (error) {
-                console.error("Erro ao carregar agendamentos:", error);
-                alert("Ocorreu um erro ao carregar os agendamentos.");
+                console.error('Erro ao agendar:', error);
+                alert('Erro ao realizar agendamento.');
             }
-        }
+        });
 
-        // Chama a função para carregar agendamentos ao iniciar
-        loadAgendamentos();
-
-        // Abre o modal para editar/remarcar agendamento
-        function openEditModal(id) {
-            const modal = document.getElementById("modal");
-            const modalContent = document.querySelector(".modal-content");
-            document.getElementById("modalTitle").textContent = "Remarcar Consulta";
-            document.getElementById("modalContent").innerHTML = `
+        window.openEditModal = function(id) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = 'Remarcar Agendamento';
+            document.getElementById('modalContent').innerHTML = `
                 <div class="form-group">
-                    <label for="modalData">Nova Data:</label>
+                    <label>Nova Data</label>
                     <input type="date" id="modalData">
                 </div>
                 <div class="form-group">
-                    <label for="modalHora">Nova Hora:</label>
+                    <label>Nova Hora</label>
                     <input type="time" id="modalHora">
                 </div>
                 <div class="modal-buttons">
                     <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
-                    <button class="save-btn" onclick="saveChanges('${id}')">Salvar Alterações</button>
+                    <button class="save-btn" onclick="saveChanges('${id}')">Salvar</button>
                 </div>`;
-            modal.classList.add("active");
-            setTimeout(() => modalContent.classList.add("show"), 100); // Efeito fade-in do modal
-        }
+            modal.classList.add('active');
+        };
 
-        // Salva as alterações no agendamento
-        async function saveChanges(id) {
-            const newData = document.getElementById("modalData").value;
-            const newHora = document.getElementById("modalHora").value;
-
-            if (newData && newHora) {
-                try {
-                    await db.collection("agendamentos").doc(id).update({
-                        data: newData,
-                        hora: newHora
-                    });
-                    alert("Alterações salvas com sucesso!");
-                    closeModal();
-                    loadAgendamentos(); // Atualiza a lista de agendamentos
-                } catch (error) {
-                    console.error("Erro ao salvar alterações:", error);
-                    alert("Ocorreu um erro ao salvar as alterações.");
-                }
-            } else {
-                alert("Preencha todos os campos!");
+        window.saveChanges = async function(id) {
+            const newData = document.getElementById('modalData').value;
+            const newHora = document.getElementById('modalHora').value;
+            try {
+                await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora });
+                alert('Agendamento atualizado!');
+                closeModal();
+                loadAgendamentos();
+            } catch (error) {
+                console.error('Erro ao atualizar:', error);
+                alert('Erro ao salvar alterações.');
             }
-        }
+        };
 
-        // Formata a data no padrão brasileiro (DD/MM/AAAA)
-        function formatDate(date) {
-            const [year, month, day] = date.split("-");
-            return `${day}/${month}/${year}`;
-        }
+        window.closeModal = function() {
+            document.getElementById('modal').classList.remove('active');
+        };
 
-        // Formata a hora no padrão brasileiro (HHhMM)
-        function formatTime(time) {
-            return time.replace(/(\d{2}):(\d{2})/, "$1h$2");
-        }
+        // Carregar dados iniciais
+        loadClientes();
+        loadAgendamentos();
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 </body>
 </html>
