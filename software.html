@@ -800,15 +800,12 @@
             logMessage(`[DEBUG] Confirmando exclusão de ${type} com ID: ${id}`);
             toggleLoading(true);
             try {
-                if (type === 'cliente') {
-                    logMessage('[DEBUG] Tentando excluir cliente');
-                    await deleteDoc(doc(db, 'clientes', id));
-                    logMessage('[SUCCESS] Cliente excluído com sucesso');
-                } else if (type === 'agendamento') {
-                    logMessage('[DEBUG] Tentando excluir agendamento');
-                    await deleteDoc(doc(db, 'agendamentos', id));
-                    logMessage('[SUCCESS] Agendamento excluído com sucesso');
-                }
+                logMessage(`[DEBUG] Verificando ID para exclusão: ${type}, ID: ${id}`);
+                const docRef = doc(db, type === 'cliente' ? 'clientes' : 'agendamentos', id);
+                logMessage(`[DEBUG] Tentando excluir documento: ${docRef.path}`);
+
+                await deleteDoc(docRef);
+                logMessage(`[SUCCESS] ${type} excluído com sucesso do Firestore`);
                 closeModal(); // Fecha o modal após a exclusão bem-sucedida
                 if (type === 'cliente') {
                     clientCache.clear();
@@ -817,7 +814,7 @@
                     appointmentCache.clear();
                     loadAgendamentos();
                 }
-                logMessage(`[SUCCESS] ${type} excluído e modal fechado`);
+                logMessage(`[SUCCESS] ${type} excluído, modal fechado e lista recarregada`);
             } catch (error) {
                 logMessage(`[ERROR] Erro ao excluir ${type}: ${error.message}`);
                 alert(`Erro ao excluir ${type}. Detalhes: ${error.message}`);
