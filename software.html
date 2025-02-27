@@ -318,14 +318,23 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Função para alternar abas
         function openTab(tabId) {
+            console.log(`Tentando abrir aba: ${tabId}`); // Depuração
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
-            event.currentTarget.classList.add('active');
-            console.log(`Aba ${tabId} aberta`); // Para depuração
+            const selectedTab = document.getElementById(tabId);
+            const selectedButton = event.currentTarget;
+            if (selectedTab && selectedButton) {
+                selectedTab.classList.add('active');
+                selectedButton.classList.add('active');
+                console.log(`Aba ${tabId} aberta com sucesso`);
+            } else {
+                console.error('Erro: Tab ou botão não encontrados');
+            }
         }
 
+        // Carregar clientes
         async function loadClientes() {
             const clienteList = document.getElementById('clienteList');
             const clienteSelect = document.getElementById('cliente');
@@ -339,12 +348,14 @@
                     clienteList.innerHTML += `<div class="list-item">${cliente.nome} - ${cliente.telefone}</div>`;
                     clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
                 });
+                console.log('Clientes carregados com sucesso');
             } catch (error) {
                 console.error('Erro ao carregar clientes:', error);
-                document.getElementById('cadastroError').textContent = 'Erro ao carregar clientes. Verifique a conexão com o Firebase.';
+                document.getElementById('cadastroError').textContent = 'Erro ao carregar clientes. Verifique a conexão ou as regras do Firebase.';
             }
         }
 
+        // Carregar agendamentos
         async function loadAgendamentos() {
             const agendamentoList = document.getElementById('agendamentoList');
             agendamentoList.innerHTML = '';
@@ -358,12 +369,14 @@
                             <button class="remarcar-btn" onclick="openEditModal('${doc.id}')">Remarcar</button>
                         </div>`;
                 });
+                console.log('Agendamentos carregados com sucesso');
             } catch (error) {
                 console.error('Erro ao carregar agendamentos:', error);
-                document.getElementById('agendamentoError').textContent = 'Erro ao carregar agendamentos. Verifique a conexão com o Firebase.';
+                document.getElementById('agendamentoError').textContent = 'Erro ao carregar agendamentos. Verifique a conexão ou as regras do Firebase.';
             }
         }
 
+        // Cadastrar cliente
         document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('nome').value.trim();
@@ -377,18 +390,21 @@
             }
 
             try {
+                console.log('Tentando cadastrar cliente:', { nome, telefone, dataNascimento });
                 await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
                 errorMessage.textContent = 'Cliente cadastrado com sucesso!';
                 errorMessage.style.color = '#10b981';
                 e.target.reset();
                 loadClientes();
-                setTimeout(() => errorMessage.textContent = '', 3000); // Limpa mensagem após 3 segundos
+                setTimeout(() => errorMessage.textContent = '', 3000);
+                console.log('Cliente cadastrado com sucesso');
             } catch (error) {
                 console.error('Erro ao cadastrar cliente:', error);
-                errorMessage.textContent = 'Erro ao cadastrar cliente. Verifique a conexão com o Firebase ou as regras de segurança.';
+                errorMessage.textContent = 'Erro ao cadastrar cliente. Verifique a conexão ou as regras do Firebase.';
             }
         });
 
+        // Agendar consulta
         document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const cliente = document.getElementById('cliente').value;
@@ -402,18 +418,21 @@
             }
 
             try {
+                console.log('Tentando agendar:', { cliente, data, hora });
                 await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
                 errorMessage.textContent = 'Agendamento realizado com sucesso!';
                 errorMessage.style.color = '#10b981';
                 e.target.reset();
                 loadAgendamentos();
                 setTimeout(() => errorMessage.textContent = '', 3000);
+                console.log('Agendamento realizado com sucesso');
             } catch (error) {
                 console.error('Erro ao agendar:', error);
-                errorMessage.textContent = 'Erro ao realizar agendamento. Verifique a conexão com o Firebase.';
+                errorMessage.textContent = 'Erro ao realizar agendamento. Verifique a conexão ou as regras do Firebase.';
             }
         });
 
+        // Modal de edição
         window.openEditModal = function(id) {
             const modal = document.getElementById('modal');
             document.getElementById('modalTitle').textContent = 'Remarcar Agendamento';
@@ -447,7 +466,7 @@
                 loadAgendamentos();
             } catch (error) {
                 console.error('Erro ao atualizar:', error);
-                alert('Erro ao salvar alterações. Verifique a conexão com o Firebase.');
+                alert('Erro ao salvar alterações. Verifique a conexão ou as regras do Firebase.');
             }
         };
 
