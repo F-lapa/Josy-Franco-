@@ -122,6 +122,7 @@
 
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
 
         .form-group label {
@@ -146,6 +147,16 @@
             border-color: #ed64a6;
             outline: none;
             box-shadow: 0 0 8px rgba(237, 100, 166, 0.3);
+        }
+
+        .form-group .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-10%);
+            cursor: pointer;
+            font-size: 18px;
+            color: #2d3748;
         }
 
         .form-group button {
@@ -368,8 +379,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Credenciais fixas (simulando autenticação)
-        let currentPassword = "terapia"; // Senha inicial
+        // Carregar senha do localStorage ou usar padrão
+        let currentPassword = localStorage.getItem('userPassword') || "terapia";
 
         // Função para alternar abas
         window.openTab = function (tabId) {
@@ -426,10 +437,12 @@
                 <div class="form-group">
                     <label for="currentPassword">Senha Atual</label>
                     <input type="password" id="currentPassword" placeholder="Digite a senha atual" required>
+                    <span class="toggle-password" onclick="togglePassword('currentPassword')">👁️</span>
                 </div>
                 <div class="form-group">
                     <label for="newPassword">Nova Senha</label>
                     <input type="password" id="newPassword" placeholder="Digite a nova senha" required>
+                    <span class="toggle-password" onclick="togglePassword('newPassword')">👁️</span>
                 </div>
                 <div class="modal-buttons">
                     <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
@@ -438,6 +451,19 @@
                 <div id="passwordMessage" class="success-message"></div>
             `;
             modal.classList.add('active');
+        };
+
+        // Função para alternar visibilidade da senha
+        window.togglePassword = function(inputId) {
+            const input = document.getElementById(inputId);
+            const toggleIcon = input.nextElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggleIcon.textContent = '👁️‍🗨️'; // Ícone de olho aberto
+            } else {
+                input.type = 'password';
+                toggleIcon.textContent = '👁️'; // Ícone de olho fechado
+            }
         };
 
         // Alterar senha
@@ -453,7 +479,8 @@
             }
 
             if (currentPasswordInput === currentPassword) {
-                currentPassword = newPasswordInput; // Atualiza a senha (simulação, não persistente)
+                currentPassword = newPasswordInput; // Atualiza a senha local
+                localStorage.setItem('userPassword', newPasswordInput); // Salva no localStorage
                 message.textContent = 'Senha alterada com sucesso!';
                 message.className = 'success-message';
                 setTimeout(() => {
