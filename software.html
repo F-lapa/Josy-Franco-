@@ -32,6 +32,7 @@
             text-align: center;
             border-radius: 0 0 25px 25px;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
         }
 
         .header h1 {
@@ -39,6 +40,23 @@
             font-weight: 500;
             letter-spacing: 1px;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .change-password-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .change-password-btn:hover {
+            color: #d53f8c;
+            transform: scale(1.1);
         }
 
         .tab-container {
@@ -270,6 +288,7 @@
 <body>
     <div class="header">
         <h1>Josy Franco Terapeuta</h1>
+        <button class="change-password-btn" title="Alterar Senha" onclick="openChangePasswordModal()">🔒</button>
     </div>
 
     <div class="tab-container">
@@ -349,6 +368,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Credenciais fixas (simulando autenticação)
+        let currentPassword = "terapia"; // Senha inicial
+
         // Função para alternar abas
         window.openTab = function (tabId) {
             console.log(`[DEBUG] Tentando abrir aba: ${tabId}`);
@@ -395,6 +417,54 @@
             }
             return formatted || telefone || '';
         }
+
+        // Abrir modal de alteração de senha
+        window.openChangePasswordModal = function() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = 'Alterar Senha';
+            document.getElementById('modalContent').innerHTML = `
+                <div class="form-group">
+                    <label for="currentPassword">Senha Atual</label>
+                    <input type="password" id="currentPassword" placeholder="Digite a senha atual" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">Nova Senha</label>
+                    <input type="password" id="newPassword" placeholder="Digite a nova senha" required>
+                </div>
+                <div class="modal-buttons">
+                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                    <button class="save-btn" onclick="changePassword()">Salvar</button>
+                </div>
+                <div id="passwordMessage" class="success-message"></div>
+            `;
+            modal.classList.add('active');
+        };
+
+        // Alterar senha
+        window.changePassword = function() {
+            const currentPasswordInput = document.getElementById('currentPassword').value;
+            const newPasswordInput = document.getElementById('newPassword').value;
+            const message = document.getElementById('passwordMessage');
+
+            if (!currentPasswordInput || !newPasswordInput) {
+                message.textContent = 'Por favor, preencha todos os campos.';
+                message.className = 'error-message';
+                return;
+            }
+
+            if (currentPasswordInput === currentPassword) {
+                currentPassword = newPasswordInput; // Atualiza a senha (simulação, não persistente)
+                message.textContent = 'Senha alterada com sucesso!';
+                message.className = 'success-message';
+                setTimeout(() => {
+                    closeModal();
+                }, 1500); // Fecha o modal após 1,5 segundos
+                console.log('[DEBUG] Senha alterada para:', currentPassword);
+            } else {
+                message.textContent = 'Senha atual incorreta.';
+                message.className = 'error-message';
+            }
+        };
 
         // Carregar clientes
         async function loadClientes() {
