@@ -15,17 +15,17 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #fff7e6, #e6ffe6);
+            background: linear-gradient(135deg, #e9d8fd, #bee3f8);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 30px;
-            color: #3c2f2f;
+            color: #2d3748;
         }
 
         .header {
-            background: linear-gradient(90deg, #ff8c00, #ffbf00);
+            background: linear-gradient(90deg, #6b46c1, #ed64a6);
             color: #ffffff;
             padding: 40px;
             width: 100%;
@@ -45,7 +45,7 @@
             display: flex;
             gap: 15px;
             margin: 40px 0;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
             padding: 12px;
             border-radius: 30px;
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
@@ -56,7 +56,7 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 500;
-            color: #4a2c00;
+            color: #2d3748;
             background: transparent;
             border: none;
             border-radius: 25px;
@@ -64,9 +64,9 @@
         }
 
         .tab-button.active {
-            background: #00cc66;
+            background: #ed64a6;
             color: #ffffff;
-            box-shadow: 0 4px 15px rgba(0, 204, 102, 0.4);
+            box-shadow: 0 4px 15px rgba(237, 100, 166, 0.4);
         }
 
         .tab-content {
@@ -74,7 +74,7 @@
             width: 100%;
             max-width: 750px;
             padding: 35px;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 25px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             animation: fadeIn 0.5s ease;
@@ -95,7 +95,7 @@
         }
 
         h2 {
-            color: #4a2c00;
+            color: #2d3748;
             font-size: 26px;
             font-weight: 500;
             margin-bottom: 25px;
@@ -109,7 +109,7 @@
         .form-group label {
             display: block;
             font-size: 14px;
-            color: #4a2c00;
+            color: #2d3748;
             margin-bottom: 8px;
             font-weight: 400;
         }
@@ -117,23 +117,23 @@
         .form-group input, .form-group select {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ffd700;
+            border: 1px solid #d6bcfa;
             border-radius: 10px;
             font-size: 15px;
-            background: #fffaf0;
+            background: #ffffff;
             transition: all 0.3s ease;
         }
 
         .form-group input:focus, .form-group select:focus {
-            border-color: #00cc66;
+            border-color: #ed64a6;
             outline: none;
-            box-shadow: 0 0 8px rgba(0, 204, 102, 0.3);
+            box-shadow: 0 0 8px rgba(237, 100, 166, 0.3);
         }
 
         .form-group button {
             width: 100%;
             padding: 12px;
-            background: #00cc66;
+            background: #ed64a6;
             color: #ffffff;
             border: none;
             border-radius: 10px;
@@ -144,9 +144,9 @@
         }
 
         .form-group button:hover {
-            background: #00b359;
+            background: #d53f8c;
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 204, 102, 0.4);
+            box-shadow: 0 4px 15px rgba(237, 100, 166, 0.4);
         }
 
         .list-container {
@@ -160,7 +160,7 @@
             grid-template-columns: 2fr 1fr 0.5fr;
             align-items: center;
             padding: 15px;
-            background: #fffaf0;
+            background: #faf5ff;
             border-radius: 15px;
             margin-bottom: 15px;
             transition: all 0.3s ease;
@@ -169,18 +169,18 @@
 
         .list-item:hover {
             transform: scale(1.01);
-            background: #fff5e6;
+            background: #e9d8fd;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .list-item .info {
             font-size: 15px;
-            color: #4a2c00;
+            color: #2d3748;
         }
 
         .delete-btn {
             padding: 8px 16px;
-            background: #ff4444;
+            background: #f56565;
             color: #ffffff;
             border: none;
             border-radius: 10px;
@@ -189,7 +189,7 @@
         }
 
         .delete-btn:hover {
-            background: #cc0000;
+            background: #e53e3e;
         }
 
         .modal {
@@ -238,17 +238,17 @@
         }
 
         .cancel-btn {
-            background: #ffbf00;
+            background: #b794f4;
             color: #ffffff;
         }
 
         .confirm-btn {
-            background: #ff4444;
+            background: #f56565;
             color: #ffffff;
         }
 
         .save-btn {
-            background: #00cc66;
+            background: #ed64a6;
             color: #ffffff;
         }
 
@@ -259,11 +259,11 @@
         }
 
         .success-message {
-            color: #00b359;
+            color: #38a169;
         }
 
         .error-message {
-            color: #cc0000;
+            color: #e53e3e;
         }
     </style>
 </head>
@@ -286,7 +286,7 @@
             </div>
             <div class="form-group">
                 <label for="telefone">Telefone</label>
-                <input type="tel" id="telefone" placeholder="(XX) XXXXX-XXXX" maxlength="14" required>
+                <input type="tel" id="telefone" placeholder="(XX) 9XXXX-XXXX" maxlength="15" required>
             </div>
             <div class="form-group">
                 <label for="dataNascimento">Data de Nascimento</label>
@@ -367,12 +367,12 @@
             }
         };
 
-        // Inicializar IMask para o campo telefone
+        // Inicializar IMask para o campo telefone com DDD + 9 dígitos
         document.addEventListener('DOMContentLoaded', () => {
             const telefoneInput = document.getElementById('telefone');
             if (telefoneInput) {
                 IMask(telefoneInput, {
-                    mask: '(00) 00000-0000'
+                    mask: '(00) 90000-0000' // Máscara para DDD + 9 dígitos
                 });
                 console.log('[DEBUG] Máscara aplicada ao campo telefone');
             } else {
@@ -555,7 +555,7 @@
                 </div>
                 <div class="form-group">
                     <label for="editTelefone">Telefone</label>
-                    <input type="tel" id="editTelefone" value="${formatPhoneDisplay(cliente.telefone)}" required maxlength="14">
+                    <input type="tel" id="editTelefone" value="${formatPhoneDisplay(cliente.telefone)}" required maxlength="15">
                 </div>
                 <div class="form-group">
                     <label for="editDataNascimento">Data de Nascimento</label>
@@ -571,7 +571,7 @@
             const editTelefone = document.getElementById('editTelefone');
             if (editTelefone) {
                 IMask(editTelefone, {
-                    mask: '(00) 00000-0000'
+                    mask: '(00) 90000-0000' // Máscara para DDD + 9 dígitos no modal
                 });
                 console.log('[DEBUG] Máscara aplicada ao campo editTelefone');
             } else {
