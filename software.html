@@ -178,6 +178,26 @@
             box-shadow: 0 4px 15px rgba(237, 100, 166, 0.4);
         }
 
+        .search-container {
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d6bcfa;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #ffffff;
+            transition: all 0.3s ease;
+        }
+
+        .search-container input:focus {
+            border-color: #ed64a6;
+            outline: none;
+            box-shadow: 0 0 8px rgba(237, 100, 166, 0.3);
+        }
+
         .list-container {
             margin-top: 30px;
             max-height: 320px;
@@ -327,6 +347,10 @@
             </div>
             <div id="cadastroMessage" class="success-message"></div>
         </form>
+        <div class="search-container">
+            <input type="text" id="clientSearch" placeholder="Buscar cliente por nome">
+        </div>
+        <h3 style="margin-bottom: 10px;">Clientes</h3>
         <div class="list-container" id="clienteList"></div>
     </div>
 
@@ -352,6 +376,7 @@
             </div>
             <div id="agendamentoMessage" class="success-message"></div>
         </form>
+        <h3 style="margin-bottom: 10px;">Agendamentos</h3>
         <div class="list-container" id="agendamentoList"></div>
     </div>
 
@@ -479,13 +504,13 @@
             }
 
             if (currentPasswordInput === currentPassword) {
-                currentPassword = newPasswordInput; // Atualiza a senha local
-                localStorage.setItem('userPassword', newPasswordInput); // Salva no localStorage
+                currentPassword = newPasswordInput;
+                localStorage.setItem('userPassword', newPasswordInput);
                 message.textContent = 'Senha alterada com sucesso!';
                 message.className = 'success-message';
                 setTimeout(() => {
                     closeModal();
-                }, 1500); // Fecha o modal após 1,5 segundos
+                }, 1500);
                 console.log('[DEBUG] Senha alterada para:', currentPassword);
             } else {
                 message.textContent = 'Senha atual incorreta.';
@@ -493,37 +518,64 @@
             }
         };
 
-        // Carregar clientes
+        // Carregar clientes com ordenação e busca
         async function loadClientes() {
             const clienteList = document.getElementById('clienteList');
             const clienteSelect = document.getElementById('cliente');
+            const searchInput = document.getElementById('clientSearch');
             clienteList.innerHTML = '';
             clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
 
             try {
                 console.log('[DEBUG] Iniciando carregamento de clientes');
                 const querySnapshot = await getDocs(collection(db, 'clientes'));
+                let clientes = [];
                 querySnapshot.forEach(doc => {
-                    const cliente = doc.data();
-                    const item = document.createElement('div');
-                    item.className = 'list-item';
-                    const info = document.createElement('div');
-                    info.className = 'info';
-                    info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`;
-                    item.appendChild(info);
-                    const deleteButton = document.createElement('button');
-                    deleteButton.className = 'delete-btn';
-                    deleteButton.textContent = 'Excluir';
-                    deleteButton.onclick = (e) => {
-                        e.stopPropagation();
-                        openDeleteModal('cliente', doc.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`);
-                        console.log(`[DEBUG] Clicou em Excluir cliente com ID: ${doc.id}`);
-                    };
-                    item.appendChild(deleteButton);
-                    item.onclick = () => openClientModal(doc.id, cliente);
-                    clienteList.appendChild(item);
-                    clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
+                    clientes.push({ id: doc.id, ...doc.data() });
                 });
+
+                // Ordenar clientes em ordem alfabética
+                clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+
+                // Função para renderizar a lista filtrada
+                function renderClientes(filter = '') {
+                    clienteList.innerHTML = '';
+                    const filteredClientes = clientes.filter(cliente => 
+                        cliente.nome.toLowerCase().includes(filter.toLowerCase())
+                    );
+                    filteredClientes.forEach(cliente => {
+                        const item = document.createElement('div');
+                        item.className = 'list-item';
+                        const info = document.createElement('div');
+                        info.className = 'info';
+                        info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`;
+                        item.appendChild(info);
+                        const deleteButton = document.createElement('button');
+                        deleteButton.className = 'delete-btn';
+                        deleteButton.textContent = 'Excluir';
+                        deleteButton.onclick = (e) => {
+                            e.stopPropagation();
+                            openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`);
+                            console.log(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
+                        };
+                        item.appendChild(deleteButton);
+                        item.onclick = () => openClientModal(cliente.id, cliente);
+                        clienteList.appendChild(item);
+                    });
+                    clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
+                    clientes.forEach(cliente => {
+                        clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
+                    });
+                }
+
+                // Renderizar inicialmente
+                renderClientes();
+
+                // Adicionar evento de busca
+                searchInput.addEventListener('input', (e) => {
+                    renderClientes(e.target.value);
+                });
+
                 console.log('[SUCCESS] Clientes carregados com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao carregar clientes:', error);
@@ -532,15 +584,26 @@
             }
         }
 
-        // Carregar agendamentos
+        // Carregar agendamentos com ordenação
         async function loadAgendamentos() {
             const agendamentoList = document.getElementById('agendamentoList');
             agendamentoList.innerHTML = '';
             try {
                 console.log('[DEBUG] Iniciando carregamento de agendamentos');
                 const querySnapshot = await getDocs(collection(db, 'agendamentos'));
+                let agendamentos = [];
                 querySnapshot.forEach(doc => {
-                    const agendamento = doc.data();
+                    agendamentos.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Ordenar agendamentos por data e hora (mais recentes primeiro)
+                agendamentos.sort((a, b) => {
+                    const dateA = new Date(`${a.data}T${a.hora}`);
+                    const dateB = new Date(`${b.data}T${b.hora}`);
+                    return dateB - dateA; // Ordem decrescente
+                });
+
+                agendamentos.forEach(agendamento => {
                     const item = document.createElement('div');
                     item.className = 'list-item';
                     const info = document.createElement('div');
@@ -554,11 +617,11 @@
                     deleteButton.textContent = 'Excluir';
                     deleteButton.onclick = (e) => {
                         e.stopPropagation();
-                        openDeleteModal('agendamento', doc.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`);
-                        console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${doc.id}`);
+                        openDeleteModal('agendamento', agendamento.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`);
+                        console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
                     };
                     item.appendChild(deleteButton);
-                    item.onclick = () => openEditModal(doc.id, agendamento);
+                    item.onclick = () => openEditModal(agendamento.id, agendamento);
                     agendamentoList.appendChild(item);
                 });
                 console.log('[SUCCESS] Agendamentos carregados com sucesso');
