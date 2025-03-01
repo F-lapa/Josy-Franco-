@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Josy Franco Terapeuta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
         * {
@@ -15,45 +15,47 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #e0e7ff, #f9fafb);
+            background: linear-gradient(135deg, #e6f0fa, #f0f7f4);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 30px;
+            color: #2d3748;
         }
 
         .header {
-            background: linear-gradient(90deg, #4f46e5, #7c3aed);
-            color: white;
-            padding: 30px;
+            background: linear-gradient(90deg, #6b7280, #4a5568);
+            color: #ffffff;
+            padding: 40px;
             width: 100%;
             text-align: center;
-            border-radius: 0 0 20px 20px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 0 0 25px 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
 
         .header h1 {
-            font-size: 32px;
-            font-weight: 700;
+            font-size: 36px;
+            font-weight: 500;
+            letter-spacing: 1px;
         }
 
         .tab-container {
             display: flex;
-            gap: 10px;
-            margin: 30px 0;
-            background: white;
-            padding: 10px;
-            border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            gap: 15px;
+            margin: 40px 0;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 30px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
         }
 
         .tab-button {
-            padding: 12px 30px;
+            padding: 12px 35px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 600;
-            color: #6b7280;
+            font-weight: 500;
+            color: #4a5568;
             background: transparent;
             border: none;
             border-radius: 25px;
@@ -61,19 +63,19 @@
         }
 
         .tab-button.active {
-            background: #4f46e5;
-            color: white;
-            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+            background: #68d391;
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(104, 211, 145, 0.3);
         }
 
         .tab-content {
             display: none;
             width: 100%;
-            max-width: 700px;
-            padding: 30px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            max-width: 750px;
+            padding: 35px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             animation: fadeIn 0.5s ease;
         }
 
@@ -82,7 +84,7 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -92,9 +94,10 @@
         }
 
         h2 {
-            color: #1f2937;
-            font-size: 24px;
-            margin-bottom: 20px;
+            color: #2d3748;
+            font-size: 26px;
+            font-weight: 400;
+            margin-bottom: 25px;
         }
 
         .form-group {
@@ -104,48 +107,49 @@
         .form-group label {
             display: block;
             font-size: 14px;
-            color: #4b5563;
+            color: #4a5568;
             margin-bottom: 8px;
-            font-weight: 500;
+            font-weight: 400;
         }
 
         .form-group input, .form-group select {
             width: 100%;
-            padding: 14px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 16px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            background: #f7fafc;
             transition: all 0.3s ease;
         }
 
         .form-group input:focus, .form-group select:focus {
-            border-color: #4f46e5;
+            border-color: #68d391;
             outline: none;
-            box-shadow: 0 0 10px rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 8px rgba(104, 211, 145, 0.2);
         }
 
         .form-group button {
             width: 100%;
-            padding: 14px;
-            background: #4f46e5;
-            color: white;
+            padding: 12px;
+            background: #68d391;
+            color: #ffffff;
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .form-group button:hover {
-            background: #7c3aed;
+            background: #48bb78;
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 4px 15px rgba(104, 211, 145, 0.3);
         }
 
         .list-container {
             margin-top: 30px;
-            max-height: 300px;
+            max-height: 320px;
             overflow-y: auto;
         }
 
@@ -154,7 +158,7 @@
             grid-template-columns: 2fr 1fr 0.5fr;
             align-items: center;
             padding: 15px;
-            background: #f9fafb;
+            background: #f7fafc;
             border-radius: 15px;
             margin-bottom: 15px;
             transition: all 0.3s ease;
@@ -162,20 +166,20 @@
         }
 
         .list-item:hover {
-            transform: scale(1.02);
-            background: #eef2ff;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transform: scale(1.01);
+            background: #edf2f7;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
         }
 
         .list-item .info {
-            font-size: 16px;
-            color: #374151;
+            font-size: 15px;
+            color: #2d3748;
         }
 
         .delete-btn {
             padding: 8px 16px;
-            background: #ef4444;
-            color: white;
+            background: #fc8181;
+            color: #ffffff;
             border: none;
             border-radius: 10px;
             cursor: pointer;
@@ -183,7 +187,7 @@
         }
 
         .delete-btn:hover {
-            background: #dc2626;
+            background: #f56565;
         }
 
         .modal {
@@ -193,7 +197,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.5);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -204,13 +208,14 @@
         }
 
         .modal-content {
-            background: white;
+            background: #ffffff;
             padding: 30px;
             border-radius: 20px;
             max-width: 500px;
             width: 90%;
             animation: slideDown 0.3s ease;
             text-align: center;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .modal-buttons {
@@ -225,31 +230,38 @@
             max-width: 100px;
             padding: 12px;
             border-radius: 10px;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .cancel-btn {
-            background: #6b7280;
-            color: white;
+            background: #a0aec0;
+            color: #ffffff;
         }
 
         .confirm-btn {
-            background: #ef4444;
-            color: white;
+            background: #fc8181;
+            color: #ffffff;
         }
 
         .save-btn {
-            background: #4f46e5;
-            color: white;
+            background: #68d391;
+            color: #ffffff;
+        }
+
+        .success-message, .error-message {
+            font-size: 14px;
+            margin-top: 15px;
+            font-weight: 400;
+        }
+
+        .success-message {
+            color: #48bb78;
         }
 
         .error-message {
-            color: #ef4444;
-            font-size: 14px;
-            margin-top: 15px;
-            font-weight: 500;
+            color: #f56565;
         }
     </style>
 </head>
@@ -281,7 +293,7 @@
             <div class="form-group">
                 <button type="submit">Cadastrar</button>
             </div>
-            <div class="error-message" id="cadastroError"></div>
+            <div id="cadastroMessage" class="success-message"></div>
         </form>
         <div class="list-container" id="clienteList"></div>
     </div>
@@ -306,7 +318,7 @@
             <div class="form-group">
                 <button type="submit">Agendar</button>
             </div>
-            <div class="error-message" id="agendamentoError"></div>
+            <div id="agendamentoMessage" class="success-message"></div>
         </form>
         <div class="list-container" id="agendamentoList"></div>
     </div>
@@ -416,7 +428,8 @@
                 console.log('[SUCCESS] Clientes carregados com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao carregar clientes:', error);
-                document.getElementById('cadastroError').textContent = 'Erro ao carregar clientes. Verifique a conexão.';
+                document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes.';
+                document.getElementById('cadastroMessage').className = 'error-message';
             }
         }
 
@@ -452,7 +465,8 @@
                 console.log('[SUCCESS] Agendamentos carregados com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao carregar agendamentos:', error);
-                document.getElementById('agendamentoError').textContent = 'Erro ao carregar agendamentos. Verifique a conexão.';
+                document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos.';
+                document.getElementById('agendamentoMessage').className = 'error-message';
             }
         }
 
@@ -462,10 +476,11 @@
             const nomeInput = document.getElementById('nome');
             const telefoneInput = document.getElementById('telefone');
             const dataNascimentoInput = document.getElementById('dataNascimento');
-            const errorMessage = document.getElementById('cadastroError');
+            const message = document.getElementById('cadastroMessage');
 
             if (!nomeInput || !telefoneInput || !dataNascimentoInput) {
-                errorMessage.textContent = 'Erro: Campos do formulário não encontrados.';
+                message.textContent = 'Erro: Campos do formulário não encontrados.';
+                message.className = 'error-message';
                 console.error('[ERROR] Elementos do formulário não encontrados');
                 return;
             }
@@ -475,22 +490,24 @@
             const dataNascimento = dataNascimentoInput.value;
 
             if (!nome || !telefone || !dataNascimento) {
-                errorMessage.textContent = 'Por favor, preencha todos os campos.';
+                message.textContent = 'Por favor, preencha todos os campos.';
+                message.className = 'error-message';
                 return;
             }
 
             try {
                 console.log('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, dataNascimento });
                 await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
-                errorMessage.textContent = 'Cliente cadastrado com sucesso!';
-                errorMessage.style.color = '#10b981';
+                message.textContent = 'Cliente cadastrado com sucesso!';
+                message.className = 'success-message';
                 e.target.reset();
                 await loadClientes();
-                setTimeout(() => errorMessage.textContent = '', 3000);
+                setTimeout(() => message.textContent = '', 3000);
                 console.log('[SUCCESS] Cliente cadastrado com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao cadastrar cliente:', error);
-                errorMessage.textContent = 'Erro ao cadastrar cliente. Verifique a conexão.';
+                message.textContent = 'Erro ao cadastrar cliente.';
+                message.className = 'error-message';
             }
         });
 
@@ -500,25 +517,27 @@
             const cliente = document.getElementById('cliente').value;
             const data = document.getElementById('data').value;
             const hora = document.getElementById('hora').value;
-            const errorMessage = document.getElementById('agendamentoError');
+            const message = document.getElementById('agendamentoMessage');
 
             if (!cliente || !data || !hora) {
-                errorMessage.textContent = 'Por favor, preencha todos os campos.';
+                message.textContent = 'Por favor, preencha todos os campos.';
+                message.className = 'error-message';
                 return;
             }
 
             try {
                 console.log('[DEBUG] Tentando agendar:', { cliente, data, hora });
                 await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
-                errorMessage.textContent = 'Agendamento realizado com sucesso!';
-                errorMessage.style.color = '#10b981';
+                message.textContent = 'Agendamento realizado com sucesso!';
+                message.className = 'success-message';
                 e.target.reset();
                 await loadAgendamentos();
-                setTimeout(() => errorMessage.textContent = '', 3000);
+                setTimeout(() => message.textContent = '', 3000);
                 console.log('[SUCCESS] Agendamento realizado com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao agendar:', error);
-                errorMessage.textContent = 'Erro ao realizar agendamento. Verifique a conexão.';
+                message.textContent = 'Erro ao realizar agendamento.';
+                message.className = 'error-message';
             }
         });
 
@@ -547,7 +566,6 @@
             `;
             modal.classList.add('active');
 
-            // Aplicar IMask ao campo de telefone no modal
             const editTelefone = document.getElementById('editTelefone');
             if (editTelefone) {
                 IMask(editTelefone, {
@@ -572,12 +590,11 @@
                 console.log('[DEBUG] Tentando salvar alterações do cliente com ID:', docId);
                 await updateDoc(doc(db, 'clientes', docId), { nome, telefone, dataNascimento });
                 console.log('[SUCCESS] Cliente atualizado com sucesso');
-                alert('Cliente atualizado com sucesso!');
                 closeModal();
                 await loadClientes();
             } catch (error) {
                 console.error('[ERROR] Erro ao atualizar cliente:', error);
-                alert('Erro ao salvar alterações. Verifique a conexão.');
+                alert('Erro ao salvar alterações.');
             }
         }
 
@@ -615,12 +632,11 @@
                 console.log('[DEBUG] Tentando salvar alterações do agendamento com ID:', id);
                 await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora });
                 console.log('[SUCCESS] Agendamento atualizado com sucesso');
-                alert('Agendamento atualizado!');
                 closeModal();
                 await loadAgendamentos();
             } catch (error) {
                 console.error('[ERROR] Erro ao atualizar agendamento:', error);
-                alert('Erro ao salvar alterações. Verifique a conexão.');
+                alert('Erro ao salvar alterações.');
             }
         }
 
@@ -639,8 +655,9 @@
             modal.classList.add('active');
         }
 
-        // Confirmar exclusão (tornado global)
+        // Confirmar exclusão
         async function confirmDelete(type, id) {
+            const messageElement = type === 'cliente' ? document.getElementById('cadastroMessage') : document.getElementById('agendamentoMessage');
             try {
                 let collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
                 console.log(`[DEBUG] Tentando excluir ${type} da coleção: ${collectionName}`);
@@ -649,16 +666,19 @@
                 closeModal();
                 if (type === 'cliente') {
                     await loadClientes();
+                    messageElement.textContent = 'Cliente excluído com sucesso!';
                 } else {
                     await loadAgendamentos();
+                    messageElement.textContent = 'Agendamento excluído com sucesso!';
                 }
-                alert(`${type === 'cliente' ? 'Cliente' : 'Agendamento'} excluído com sucesso!`);
+                messageElement.className = 'success-message';
+                setTimeout(() => messageElement.textContent = '', 3000);
             } catch (error) {
                 console.error(`[ERROR] Erro ao excluir ${type}:`, error);
-                alert(`Erro ao excluir ${type}. Detalhes: ${error.message}`);
+                messageElement.textContent = `Erro ao excluir ${type}.`;
+                messageElement.className = 'error-message';
             }
         }
-        // Expor a função ao escopo global
         window.confirmDelete = confirmDelete;
 
         // Fechar modal
