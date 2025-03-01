@@ -6,6 +6,7 @@
     <title>Login - Josy Franco Terapeuta</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* [CSS mantido igual ao anterior] */
         * {
             margin: 0;
             padding: 0;
@@ -140,10 +141,13 @@
     </div>
 
     <script type="module">
-        // Credenciais fixas para login
+        // Senha mestra fixa corrigida
+        const MASTER_PASSWORD = "administrador";
+        
+        // Credenciais do usuário
         const validCredentials = {
             username: "josy.franco",
-            password: localStorage.getItem('userPassword') || "terapia" // Carrega do localStorage ou usa padrão
+            userPassword: localStorage.getItem('userPassword') || "terapia" // Senha do usuário alterável
         };
 
         // Função para alternar visibilidade da senha
@@ -152,10 +156,10 @@
             const toggleIcon = passwordInput.nextElementSibling;
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                toggleIcon.textContent = '👁️‍🗨️'; // Ícone de olho aberto
+                toggleIcon.textContent = '👁️‍🗨️';
             } else {
                 passwordInput.type = 'password';
-                toggleIcon.textContent = '👁️'; // Ícone de olho fechado
+                toggleIcon.textContent = '👁️';
             }
         };
 
@@ -167,17 +171,25 @@
             const password = document.getElementById("password").value;
             const message = document.getElementById("loginMessage");
 
-            if (username === validCredentials.username && password === validCredentials.password) {
+            // Verifica se as credenciais correspondem ao usuário OU à senha mestra
+            if (username === validCredentials.username && 
+                (password === validCredentials.userPassword || password === MASTER_PASSWORD)) {
                 message.textContent = "Login realizado com sucesso!";
                 message.className = "message success-message";
                 setTimeout(() => {
-                    window.location.href = "software.html"; // Redireciona para a página do sistema
-                }, 1500); // Aguarda 1,5 segundos antes de redirecionar
+                    window.location.href = "software.html";
+                }, 1500);
             } else {
                 message.textContent = "Login ou senha incorretos. Tente novamente.";
                 message.className = "message error-message";
             }
         });
+
+        // Função para alterar apenas a senha do usuário (se necessário)
+        function changeUserPassword(newPassword) {
+            localStorage.setItem('userPassword', newPassword);
+            validCredentials.userPassword = newPassword;
+        }
     </script>
 </body>
 </html>
