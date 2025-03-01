@@ -15,39 +15,40 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #e6f0fa, #f0f7f4);
+            background: linear-gradient(135deg, #fff7e6, #e6ffe6);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 30px;
-            color: #2d3748;
+            color: #3c2f2f;
         }
 
         .header {
-            background: linear-gradient(90deg, #6b7280, #4a5568);
+            background: linear-gradient(90deg, #ff8c00, #ffbf00);
             color: #ffffff;
             padding: 40px;
             width: 100%;
             text-align: center;
             border-radius: 0 0 25px 25px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
         }
 
         .header h1 {
             font-size: 36px;
             font-weight: 500;
             letter-spacing: 1px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
 
         .tab-container {
             display: flex;
             gap: 15px;
             margin: 40px 0;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.85);
             padding: 12px;
             border-radius: 30px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
         }
 
         .tab-button {
@@ -55,7 +56,7 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 500;
-            color: #4a5568;
+            color: #4a2c00;
             background: transparent;
             border: none;
             border-radius: 25px;
@@ -63,9 +64,9 @@
         }
 
         .tab-button.active {
-            background: #68d391;
+            background: #00cc66;
             color: #ffffff;
-            box-shadow: 0 4px 15px rgba(104, 211, 145, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 204, 102, 0.4);
         }
 
         .tab-content {
@@ -73,9 +74,9 @@
             width: 100%;
             max-width: 750px;
             padding: 35px;
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 25px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             animation: fadeIn 0.5s ease;
         }
 
@@ -94,10 +95,11 @@
         }
 
         h2 {
-            color: #2d3748;
+            color: #4a2c00;
             font-size: 26px;
-            font-weight: 400;
+            font-weight: 500;
             margin-bottom: 25px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .form-group {
@@ -107,7 +109,7 @@
         .form-group label {
             display: block;
             font-size: 14px;
-            color: #4a5568;
+            color: #4a2c00;
             margin-bottom: 8px;
             font-weight: 400;
         }
@@ -115,23 +117,23 @@
         .form-group input, .form-group select {
             width: 100%;
             padding: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid #ffd700;
             border-radius: 10px;
             font-size: 15px;
-            background: #f7fafc;
+            background: #fffaf0;
             transition: all 0.3s ease;
         }
 
         .form-group input:focus, .form-group select:focus {
-            border-color: #68d391;
+            border-color: #00cc66;
             outline: none;
-            box-shadow: 0 0 8px rgba(104, 211, 145, 0.2);
+            box-shadow: 0 0 8px rgba(0, 204, 102, 0.3);
         }
 
         .form-group button {
             width: 100%;
             padding: 12px;
-            background: #68d391;
+            background: #00cc66;
             color: #ffffff;
             border: none;
             border-radius: 10px;
@@ -142,9 +144,9 @@
         }
 
         .form-group button:hover {
-            background: #48bb78;
+            background: #00b359;
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(104, 211, 145, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 204, 102, 0.4);
         }
 
         .list-container {
@@ -158,7 +160,7 @@
             grid-template-columns: 2fr 1fr 0.5fr;
             align-items: center;
             padding: 15px;
-            background: #f7fafc;
+            background: #fffaf0;
             border-radius: 15px;
             margin-bottom: 15px;
             transition: all 0.3s ease;
@@ -167,18 +169,18 @@
 
         .list-item:hover {
             transform: scale(1.01);
-            background: #edf2f7;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            background: #fff5e6;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
         .list-item .info {
             font-size: 15px;
-            color: #2d3748;
+            color: #4a2c00;
         }
 
         .delete-btn {
             padding: 8px 16px;
-            background: #fc8181;
+            background: #ff4444;
             color: #ffffff;
             border: none;
             border-radius: 10px;
@@ -187,7 +189,7 @@
         }
 
         .delete-btn:hover {
-            background: #f56565;
+            background: #cc0000;
         }
 
         .modal {
@@ -215,7 +217,7 @@
             width: 90%;
             animation: slideDown 0.3s ease;
             text-align: center;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
         }
 
         .modal-buttons {
@@ -236,17 +238,17 @@
         }
 
         .cancel-btn {
-            background: #a0aec0;
+            background: #ffbf00;
             color: #ffffff;
         }
 
         .confirm-btn {
-            background: #fc8181;
+            background: #ff4444;
             color: #ffffff;
         }
 
         .save-btn {
-            background: #68d391;
+            background: #00cc66;
             color: #ffffff;
         }
 
@@ -257,11 +259,11 @@
         }
 
         .success-message {
-            color: #48bb78;
+            color: #00b359;
         }
 
         .error-message {
-            color: #f56565;
+            color: #cc0000;
         }
     </style>
 </head>
