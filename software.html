@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Josy Franco Terapeuta</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Adicionando IMask -->
     <script src="https://unpkg.com/imask"></script>
     <style>
         * {
@@ -354,7 +353,7 @@
             }
         };
 
-        // Inicializar máscaras IMask após o DOM carregar
+        // Inicializar IMask para o campo telefone
         document.addEventListener('DOMContentLoaded', () => {
             const telefoneInput = document.getElementById('telefone');
             if (telefoneInput) {
@@ -363,13 +362,13 @@
                 });
                 console.log('[DEBUG] Máscara aplicada ao campo telefone');
             } else {
-                console.error('[ERROR] Elemento #telefone não encontrado');
+                console.error('[ERROR] Elemento #telefone não encontrado no DOMContentLoaded');
             }
         });
 
         // Função auxiliar para exibir telefone formatado
         function formatPhoneDisplay(telefone) {
-            const value = telefone.replace(/\D/g, '').substring(0, 11);
+            const value = telefone ? telefone.replace(/\D/g, '').substring(0, 11) : '';
             let formatted = '';
             if (value.length > 0) {
                 formatted = '(' + value.substring(0, 2);
@@ -380,7 +379,7 @@
                     }
                 }
             }
-            return formatted || telefone;
+            return formatted || telefone || '';
         }
 
         // Carregar clientes
@@ -460,10 +459,20 @@
         // Cadastrar cliente
         document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nome = document.getElementById('nome').value.trim();
-            const telefone = document.getElementById('telefone').value.replace(/\D/g, '').substring(0, 11);
-            const dataNascimento = document.getElementById('dataNascimento').value;
+            const nomeInput = document.getElementById('nome');
+            const telefoneInput = document.getElementById('telefone');
+            const dataNascimentoInput = document.getElementById('dataNascimento');
             const errorMessage = document.getElementById('cadastroError');
+
+            if (!nomeInput || !telefoneInput || !dataNascimentoInput) {
+                errorMessage.textContent = 'Erro: Campos do formulário não encontrados.';
+                console.error('[ERROR] Elementos do formulário não encontrados');
+                return;
+            }
+
+            const nome = nomeInput.value.trim();
+            const telefone = telefoneInput.value ? telefoneInput.value.replace(/\D/g, '').substring(0, 11) : '';
+            const dataNascimento = dataNascimentoInput.value;
 
             if (!nome || !telefone || !dataNascimento) {
                 errorMessage.textContent = 'Por favor, preencha todos os campos.';
@@ -545,13 +554,15 @@
                     mask: '(00) 00000-0000'
                 });
                 console.log('[DEBUG] Máscara aplicada ao campo editTelefone');
+            } else {
+                console.error('[ERROR] Elemento #editTelefone não encontrado no modal');
             }
         }
 
         // Salvar alterações do cliente
         async function saveClientChanges(docId) {
             const nome = document.getElementById('editNome').value.trim();
-            const telefone = document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11);
+            const telefone = document.getElementById('editTelefone').value ? document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11) : '';
             const dataNascimento = document.getElementById('editDataNascimento').value;
             if (!nome || !telefone || !dataNascimento) {
                 alert('Por favor, preencha todos os campos.');
@@ -628,7 +639,7 @@
             modal.classList.add('active');
         }
 
-        // Confirmar exclusão
+        // Confirmar exclusão (tornado global)
         async function confirmDelete(type, id) {
             try {
                 let collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
@@ -647,6 +658,8 @@
                 alert(`Erro ao excluir ${type}. Detalhes: ${error.message}`);
             }
         }
+        // Expor a função ao escopo global
+        window.confirmDelete = confirmDelete;
 
         // Fechar modal
         window.closeModal = function() {
