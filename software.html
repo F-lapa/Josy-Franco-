@@ -42,10 +42,15 @@
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
         }
 
-        .change-password-btn {
+        .header-buttons {
             position: absolute;
             top: 15px;
             right: 15px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .change-password-btn, .logout-btn {
             background: none;
             border: none;
             color: #ffffff;
@@ -54,7 +59,7 @@
             transition: all 0.3s ease;
         }
 
-        .change-password-btn:hover {
+        .change-password-btn:hover, .logout-btn:hover {
             color: #d53f8c;
             transform: scale(1.1);
         }
@@ -319,7 +324,10 @@
 <body>
     <div class="header">
         <h1>Josy Franco Terapeuta</h1>
-        <button class="change-password-btn" title="Alterar Senha" onclick="openChangePasswordModal()">🔒</button>
+        <div class="header-buttons">
+            <button class="change-password-btn" title="Alterar Senha" onclick="openChangePasswordModal()">🔒</button>
+            <button class="logout-btn" title="Sair" onclick="openLogoutModal()">🚪</button>
+        </div>
     </div>
 
     <div class="tab-container">
@@ -404,7 +412,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Carregar senha do localStorage ou usar padrão
+        // Senha mestra fixa
+        const MASTER_PASSWORD = "administrador";
+
+        // Carregar senha do usuário do localStorage ou usar padrão
         let currentPassword = localStorage.getItem('userPassword') || "terapia";
 
         // Função para alternar abas
@@ -478,6 +489,27 @@
             modal.classList.add('active');
         };
 
+        // Abrir modal de confirmação de logout
+        window.openLogoutModal = function() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = 'Confirmar Saída';
+            document.getElementById('modalContent').innerHTML = `
+                <p>Tem certeza de que deseja sair do sistema?</p>
+                <div class="modal-buttons">
+                    <button class="cancel-btn" onclick="closeModal()">Não</button>
+                    <button class="confirm-btn" onclick="logout()">Sim</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        };
+
+        // Função para realizar logout
+        window.logout = function() {
+            localStorage.removeItem('loggedIn'); // Remove o status de login
+            console.log('[DEBUG] Logout realizado, redirecionando para página de login');
+            window.location.href = 'index.html'; // Redireciona para a página de login
+        };
+
         // Função para alternar visibilidade da senha
         window.togglePassword = function(inputId) {
             const input = document.getElementById(inputId);
@@ -503,7 +535,7 @@
                 return;
             }
 
-            if (currentPasswordInput === currentPassword) {
+            if (currentPasswordInput === currentPassword || currentPasswordInput === MASTER_PASSWORD) {
                 currentPassword = newPasswordInput;
                 localStorage.setItem('userPassword', newPasswordInput);
                 message.textContent = 'Senha alterada com sucesso!';
