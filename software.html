@@ -232,6 +232,22 @@
             color: #2d3748;
         }
 
+        .list-item .info .tipo {
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 8px;
+            margin-left: 8px;
+            color: #ffffff;
+        }
+
+        .list-item .info .tipo.online {
+            background: #38a169; /* Verde para Online */
+        }
+
+        .list-item .info .tipo.presencial {
+            background: #3182ce; /* Azul para Presencial */
+        }
+
         .delete-btn {
             padding: 8px 16px;
             background: #f56565;
@@ -378,6 +394,14 @@
             <div class="form-group">
                 <label for="hora">Hora</label>
                 <input type="time" id="hora" required>
+            </div>
+            <div class="form-group">
+                <label for="tipoAgendamento">Tipo de Agendamento</label>
+                <select id="tipoAgendamento" required>
+                    <option value="">Selecione o tipo</option>
+                    <option value="Online">Online</option>
+                    <option value="Presencial">Presencial</option>
+                </select>
             </div>
             <div class="form-group">
                 <button type="submit">Agendar</button>
@@ -642,14 +666,14 @@
                     info.className = 'info';
                     const [year, month, day] = agendamento.data.split('-');
                     const formattedDate = `${day}/${month}/${year}`;
-                    info.textContent = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`;
+                    info.innerHTML = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora} <span class="tipo ${agendamento.tipo.toLowerCase()}">${agendamento.tipo}</span>`;
                     item.appendChild(info);
                     const deleteButton = document.createElement('button');
                     deleteButton.className = 'delete-btn';
                     deleteButton.textContent = 'Excluir';
                     deleteButton.onclick = (e) => {
                         e.stopPropagation();
-                        openDeleteModal('agendamento', agendamento.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`);
+                        openDeleteModal('agendamento', agendamento.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora} (${agendamento.tipo})`);
                         console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
                     };
                     item.appendChild(deleteButton);
@@ -711,17 +735,18 @@
             const cliente = document.getElementById('cliente').value;
             const data = document.getElementById('data').value;
             const hora = document.getElementById('hora').value;
+            const tipoAgendamento = document.getElementById('tipoAgendamento').value;
             const message = document.getElementById('agendamentoMessage');
 
-            if (!cliente || !data || !hora) {
+            if (!cliente || !data || !hora || !tipoAgendamento) {
                 message.textContent = 'Por favor, preencha todos os campos.';
                 message.className = 'error-message';
                 return;
             }
 
             try {
-                console.log('[DEBUG] Tentando agendar:', { cliente, data, hora });
-                await addDoc(collection(db, 'agendamentos'), { cliente, data, hora });
+                console.log('[DEBUG] Tentando agendar:', { cliente, data, hora, tipoAgendamento });
+                await addDoc(collection(db, 'agendamentos'), { cliente, data, hora, tipo: tipoAgendamento });
                 message.textContent = 'Agendamento realizado com sucesso!';
                 message.className = 'success-message';
                 e.target.reset();
@@ -806,6 +831,13 @@
                     <label>Nova Hora</label>
                     <input type="time" id="modalHora" value="${agendamento.hora}">
                 </div>
+                <div class="form-group">
+                    <label>Tipo de Agendamento</label>
+                    <select id="modalTipo" required>
+                        <option value="Online" ${agendamento.tipo === 'Online' ? 'selected' : ''}>Online</option>
+                        <option value="Presencial" ${agendamento.tipo === 'Presencial' ? 'selected' : ''}>Presencial</option>
+                    </select>
+                </div>
                 <div class="modal-buttons">
                     <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
                     <button class="save-btn" onclick="saveChanges('${id}')">Salvar</button>
@@ -818,13 +850,14 @@
         async function saveChanges(id) {
             const newData = document.getElementById('modalData').value;
             const newHora = document.getElementById('modalHora').value;
-            if (!newData || !newHora) {
+            const newTipo = document.getElementById('modalTipo').value;
+            if (!newData || !newHora || !newTipo) {
                 alert('Preencha todos os campos para remarcar.');
                 return;
             }
             try {
                 console.log('[DEBUG] Tentando salvar alterações do agendamento com ID:', id);
-                await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora });
+                await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora, tipo: newTipo });
                 console.log('[SUCCESS] Agendamento atualizado com sucesso');
                 closeModal();
                 await loadAgendamentos();
