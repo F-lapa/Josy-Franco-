@@ -649,7 +649,10 @@
                 const querySnapshot = await getDocs(collection(db, 'agendamentos'));
                 let agendamentos = [];
                 querySnapshot.forEach(doc => {
-                    agendamentos.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    // Verificar se o campo 'tipo' existe, caso contrário, usar um valor padrão
+                    const tipo = data.tipo || 'Presencial'; // Valor padrão como "Presencial"
+                    agendamentos.push({ id: doc.id, ...data, tipo });
                 });
 
                 // Ordenar agendamentos por data e hora (mais recentes primeiro)
@@ -666,6 +669,7 @@
                     info.className = 'info';
                     const [year, month, day] = agendamento.data.split('-');
                     const formattedDate = `${day}/${month}/${year}`;
+                    // Usar o tipo do agendamento, garantindo que ele existe
                     info.innerHTML = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora} <span class="tipo ${agendamento.tipo.toLowerCase()}">${agendamento.tipo}</span>`;
                     item.appendChild(info);
                     const deleteButton = document.createElement('button');
