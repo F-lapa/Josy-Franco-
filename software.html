@@ -20,41 +20,41 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 30px;
+            padding: 20px; /* Reduzido para telas pequenas */
             color: #2d3748;
         }
 
         .header {
             background: linear-gradient(90deg, #6b46c1, #ed64a6);
             color: #ffffff;
-            padding: 40px;
+            padding: 30px; /* Menos padding para telas pequenas */
             width: 100%;
             text-align: center;
-            border-radius: 0 0 25px 25px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-radius: 0 0 20px 20px; /* Bordas menores para mobile */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
             position: relative;
         }
 
         .header h1 {
-            font-size: 36px;
+            font-size: 28px; /* Menor para telas pequenas */
             font-weight: 500;
             letter-spacing: 1px;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
 
         .header-buttons {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 10px;
+            right: 10px;
             display: flex;
-            gap: 15px;
+            gap: 10px;
         }
 
         .change-password-btn, .logout-btn {
             background: none;
             border: none;
             color: #ffffff;
-            font-size: 20px;
+            font-size: 18px; /* Menor para telas pequenas */
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -66,40 +66,40 @@
 
         .tab-container {
             display: flex;
-            gap: 15px;
-            margin: 40px 0;
+            gap: 10px; /* Menor gap para mobile */
+            margin: 30px 0; /* Menor margem para mobile */
             background: rgba(255, 255, 255, 0.9);
-            padding: 12px;
-            border-radius: 30px;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            padding: 10px; /* Menor padding para mobile */
+            border-radius: 20px; /* Bordas menores */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .tab-button {
-            padding: 12px 35px;
+            padding: 10px 25px; /* Menor padding para mobile */
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px; /* Menor para telas pequenas */
             font-weight: 500;
             color: #2d3748;
             background: transparent;
             border: none;
-            border-radius: 25px;
+            border-radius: 20px; /* Bordas menores */
             transition: all 0.3s ease;
         }
 
         .tab-button.active {
             background: #ed64a6;
             color: #ffffff;
-            box-shadow: 0 4px 15px rgba(237, 100, 166, 0.4);
+            box-shadow: 0 3px 12px rgba(237, 100, 166, 0.4);
         }
 
         .tab-content {
             display: none;
             width: 100%;
-            max-width: 750px;
-            padding: 35px;
+            max-width: 600px; /* Menor max-width para mobile */
+            padding: 25px; /* Menor padding para mobile */
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 25px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border-radius: 20px; /* Bordas menores */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             animation: fadeIn 0.5s ease;
         }
 
@@ -119,31 +119,31 @@
 
         h2 {
             color: #2d3748;
-            font-size: 26px;
+            font-size: 22px; /* Menor para telas pequenas */
             font-weight: 500;
-            margin-bottom: 25px;
+            margin-bottom: 20px; /* Menor margem para mobile */
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Menor margem para mobile */
             position: relative;
         }
 
         .form-group label {
             display: block;
-            font-size: 14px;
+            font-size: 12px; /* Menor para telas pequenas */
             color: #2d3748;
-            margin-bottom: 8px;
+            margin-bottom: 6px; /* Menor margem para mobile */
             font-weight: 400;
         }
 
         .form-group input, .form-group select {
             width: 100%;
-            padding: 12px;
+            padding: 10px; /* Menor padding para mobile */
             border: 1px solid #d6bcfa;
-            border-radius: 10px;
-            font-size: 15px;
+            border-radius: 8px; /* Bordas menores */
+            font-size: 14px; /* Menor para telas pequenas */
             background: #ffffff;
             transition: all 0.3s ease;
         }
@@ -151,27 +151,27 @@
         .form-group input:focus, .form-group select:focus {
             border-color: #ed64a6;
             outline: none;
-            box-shadow: 0 0 8px rgba(237, 100, 166, 0.3);
+            box-shadow: 0 0 6px rgba(237, 100, 166, 0.3);
         }
 
         .form-group .toggle-password {
             position: absolute;
-            right: 15px;
+            right: 12px; /* Menor para mobile */
             top: 50%;
             transform: translateY(-10%);
             cursor: pointer;
-            font-size: 18px;
+            font-size: 16px; /* Menor para telas pequenas */
             color: #2d3748;
         }
 
         .form-group button {
             width: 100%;
-            padding: 12px;
+            padding: 10px; /* Menor padding para mobile */
             background: #ed64a6;
             color: #ffffff;
             border: none;
-            border-radius: 10px;
-            font-size: 16px;
+            border-radius: 8px; /* Bordas menores */
+            font-size: 14px; /* Menor para telas pequenas */
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -180,19 +180,19 @@
         .form-group button:hover {
             background: #d53f8c;
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(237, 100, 166, 0.4);
+            box-shadow: 0 3px 12px rgba(237, 100, 166, 0.4);
         }
 
         .search-container {
-            margin-bottom: 20px;
+            margin-bottom: 15px; /* Menor margem para mobile */
         }
 
         .search-container input {
             width: 100%;
-            padding: 12px;
+            padding: 10px; /* Menor padding para mobile */
             border: 1px solid #d6bcfa;
-            border-radius: 10px;
-            font-size: 15px;
+            border-radius: 8px; /* Bordas menores */
+            font-size: 14px; /* Menor para telas pequenas */
             background: #ffffff;
             transition: all 0.3s ease;
         }
@@ -200,46 +200,49 @@
         .search-container input:focus {
             border-color: #ed64a6;
             outline: none;
-            box-shadow: 0 0 8px rgba(237, 100, 166, 0.3);
+            box-shadow: 0 0 6px rgba(237, 100, 166, 0.3);
         }
 
         .list-container {
-            margin-top: 30px;
-            max-height: 320px;
+            margin-top: 20px; /* Menor margem para mobile */
+            max-height: 300px; /* Menor altura para telas pequenas */
             overflow-y: auto;
         }
 
         .list-item {
             display: grid;
-            grid-template-columns: 3fr 1fr 0.7fr; /* Ajustado para melhor distribuição */
+            grid-template-columns: 2.5fr 1fr 0.8fr; /* Ajustado para mais espaço no mobile */
             align-items: center;
-            padding: 20px; /* Mais espaço interno */
+            padding: 15px; /* Menor padding para mobile, mas suficiente */
             background: #faf5ff;
-            border-radius: 15px;
-            margin-bottom: 20px; /* Mais espaço entre itens */
+            border-radius: 10px; /* Bordas menores */
+            margin-bottom: 15px; /* Menor margem para mobile */
             transition: all 0.3s ease;
             cursor: pointer;
             gap: 15px; /* Espaço entre colunas */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Sombra leve para destaque */
         }
 
         .list-item:hover {
-            transform: scale(1.01);
+            transform: scale(1.02);
             background: #e9d8fd;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .list-item .info {
-            font-size: 16px; /* Tamanho de fonte maior para melhor legibilidade */
+            font-size: 14px; /* Menor para telas pequenas */
             color: #2d3748;
-            line-height: 1.5; /* Melhor espaçamento entre linhas */
+            line-height: 1.4; /* Menor para mobile, mas legível */
+            padding-right: 10px; /* Espaço à direita do texto */
         }
 
         .list-item .info .tipo {
             font-weight: 500;
-            padding: 6px 12px; /* Mais padding para o badge de tipo */
-            border-radius: 8px;
-            margin-left: 10px; /* Mais espaço antes do badge */
+            padding: 6px 10px; /* Menor padding para mobile */
+            border-radius: 6px; /* Bordas menores */
+            margin-left: 8px; /* Menor margem para mobile */
             color: #ffffff;
+            font-size: 12px; /* Menor para telas pequenas */
         }
 
         .list-item .info .tipo.online {
@@ -251,21 +254,41 @@
         }
 
         .delete-btn {
-            padding: 10px 20px; /* Mais padding para o botão */
+            padding: 8px 16px; /* Menor padding para mobile, mas legível */
             background: #f56565;
             color: #ffffff;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px; /* Bordas menores */
             cursor: pointer;
-            font-size: 14px; /* Tamanho de fonte legível */
-            width: 100px; /* Largura fixa para consistência */
+            font-size: 12px; /* Menor para telas pequenas */
+            width: 90px; /* Menor largura para mobile */
             transition: all 0.3s ease;
-            justify-self: center; /* Centraliza o botão na coluna */
+            justify-self: center; /* Centraliza o botão */
         }
 
         .delete-btn:hover {
             background: #e53e3e;
-            transform: translateY(-2px); /* Efeito de elevação ao passar o mouse */
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 480px) {
+            .list-item {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 12px; /* Menor padding para telas muito pequenas */
+                gap: 10px; /* Menor gap para mobile */
+            }
+
+            .list-item .info {
+                width: 100%; /* Ocupa toda a largura */
+                padding-right: 0; /* Remove padding direito em mobile */
+            }
+
+            .delete-btn {
+                width: 100%; /* Botão ocupa toda a largura em mobile */
+                margin-top: 10px; /* Espaço acima do botão */
+            }
         }
 
         .modal {
@@ -287,28 +310,28 @@
 
         .modal-content {
             background: #ffffff;
-            padding: 30px;
-            border-radius: 20px;
-            max-width: 500px;
+            padding: 20px; /* Menor padding para mobile */
+            border-radius: 15px; /* Bordas menores */
+            max-width: 400px; /* Menor max-width para mobile */
             width: 90%;
             animation: slideDown 0.3s ease;
             text-align: center;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
         }
 
         .modal-buttons {
             display: flex;
-            gap: 15px;
-            margin-top: 20px;
+            gap: 10px; /* Menor gap para mobile */
+            margin-top: 15px; /* Menor margem para mobile */
             justify-content: center;
         }
 
         .modal-buttons button {
             flex: 1;
-            max-width: 100px;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 15px;
+            max-width: 90px; /* Menor max-width para mobile */
+            padding: 8px; /* Menor padding para mobile */
+            border-radius: 8px; /* Bordas menores */
+            font-size: 12px; /* Menor para telas pequenas */
             cursor: pointer;
             transition: all 0.3s ease;
         }
@@ -329,8 +352,8 @@
         }
 
         .success-message, .error-message {
-            font-size: 14px;
-            margin-top: 15px;
+            font-size: 12px; /* Menor para telas pequenas */
+            margin-top: 10px; /* Menor margem para mobile */
             font-weight: 400;
         }
 
