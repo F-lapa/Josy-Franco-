@@ -211,14 +211,15 @@
 
         .list-item {
             display: grid;
-            grid-template-columns: 2fr 1fr 0.5fr;
+            grid-template-columns: 3fr 1fr 0.7fr; /* Ajustado para melhor distribuição */
             align-items: center;
-            padding: 15px;
+            padding: 20px; /* Mais espaço interno */
             background: #faf5ff;
             border-radius: 15px;
-            margin-bottom: 15px;
+            margin-bottom: 20px; /* Mais espaço entre itens */
             transition: all 0.3s ease;
             cursor: pointer;
+            gap: 15px; /* Espaço entre colunas */
         }
 
         .list-item:hover {
@@ -228,15 +229,16 @@
         }
 
         .list-item .info {
-            font-size: 15px;
+            font-size: 16px; /* Tamanho de fonte maior para melhor legibilidade */
             color: #2d3748;
+            line-height: 1.5; /* Melhor espaçamento entre linhas */
         }
 
         .list-item .info .tipo {
             font-weight: 500;
-            padding: 4px 8px;
+            padding: 6px 12px; /* Mais padding para o badge de tipo */
             border-radius: 8px;
-            margin-left: 8px;
+            margin-left: 10px; /* Mais espaço antes do badge */
             color: #ffffff;
         }
 
@@ -249,17 +251,21 @@
         }
 
         .delete-btn {
-            padding: 8px 16px;
+            padding: 10px 20px; /* Mais padding para o botão */
             background: #f56565;
             color: #ffffff;
             border: none;
             border-radius: 10px;
             cursor: pointer;
+            font-size: 14px; /* Tamanho de fonte legível */
+            width: 100px; /* Largura fixa para consistência */
             transition: all 0.3s ease;
+            justify-self: center; /* Centraliza o botão na coluna */
         }
 
         .delete-btn:hover {
             background: #e53e3e;
+            transform: translateY(-2px); /* Efeito de elevação ao passar o mouse */
         }
 
         .modal {
