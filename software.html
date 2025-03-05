@@ -119,7 +119,7 @@
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.15); } /* Aumentado para maior destaque */
+            50% { transform: scale(1.1); }
             100% { transform: scale(1); }
         }
 
@@ -144,7 +144,7 @@
             font-weight: 400;
         }
 
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 10px;
             border: 1px solid #d6bcfa;
@@ -154,7 +154,7 @@
             transition: all 0.3s ease;
         }
 
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             border-color: #ed64a6;
             outline: none;
             box-shadow: 0 0 6px rgba(237, 100, 166, 0.3);
@@ -245,25 +245,27 @@
         .list-item-actions {
             display: flex;
             align-items: center;
-            gap: 15px; /* Aumentado para maior espaçamento entre badge e botão */
+            gap: 10px; /* Espaço reduzido para alinhar com o botão */
             justify-self: end;
         }
 
         .list-item .tipo {
             font-weight: 600;
-            padding: 12px 18px; /* Maior padding para maior destaque */
-            border-radius: 12px; /* Bordas mais pronunciadas */
+            padding: 8px 16px; /* Tamanho ajustado para combinar com o botão Excluir */
+            border-radius: 8px; /* Mesma borda do botão Excluir */
             color: #ffffff;
-            font-size: 18px; /* Tamanho maior para destaque */
+            font-size: 12px; /* Mesmo tamanho do texto do botão Excluir */
             margin: 0;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Sombra leve, mas visível */
             background: linear-gradient(45deg, #38a169, #2d864d); /* Gradiente vibrante para Online */
-            animation: pulse 2s infinite; /* Animação de pulsação para destaque */
+            animation: pulse 2s infinite; /* Mantém a animação de pulsação */
+            width: 90px; /* Mesma largura do botão Excluir */
+            text-align: center; /* Centraliza o texto */
         }
 
         .list-item .tipo.presencial {
             background: linear-gradient(45deg, #3182ce, #1e5eb8); /* Gradiente vibrante para Presencial */
-            animation: pulse 2s infinite; /* Animação de pulsação para destaque */
+            animation: pulse 2s infinite; /* Mantém a animação de pulsação */
         }
 
         .delete-btn {
@@ -274,7 +276,7 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 12px;
-            width: 90px;
+            width: 90px; /* Consistência com o badge */
             transition: all 0.3s ease;
             justify-self: center;
         }
@@ -304,10 +306,10 @@
             }
 
             .list-item .tipo {
-                font-size: 16px; /* Tamanho reduzido para mobile, mas ainda destacado */
-                padding: 10px 16px; /* Padding reduzido para mobile */
-                border-radius: 10px; /* Bordas menores para mobile */
-                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Sombra menor para mobile */
+                font-size: 12px; /* Mantém o tamanho no mobile */
+                padding: 6px 14px; /* Reduzido para mobile, mas ainda alinhado com o botão */
+                width: 100%; /* Ocupa toda a largura no mobile */
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Sombra menor para mobile */
             }
 
             .delete-btn {
@@ -415,6 +417,10 @@
             <div class="form-group">
                 <label for="telefone">Telefone</label>
                 <input type="tel" id="telefone" placeholder="(XX) 9XXXX-XXXX" maxlength="15" required>
+            </div>
+            <div class="form-group">
+                <label for="cidade">Cidade</label>
+                <input type="text" id="cidade" placeholder="Digite a cidade" required>
             </div>
             <div class="form-group">
                 <label for="dataNascimento">Data de Nascimento</label>
@@ -666,14 +672,14 @@
                         item.className = 'list-item';
                         const info = document.createElement('div');
                         info.className = 'info';
-                        info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`;
+                        info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${cliente.cidade || 'Sem cidade'}`;
                         item.appendChild(info);
                         const deleteButton = document.createElement('button');
                         deleteButton.className = 'delete-btn';
                         deleteButton.textContent = 'Excluir';
                         deleteButton.onclick = (e) => {
                             e.stopPropagation();
-                            openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`);
+                            openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${cliente.cidade || 'Sem cidade'}`);
                             console.log(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
                         };
                         item.appendChild(deleteButton);
@@ -682,7 +688,7 @@
                     });
                     clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
                     clientes.forEach(cliente => {
-                        clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome}</option>`;
+                        clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome} - ${cliente.cidade || 'Sem cidade'}</option>`;
                     });
                 }
 
@@ -763,10 +769,11 @@
             e.preventDefault();
             const nomeInput = document.getElementById('nome');
             const telefoneInput = document.getElementById('telefone');
+            const cidadeInput = document.getElementById('cidade');
             const dataNascimentoInput = document.getElementById('dataNascimento');
             const message = document.getElementById('cadastroMessage');
 
-            if (!nomeInput || !telefoneInput || !dataNascimentoInput) {
+            if (!nomeInput || !telefoneInput || !cidadeInput || !dataNascimentoInput) {
                 message.textContent = 'Erro: Campos do formulário não encontrados.';
                 message.className = 'error-message';
                 console.error('[ERROR] Elementos do formulário não encontrados');
@@ -775,17 +782,18 @@
 
             const nome = nomeInput.value.trim();
             const telefone = telefoneInput.value ? telefoneInput.value.replace(/\D/g, '').substring(0, 11) : '';
+            const cidade = cidadeInput.value.trim();
             const dataNascimento = dataNascimentoInput.value;
 
-            if (!nome || !telefone || !dataNascimento) {
+            if (!nome || !telefone || !cidade || !dataNascimento) {
                 message.textContent = 'Por favor, preencha todos os campos.';
                 message.className = 'error-message';
                 return;
             }
 
             try {
-                console.log('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, dataNascimento });
-                await addDoc(collection(db, 'clientes'), { nome, telefone, dataNascimento });
+                console.log('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, cidade, dataNascimento });
+                await addDoc(collection(db, 'clientes'), { nome, telefone, cidade, dataNascimento });
                 message.textContent = 'Cliente cadastrado com sucesso!';
                 message.className = 'success-message';
                 e.target.reset();
@@ -857,6 +865,10 @@
                     <input type="tel" id="editTelefone" value="${formatPhoneDisplay(cliente.telefone)}" required maxlength="15">
                 </div>
                 <div class="form-group">
+                    <label for="editCidade">Cidade</label>
+                    <input type="text" id="editCidade" value="${cliente.cidade || ''}" required>
+                </div>
+                <div class="form-group">
                     <label for="editDataNascimento">Data de Nascimento</label>
                     <input type="date" id="editDataNascimento" value="${cliente.dataNascimento}" required>
                 </div>
@@ -882,14 +894,15 @@
         async function saveClientChanges(docId) {
             const nome = document.getElementById('editNome').value.trim();
             const telefone = document.getElementById('editTelefone').value ? document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11) : '';
+            const cidade = document.getElementById('editCidade').value.trim();
             const dataNascimento = document.getElementById('editDataNascimento').value;
-            if (!nome || !telefone || !dataNascimento) {
+            if (!nome || !telefone || !cidade || !dataNascimento) {
                 alert('Por favor, preencha todos os campos.');
                 return;
             }
             try {
                 console.log('[DEBUG] Tentando salvar alterações do cliente com ID:', docId);
-                await updateDoc(doc(db, 'clientes', docId), { nome, telefone, dataNascimento });
+                await updateDoc(doc(db, 'clientes', docId), { nome, telefone, cidade, dataNascimento });
                 console.log('[SUCCESS] Cliente atualizado com sucesso');
                 closeModal();
                 await loadClientes();
@@ -899,7 +912,7 @@
             }
         }
 
-        // Modal de remarcação de agendamento
+        // Modal de remarcação de agendamento com campo de observação
         function openEditModal(id, agendamento) {
             const modal = document.getElementById('modal');
             console.log('[DEBUG] Abrindo modal de agendamento com ID:', id);
@@ -920,6 +933,10 @@
                         <option value="Presencial" ${agendamento.tipo === 'Presencial' ? 'selected' : ''}>Presencial</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="observacao">Observação do Atendimento</label>
+                    <textarea id="observacao" placeholder="Digite suas observações aqui" rows="4">${agendamento.observacao || ''}</textarea>
+                </div>
                 <div class="modal-buttons">
                     <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
                     <button class="save-btn" onclick="saveChanges('${id}')">Salvar</button>
@@ -933,13 +950,14 @@
             const newData = document.getElementById('modalData').value;
             const newHora = document.getElementById('modalHora').value;
             const newTipo = document.getElementById('modalTipo').value;
+            const observacao = document.getElementById('observacao').value.trim();
             if (!newData || !newHora || !newTipo) {
                 alert('Preencha todos os campos para remarcar.');
                 return;
             }
             try {
                 console.log('[DEBUG] Tentando salvar alterações do agendamento com ID:', id);
-                await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora, tipo: newTipo });
+                await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora, tipo: newTipo, observacao: observacao || null });
                 console.log('[SUCCESS] Agendamento atualizado com sucesso');
                 closeModal();
                 await loadAgendamentos();
