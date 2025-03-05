@@ -245,27 +245,27 @@
         .list-item-actions {
             display: flex;
             align-items: center;
-            gap: 10px; /* Espaço reduzido para alinhar com o botão */
+            gap: 10px;
             justify-self: end;
         }
 
         .list-item .tipo {
             font-weight: 600;
-            padding: 8px 16px; /* Tamanho ajustado para combinar com o botão Excluir */
-            border-radius: 8px; /* Mesma borda do botão Excluir */
+            padding: 8px 16px;
+            border-radius: 8px;
             color: #ffffff;
-            font-size: 12px; /* Mesmo tamanho do texto do botão Excluir */
+            font-size: 12px;
             margin: 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Sombra leve, mas visível */
-            background: linear-gradient(45deg, #38a169, #2d864d); /* Gradiente vibrante para Online */
-            animation: pulse 2s infinite; /* Mantém a animação de pulsação */
-            width: 90px; /* Mesma largura do botão Excluir */
-            text-align: center; /* Centraliza o texto */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(45deg, #38a169, #2d864d);
+            animation: pulse 2s infinite;
+            width: 90px;
+            text-align: center;
         }
 
         .list-item .tipo.presencial {
-            background: linear-gradient(45deg, #3182ce, #1e5eb8); /* Gradiente vibrante para Presencial */
-            animation: pulse 2s infinite; /* Mantém a animação de pulsação */
+            background: linear-gradient(45deg, #3182ce, #1e5eb8);
+            animation: pulse 2s infinite;
         }
 
         .delete-btn {
@@ -276,7 +276,7 @@
             border-radius: 8px;
             cursor: pointer;
             font-size: 12px;
-            width: 90px; /* Consistência com o badge */
+            width: 90px;
             transition: all 0.3s ease;
             justify-self: center;
         }
@@ -306,10 +306,10 @@
             }
 
             .list-item .tipo {
-                font-size: 12px; /* Mantém o tamanho no mobile */
-                padding: 6px 14px; /* Reduzido para mobile, mas ainda alinhado com o botão */
-                width: 100%; /* Ocupa toda a largura no mobile */
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Sombra menor para mobile */
+                font-size: 12px;
+                padding: 6px 14px;
+                width: 100%;
+                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
             }
 
             .delete-btn {
@@ -481,7 +481,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBl55ZrLR6Bgy0WHa-HoACm25mC8_l4awY",
@@ -642,7 +642,7 @@
             }
         };
 
-        // Carregar clientes com ordenação e busca
+        // Carregar e atualizar clientes com campo "Cidade"
         async function loadClientes() {
             const clienteList = document.getElementById('clienteList');
             const clienteSelect = document.getElementById('cliente');
@@ -655,7 +655,13 @@
                 const querySnapshot = await getDocs(collection(db, 'clientes'));
                 let clientes = [];
                 querySnapshot.forEach(doc => {
-                    clientes.push({ id: doc.id, ...doc.data() });
+                    const data = doc.data();
+                    // Adicionar campo "cidade" se não existir
+                    if (!data.cidade) {
+                        updateDoc(doc(db, 'clientes', doc.id), { cidade: 'Sem cidade' });
+                        data.cidade = 'Sem cidade';
+                    }
+                    clientes.push({ id: doc.id, ...data });
                 });
 
                 // Ordenar clientes em ordem alfabética
@@ -708,7 +714,7 @@
             }
         }
 
-        // Carregar agendamentos com ordenação
+        // Carregar e atualizar agendamentos com campo "Observação"
         async function loadAgendamentos() {
             const agendamentoList = document.getElementById('agendamentoList');
             agendamentoList.innerHTML = '';
@@ -718,6 +724,11 @@
                 let agendamentos = [];
                 querySnapshot.forEach(doc => {
                     const data = doc.data();
+                    // Adicionar campo "observacao" se não existir
+                    if (!data.observacao) {
+                        updateDoc(doc(db, 'agendamentos', doc.id), { observacao: null });
+                        data.observacao = null;
+                    }
                     const tipo = data.tipo || 'Presencial';
                     agendamentos.push({ id: doc.id, ...data, tipo });
                 });
@@ -836,7 +847,7 @@
                 }
 
                 console.log('[DEBUG] Tentando agendar:', { cliente, data, hora, tipoAgendamento });
-                await addDoc(collection(db, 'agendamentos'), { cliente, data, hora, tipo: tipoAgendamento });
+                await addDoc(collection(db, 'agendamentos'), { cliente, data, hora, tipo: tipoAgendamento, observacao: null });
                 message.textContent = 'Agendamento realizado com sucesso!';
                 message.className = 'success-message';
                 e.target.reset();
