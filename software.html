@@ -508,6 +508,8 @@
             if (!isLoggedIn) {
                 window.location.href = 'index.html'; // Redireciona para login se não logado
             }
+            loadClientes().catch(error => console.error('[ERROR] Erro ao carregar clientes no DOMContentLoaded:', error));
+            loadAgendamentos().catch(error => console.error('[ERROR] Erro ao carregar agendamentos no DOMContentLoaded:', error));
         });
 
         // Função para alternar abas
@@ -658,7 +660,9 @@
                     const data = doc.data();
                     // Adicionar campo "cidade" se não existir
                     if (!data.cidade) {
-                        updateDoc(doc(db, 'clientes', doc.id), { cidade: 'Sem cidade' });
+                        updateDoc(doc(db, 'clientes', doc.id), { cidade: 'Sem cidade' })
+                            .then(() => console.log(`[SUCCESS] Campo 'cidade' adicionado para cliente ${doc.id}`))
+                            .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'cidade' para cliente ${doc.id}:`, error));
                         data.cidade = 'Sem cidade';
                     }
                     clientes.push({ id: doc.id, ...data });
@@ -709,7 +713,7 @@
                 console.log('[SUCCESS] Clientes carregados com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao carregar clientes:', error);
-                document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes.';
+                document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique sua conexão ou as permissões no Firebase.';
                 document.getElementById('cadastroMessage').className = 'error-message';
             }
         }
@@ -726,7 +730,9 @@
                     const data = doc.data();
                     // Adicionar campo "observacao" se não existir
                     if (!data.observacao) {
-                        updateDoc(doc(db, 'agendamentos', doc.id), { observacao: null });
+                        updateDoc(doc(db, 'agendamentos', doc.id), { observacao: null })
+                            .then(() => console.log(`[SUCCESS] Campo 'observacao' adicionado para agendamento ${doc.id}`))
+                            .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'observacao' para agendamento ${doc.id}:`, error));
                         data.observacao = null;
                     }
                     const tipo = data.tipo || 'Presencial';
@@ -770,7 +776,7 @@
                 console.log('[SUCCESS] Agendamentos carregados com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao carregar agendamentos:', error);
-                document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos.';
+                document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique sua conexão ou as permissões no Firebase.';
                 document.getElementById('agendamentoMessage').className = 'error-message';
             }
         }
@@ -813,7 +819,7 @@
                 console.log('[SUCCESS] Cliente cadastrado com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao cadastrar cliente:', error);
-                message.textContent = 'Erro ao cadastrar cliente.';
+                message.textContent = 'Erro ao cadastrar cliente. Verifique sua conexão ou as permissões no Firebase.';
                 message.className = 'error-message';
             }
         });
@@ -856,7 +862,7 @@
                 console.log('[SUCCESS] Agendamento realizado com sucesso');
             } catch (error) {
                 console.error('[ERROR] Erro ao agendar:', error);
-                message.textContent = 'Erro ao realizar agendamento.';
+                message.textContent = 'Erro ao realizar agendamento. Verifique sua conexão ou as permissões no Firebase.';
                 message.className = 'error-message';
             }
         });
@@ -919,7 +925,7 @@
                 await loadClientes();
             } catch (error) {
                 console.error('[ERROR] Erro ao atualizar cliente:', error);
-                alert('Erro ao salvar alterações.');
+                alert('Erro ao salvar alterações. Verifique sua conexão ou as permissões no Firebase.');
             }
         }
 
@@ -974,7 +980,7 @@
                 await loadAgendamentos();
             } catch (error) {
                 console.error('[ERROR] Erro ao atualizar agendamento:', error);
-                alert('Erro ao salvar alterações.');
+                alert('Erro ao salvar alterações. Verifique sua conexão ou as permissões no Firebase.');
             }
         }
 
@@ -1026,7 +1032,7 @@
                 setTimeout(() => messageElement.textContent = '', 3000);
             } catch (error) {
                 console.error(`[ERROR] Erro ao excluir ${type}:`, error);
-                messageElement.textContent = `Erro ao excluir ${type}.`;
+                messageElement.textContent = `Erro ao excluir ${type}. Verifique sua conexão ou as permissões no Firebase.`;
                 messageElement.className = 'error-message';
             }
         }
