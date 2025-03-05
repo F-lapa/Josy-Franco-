@@ -119,7 +119,7 @@
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.15); } /* Aumentado para maior destaque */
             100% { transform: scale(1); }
         }
 
@@ -245,23 +245,23 @@
         .list-item-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px; /* Aumentado para maior espaçamento entre badge e botão */
             justify-self: end;
         }
 
-        .list-item .info .tipo {
+        .list-item .tipo {
             font-weight: 600;
-            padding: 10px 16px; /* Maior padding para maior destaque */
-            border-radius: 10px; /* Bordas mais suaves */
+            padding: 12px 18px; /* Maior padding para maior destaque */
+            border-radius: 12px; /* Bordas mais pronunciadas */
             color: #ffffff;
-            font-size: 16px; /* Tamanho maior para destaque */
+            font-size: 18px; /* Tamanho maior para destaque */
             margin: 0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada */
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Sombra mais pronunciada */
             background: linear-gradient(45deg, #38a169, #2d864d); /* Gradiente vibrante para Online */
             animation: pulse 2s infinite; /* Animação de pulsação para destaque */
         }
 
-        .list-item .info .tipo.presencial {
+        .list-item .tipo.presencial {
             background: linear-gradient(45deg, #3182ce, #1e5eb8); /* Gradiente vibrante para Presencial */
             animation: pulse 2s infinite; /* Animação de pulsação para destaque */
         }
@@ -301,6 +301,13 @@
             .list-item-actions {
                 width: 100%;
                 justify-content: flex-end;
+            }
+
+            .list-item .tipo {
+                font-size: 16px; /* Tamanho reduzido para mobile, mas ainda destacado */
+                padding: 10px 16px; /* Padding reduzido para mobile */
+                border-radius: 10px; /* Bordas menores para mobile */
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Sombra menor para mobile */
             }
 
             .delete-btn {
