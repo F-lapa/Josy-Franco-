@@ -6,7 +6,6 @@
     <title>Login - Josy Franco Terapeuta</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        /* [CSS mantido igual ao anterior] */
         * {
             margin: 0;
             padding: 0;
@@ -40,12 +39,19 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .login-container h2 {
+        .login-title {
             color: #2d3748;
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 500;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            animation: slideDownBounce 1.2s ease-out;
+        }
+
+        @keyframes slideDownBounce {
+            0% { opacity: 0; transform: translateY(-50px) scale(0.8); }
+            50% { transform: translateY(10px) scale(1.1); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .form-group {
@@ -70,6 +76,12 @@
             font-size: 15px;
             background: #ffffff;
             transition: all 0.3s ease;
+            animation: slideInLeft 0.8s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            0% { opacity: 0; transform: translateX(-20px); }
+            100% { opacity: 1; transform: translateX(0); }
         }
 
         .form-group input:focus {
@@ -99,6 +111,13 @@
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
+            animation: bounceIn 0.8s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
         }
 
         .login-btn:hover {
@@ -124,7 +143,7 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>Login</h2>
+        <h2 class="login-title">Josy Franco Terapeuta</h2>
         <form id="loginForm">
             <div class="form-group">
                 <label for="username">Login</label>
