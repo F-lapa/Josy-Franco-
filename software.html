@@ -494,619 +494,631 @@
             measurementId: "G-MFFES61WRX"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        try {
+            const app = initializeApp(firebaseConfig);
+            console.log('[SUCCESS] Firebase inicializado com sucesso');
+            const auth = getAuth(app);
+            const db = getFirestore(app);
 
-        // Senha mestra fixa
-        const MASTER_PASSWORD = "administrador";
+            // Senha mestra fixa
+            const MASTER_PASSWORD = "administrador";
 
-        // Carregar senha do usuário do localStorage ou usar padrão
-        let currentPassword = localStorage.getItem('userPassword') || "terapia";
+            // Carregar senha do usuário do localStorage ou usar padrão
+            let currentPassword = localStorage.getItem('userPassword') || "terapia";
 
-        // Autenticar anonimamente ao carregar a página
-        async function initializeAuth() {
-            try {
-                await signInAnonymously(auth);
-                console.log('[SUCCESS] Autenticação anônima realizada com sucesso');
-                localStorage.setItem('loggedIn', 'true'); // Marca como logado
-                loadClientes().catch(error => console.error('[ERROR] Erro ao carregar clientes após autenticação:', error));
-                loadAgendamentos().catch(error => console.error('[ERROR] Erro ao carregar agendamentos após autenticação:', error));
-            } catch (error) {
-                console.error('[ERROR] Erro ao autenticar anonimamente:', error);
-                alert('Erro ao autenticar. Verifique sua conexão ou as permissões no Firebase.');
-            }
-        }
-
-        // Verificar logout ao carregar a página
-        document.addEventListener('DOMContentLoaded', () => {
-            const isLoggedIn = localStorage.getItem('loggedIn');
-            if (!isLoggedIn) {
-                window.location.href = 'index.html'; // Redireciona para login se não logado
-            } else {
-                initializeAuth().catch(error => console.error('[ERROR] Erro ao inicializar autenticação:', error));
-            }
-        });
-
-        // Função para alternar abas
-        window.openTab = function (tabId) {
-            console.log(`[DEBUG] Tentando abrir aba: ${tabId}`);
-            const tabs = document.querySelectorAll('.tab-content');
-            const buttons = document.querySelectorAll('.tab-button');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            buttons.forEach(btn => btn.classList.remove('active'));
-            const selectedTab = document.getElementById(tabId);
-            const selectedButton = document.querySelector(`.tab-button[onclick="openTab('${tabId}')"]`);
-            if (selectedTab && selectedButton) {
-                selectedTab.classList.add('active');
-                selectedButton.classList.add('active');
-                console.log(`[SUCCESS] Aba ${tabId} aberta com sucesso`);
-            } else {
-                console.error('[ERROR] Erro: Tab ou botão não encontrados', { tabId, selectedTab, selectedButton });
-            }
-        };
-
-        // Inicializar IMask para o campo telefone com DDD + 9 dígitos
-        document.addEventListener('DOMContentLoaded', () => {
-            const telefoneInput = document.getElementById('telefone');
-            if (telefoneInput) {
-                IMask(telefoneInput, {
-                    mask: '(00) 90000-0000' // Máscara para DDD + 9 dígitos
-                });
-                console.log('[DEBUG] Máscara aplicada ao campo telefone');
-            } else {
-                console.error('[ERROR] Elemento #telefone não encontrado no DOMContentLoaded');
-            }
-        });
-
-        // Função auxiliar para exibir telefone formatado
-        function formatPhoneDisplay(telefone) {
-            const value = telefone ? telefone.replace(/\D/g, '').substring(0, 11) : '';
-            let formatted = '';
-            if (value.length > 0) {
-                formatted = '(' + value.substring(0, 2);
-                if (value.length > 2) {
-                    formatted += ') ' + value.substring(2, 7);
-                    if (value.length > 6) {
-                        formatted += '-' + value.substring(7, 11);
+            // Autenticar anonimamente ao carregar a página
+            async function initializeAuth() {
+                try {
+                    const userCredential = await signInAnonymously(auth);
+                    console.log('[SUCCESS] Autenticação anônima realizada com sucesso para o usuário:', userCredential.user.uid);
+                    localStorage.setItem('loggedIn', 'true'); // Marca como logado
+                    loadClientes().catch(error => console.error('[ERROR] Erro ao carregar clientes após autenticação:', error));
+                    loadAgendamentos().catch(error => console.error('[ERROR] Erro ao carregar agendamentos após autenticação:', error));
+                } catch (error) {
+                    console.error('[ERROR] Erro ao autenticar anonimamente:', error);
+                    if (error.code === 'auth/network-request-failed') {
+                        alert('Erro ao autenticar. Verifique sua conexão com a internet.');
+                    } else if (error.code === 'auth/operation-not-allowed') {
+                        alert('Erro ao autenticar. A autenticação anônima não está habilitada no Firebase. Ative-a no Console do Firebase.');
+                    } else {
+                        alert('Erro ao autenticar. Verifique sua conexão ou as permissões no Firebase.');
                     }
                 }
             }
-            return formatted || telefone || '';
-        }
 
-        // Abrir modal de alteração de senha
-        window.openChangePasswordModal = function() {
-            const modal = document.getElementById('modal');
-            document.getElementById('modalTitle').textContent = 'Alterar Senha';
-            document.getElementById('modalContent').innerHTML = `
-                <div class="form-group">
-                    <label for="currentPassword">Senha Atual</label>
-                    <input type="password" id="currentPassword" placeholder="Digite a senha atual" required>
-                    <span class="toggle-password" onclick="togglePassword('currentPassword')">👁️</span>
-                </div>
-                <div class="form-group">
-                    <label for="newPassword">Nova Senha</label>
-                    <input type="password" id="newPassword" placeholder="Digite a nova senha" required>
-                    <span class="toggle-password" onclick="togglePassword('newPassword')">👁️</span>
-                </div>
-                <div class="modal-buttons">
-                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
-                    <button class="save-btn" onclick="changePassword()">Salvar</button>
-                </div>
-                <div id="passwordMessage" class="success-message"></div>
-            `;
-            modal.classList.add('active');
-        };
-
-        // Abrir modal de confirmação de logout
-        window.openLogoutModal = function() {
-            const modal = document.getElementById('modal');
-            document.getElementById('modalTitle').textContent = 'Confirmar Saída';
-            document.getElementById('modalContent').innerHTML = `
-                <p>Tem certeza de que deseja sair do sistema?</p>
-                <div class="modal-buttons">
-                    <button class="cancel-btn" onclick="closeModal()">Não</button>
-                    <button class="confirm-btn" onclick="logout()">Sim</button>
-                </div>
-            `;
-            modal.classList.add('active');
-        };
-
-        // Função para realizar logout
-        window.logout = function() {
-            localStorage.removeItem('loggedIn'); // Remove o status de login
-            auth.signOut().then(() => {
-                console.log('[SUCCESS] Logout realizado com sucesso');
-                window.location.href = 'index.html'; // Redireciona para a página de login
-            }).catch(error => {
-                console.error('[ERROR] Erro ao realizar logout:', error);
-                alert('Erro ao sair. Tente novamente.');
+            // Verificar logout ao carregar a página
+            document.addEventListener('DOMContentLoaded', () => {
+                const isLoggedIn = localStorage.getItem('loggedIn');
+                if (!isLoggedIn) {
+                    window.location.href = 'index.html'; // Redireciona para login se não logado
+                } else {
+                    initializeAuth().catch(error => console.error('[ERROR] Erro ao inicializar autenticação:', error));
+                }
             });
-        };
 
-        // Função para alternar visibilidade da senha
-        window.togglePassword = function(inputId) {
-            const input = document.getElementById(inputId);
-            const toggleIcon = input.nextElementSibling;
-            if (input.type === 'password') {
-                input.type = 'text';
-                toggleIcon.textContent = '👁️‍🗨️'; // Ícone de olho aberto
-            } else {
-                input.type = 'password';
-                toggleIcon.textContent = '👁️'; // Ícone de olho fechado
-            }
-        };
+            // Função para alternar abas
+            window.openTab = function (tabId) {
+                console.log(`[DEBUG] Tentando abrir aba: ${tabId}`);
+                const tabs = document.querySelectorAll('.tab-content');
+                const buttons = document.querySelectorAll('.tab-button');
+                tabs.forEach(tab => tab.classList.remove('active'));
+                buttons.forEach(btn => btn.classList.remove('active'));
+                const selectedTab = document.getElementById(tabId);
+                const selectedButton = document.querySelector(`.tab-button[onclick="openTab('${tabId}')"]`);
+                if (selectedTab && selectedButton) {
+                    selectedTab.classList.add('active');
+                    selectedButton.classList.add('active');
+                    console.log(`[SUCCESS] Aba ${tabId} aberta com sucesso`);
+                } else {
+                    console.error('[ERROR] Erro: Tab ou botão não encontrados', { tabId, selectedTab, selectedButton });
+                }
+            };
 
-        // Alterar senha
-        window.changePassword = function() {
-            const currentPasswordInput = document.getElementById('currentPassword').value;
-            const newPasswordInput = document.getElementById('newPassword').value;
-            const message = document.getElementById('passwordMessage');
+            // Inicializar IMask para o campo telefone com DDD + 9 dígitos
+            document.addEventListener('DOMContentLoaded', () => {
+                const telefoneInput = document.getElementById('telefone');
+                if (telefoneInput) {
+                    IMask(telefoneInput, {
+                        mask: '(00) 90000-0000' // Máscara para DDD + 9 dígitos
+                    });
+                    console.log('[DEBUG] Máscara aplicada ao campo telefone');
+                } else {
+                    console.error('[ERROR] Elemento #telefone não encontrado no DOMContentLoaded');
+                }
+            });
 
-            if (!currentPasswordInput || !newPasswordInput) {
-                message.textContent = 'Por favor, preencha todos os campos.';
-                message.className = 'error-message';
-                return;
-            }
-
-            if (currentPasswordInput === currentPassword || currentPasswordInput === MASTER_PASSWORD) {
-                currentPassword = newPasswordInput;
-                localStorage.setItem('userPassword', newPasswordInput);
-                message.textContent = 'Senha alterada com sucesso!';
-                message.className = 'success-message';
-                setTimeout(() => {
-                    closeModal();
-                }, 1500);
-                console.log('[DEBUG] Senha alterada para:', currentPassword);
-            } else {
-                message.textContent = 'Senha atual incorreta.';
-                message.className = 'error-message';
-            }
-        };
-
-        // Carregar e atualizar clientes com campo "Cidade"
-        async function loadClientes() {
-            const clienteList = document.getElementById('clienteList');
-            const clienteSelect = document.getElementById('cliente');
-            const searchInput = document.getElementById('clientSearch');
-            clienteList.innerHTML = '';
-            clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
-
-            try {
-                console.log('[DEBUG] Iniciando carregamento de clientes');
-                const querySnapshot = await getDocs(collection(db, 'clientes'));
-                let clientes = [];
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    // Adicionar campo "cidade" se não existir
-                    if (!data.cidade) {
-                        updateDoc(doc(db, 'clientes', doc.id), { cidade: 'Sem cidade' })
-                            .then(() => console.log(`[SUCCESS] Campo 'cidade' adicionado para cliente ${doc.id}`))
-                            .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'cidade' para cliente ${doc.id}:`, error));
-                        data.cidade = 'Sem cidade';
+            // Função auxiliar para exibir telefone formatado
+            function formatPhoneDisplay(telefone) {
+                const value = telefone ? telefone.replace(/\D/g, '').substring(0, 11) : '';
+                let formatted = '';
+                if (value.length > 0) {
+                    formatted = '(' + value.substring(0, 2);
+                    if (value.length > 2) {
+                        formatted += ') ' + value.substring(2, 7);
+                        if (value.length > 6) {
+                            formatted += '-' + value.substring(7, 11);
+                        }
                     }
-                    clientes.push({ id: doc.id, ...data });
+                }
+                return formatted || telefone || '';
+            }
+
+            // Abrir modal de alteração de senha
+            window.openChangePasswordModal = function() {
+                const modal = document.getElementById('modal');
+                document.getElementById('modalTitle').textContent = 'Alterar Senha';
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="form-group">
+                        <label for="currentPassword">Senha Atual</label>
+                        <input type="password" id="currentPassword" placeholder="Digite a senha atual" required>
+                        <span class="toggle-password" onclick="togglePassword('currentPassword')">👁️</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Nova Senha</label>
+                        <input type="password" id="newPassword" placeholder="Digite a nova senha" required>
+                        <span class="toggle-password" onclick="togglePassword('newPassword')">👁️</span>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                        <button class="save-btn" onclick="changePassword()">Salvar</button>
+                    </div>
+                    <div id="passwordMessage" class="success-message"></div>
+                `;
+                modal.classList.add('active');
+            };
+
+            // Abrir modal de confirmação de logout
+            window.openLogoutModal = function() {
+                const modal = document.getElementById('modal');
+                document.getElementById('modalTitle').textContent = 'Confirmar Saída';
+                document.getElementById('modalContent').innerHTML = `
+                    <p>Tem certeza de que deseja sair do sistema?</p>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Não</button>
+                        <button class="confirm-btn" onclick="logout()">Sim</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+            };
+
+            // Função para realizar logout
+            window.logout = function() {
+                localStorage.removeItem('loggedIn'); // Remove o status de login
+                auth.signOut().then(() => {
+                    console.log('[SUCCESS] Logout realizado com sucesso');
+                    window.location.href = 'index.html'; // Redireciona para a página de login
+                }).catch(error => {
+                    console.error('[ERROR] Erro ao realizar logout:', error);
+                    alert('Erro ao sair. Tente novamente.');
                 });
+            };
 
-                // Ordenar clientes em ordem alfabética
-                clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+            // Função para alternar visibilidade da senha
+            window.togglePassword = function(inputId) {
+                const input = document.getElementById(inputId);
+                const toggleIcon = input.nextElementSibling;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    toggleIcon.textContent = '👁️‍🗨️'; // Ícone de olho aberto
+                } else {
+                    input.type = 'password';
+                    toggleIcon.textContent = '👁️'; // Ícone de olho fechado
+                }
+            };
 
-                // Função para renderizar a lista filtrada
-                function renderClientes(filter = '') {
-                    clienteList.innerHTML = '';
-                    const filteredClientes = clientes.filter(cliente => 
-                        cliente.nome.toLowerCase().includes(filter.toLowerCase())
-                    );
-                    filteredClientes.forEach(cliente => {
+            // Alterar senha
+            window.changePassword = function() {
+                const currentPasswordInput = document.getElementById('currentPassword').value;
+                const newPasswordInput = document.getElementById('newPassword').value;
+                const message = document.getElementById('passwordMessage');
+
+                if (!currentPasswordInput || !newPasswordInput) {
+                    message.textContent = 'Por favor, preencha todos os campos.';
+                    message.className = 'error-message';
+                    return;
+                }
+
+                if (currentPasswordInput === currentPassword || currentPasswordInput === MASTER_PASSWORD) {
+                    currentPassword = newPasswordInput;
+                    localStorage.setItem('userPassword', newPasswordInput);
+                    message.textContent = 'Senha alterada com sucesso!';
+                    message.className = 'success-message';
+                    setTimeout(() => {
+                        closeModal();
+                    }, 1500);
+                    console.log('[DEBUG] Senha alterada para:', currentPassword);
+                } else {
+                    message.textContent = 'Senha atual incorreta.';
+                    message.className = 'error-message';
+                }
+            };
+
+            // Carregar e atualizar clientes com campo "Cidade"
+            async function loadClientes() {
+                const clienteList = document.getElementById('clienteList');
+                const clienteSelect = document.getElementById('cliente');
+                const searchInput = document.getElementById('clientSearch');
+                clienteList.innerHTML = '';
+                clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
+
+                try {
+                    console.log('[DEBUG] Iniciando carregamento de clientes');
+                    const querySnapshot = await getDocs(collection(db, 'clientes'));
+                    let clientes = [];
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Adicionar campo "cidade" se não existir
+                        if (!data.cidade) {
+                            updateDoc(doc(db, 'clientes', doc.id), { cidade: 'Sem cidade' })
+                                .then(() => console.log(`[SUCCESS] Campo 'cidade' adicionado para cliente ${doc.id}`))
+                                .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'cidade' para cliente ${doc.id}:`, error));
+                            data.cidade = 'Sem cidade';
+                        }
+                        clientes.push({ id: doc.id, ...data });
+                    });
+
+                    // Ordenar clientes em ordem alfabética
+                    clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+
+                    // Função para renderizar a lista filtrada
+                    function renderClientes(filter = '') {
+                        clienteList.innerHTML = '';
+                        const filteredClientes = clientes.filter(cliente => 
+                            cliente.nome.toLowerCase().includes(filter.toLowerCase())
+                        );
+                        filteredClientes.forEach(cliente => {
+                            const item = document.createElement('div');
+                            item.className = 'list-item';
+                            const info = document.createElement('div');
+                            info.className = 'info';
+                            info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${cliente.cidade || 'Sem cidade'}`;
+                            item.appendChild(info);
+                            const deleteButton = document.createElement('button');
+                            deleteButton.className = 'delete-btn';
+                            deleteButton.textContent = 'Excluir';
+                            deleteButton.onclick = (e) => {
+                                e.stopPropagation();
+                                openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${cliente.cidade || 'Sem cidade'}`);
+                                console.log(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
+                            };
+                            item.appendChild(deleteButton);
+                            item.onclick = () => openClientModal(cliente.id, cliente);
+                            clienteList.appendChild(item);
+                        });
+                        clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
+                        clientes.forEach(cliente => {
+                            clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome} - ${cliente.cidade || 'Sem cidade'}</option>`;
+                        });
+                    }
+
+                    // Renderizar inicialmente
+                    renderClientes();
+
+                    // Adicionar evento de busca
+                    searchInput.addEventListener('input', (e) => {
+                        renderClientes(e.target.value);
+                    });
+
+                    console.log('[SUCCESS] Clientes carregados com sucesso');
+                } catch (error) {
+                    console.error('[ERROR] Erro ao carregar clientes:', error);
+                    if (error.code === 'permission-denied') {
+                        document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique as permissões no Firebase e se está autenticado.';
+                    } else if (error.code === 'unavailable') {
+                        document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique sua conexão com a internet.';
+                    } else {
+                        document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique sua conexão ou as permissões no Firebase.';
+                    }
+                    document.getElementById('cadastroMessage').className = 'error-message';
+                }
+            }
+
+            // Carregar e atualizar agendamentos com campo "Observação"
+            async function loadAgendamentos() {
+                const agendamentoList = document.getElementById('agendamentoList');
+                agendamentoList.innerHTML = '';
+                try {
+                    console.log('[DEBUG] Iniciando carregamento de agendamentos');
+                    const querySnapshot = await getDocs(collection(db, 'agendamentos'));
+                    let agendamentos = [];
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        // Adicionar campo "observacao" se não existir
+                        if (!data.observacao) {
+                            updateDoc(doc(db, 'agendamentos', doc.id), { observacao: null })
+                                .then(() => console.log(`[SUCCESS] Campo 'observacao' adicionado para agendamento ${doc.id}`))
+                                .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'observacao' para agendamento ${doc.id}:`, error));
+                            data.observacao = null;
+                        }
+                        const tipo = data.tipo || 'Presencial';
+                        agendamentos.push({ id: doc.id, ...data, tipo });
+                    });
+
+                    agendamentos.sort((a, b) => {
+                        const dateA = new Date(`${a.data}T${a.hora}`);
+                        const dateB = new Date(`${b.data}T${b.hora}`);
+                        return dateB - dateA;
+                    });
+
+                    agendamentos.forEach(agendamento => {
                         const item = document.createElement('div');
                         item.className = 'list-item';
                         const info = document.createElement('div');
                         info.className = 'info';
-                        info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${cliente.cidade || 'Sem cidade'}`;
-                        item.appendChild(info);
+                        const [year, month, day] = agendamento.data.split('-');
+                        const formattedDate = `${day}/${month}/${year}`;
+                        info.textContent = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`;
+                        const actions = document.createElement('div');
+                        actions.className = 'list-item-actions';
+                        const tipoBadge = document.createElement('span');
+                        tipoBadge.className = `tipo ${agendamento.tipo.toLowerCase()}`;
+                        tipoBadge.textContent = agendamento.tipo;
                         const deleteButton = document.createElement('button');
                         deleteButton.className = 'delete-btn';
                         deleteButton.textContent = 'Excluir';
                         deleteButton.onclick = (e) => {
                             e.stopPropagation();
-                            openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${cliente.cidade || 'Sem cidade'}`);
-                            console.log(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
+                            openDeleteModal('agendamento', agendamento.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora} (${agendamento.tipo})`);
+                            console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
                         };
-                        item.appendChild(deleteButton);
-                        item.onclick = () => openClientModal(cliente.id, cliente);
-                        clienteList.appendChild(item);
+                        actions.appendChild(tipoBadge);
+                        actions.appendChild(deleteButton);
+                        item.appendChild(info);
+                        item.appendChild(actions);
+                        item.onclick = () => openEditModal(agendamento.id, agendamento);
+                        agendamentoList.appendChild(item);
                     });
-                    clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
-                    clientes.forEach(cliente => {
-                        clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome} - ${cliente.cidade || 'Sem cidade'}</option>`;
-                    });
-                }
-
-                // Renderizar inicialmente
-                renderClientes();
-
-                // Adicionar evento de busca
-                searchInput.addEventListener('input', (e) => {
-                    renderClientes(e.target.value);
-                });
-
-                console.log('[SUCCESS] Clientes carregados com sucesso');
-            } catch (error) {
-                console.error('[ERROR] Erro ao carregar clientes:', error);
-                if (error.code === 'permission-denied') {
-                    document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique as permissões no Firebase e se está autenticado.';
-                } else if (error.code === 'unavailable') {
-                    document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique sua conexão com a internet.';
-                } else {
-                    document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique sua conexão ou as permissões no Firebase.';
-                }
-                document.getElementById('cadastroMessage').className = 'error-message';
-            }
-        }
-
-        // Carregar e atualizar agendamentos com campo "Observação"
-        async function loadAgendamentos() {
-            const agendamentoList = document.getElementById('agendamentoList');
-            agendamentoList.innerHTML = '';
-            try {
-                console.log('[DEBUG] Iniciando carregamento de agendamentos');
-                const querySnapshot = await getDocs(collection(db, 'agendamentos'));
-                let agendamentos = [];
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    // Adicionar campo "observacao" se não existir
-                    if (!data.observacao) {
-                        updateDoc(doc(db, 'agendamentos', doc.id), { observacao: null })
-                            .then(() => console.log(`[SUCCESS] Campo 'observacao' adicionado para agendamento ${doc.id}`))
-                            .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'observacao' para agendamento ${doc.id}:`, error));
-                        data.observacao = null;
+                    console.log('[SUCCESS] Agendamentos carregados com sucesso');
+                } catch (error) {
+                    console.error('[ERROR] Erro ao carregar agendamentos:', error);
+                    if (error.code === 'permission-denied') {
+                        document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique as permissões no Firebase e se está autenticado.';
+                    } else if (error.code === 'unavailable') {
+                        document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique sua conexão com a internet.';
+                    } else {
+                        document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique sua conexão ou as permissões no Firebase.';
                     }
-                    const tipo = data.tipo || 'Presencial';
-                    agendamentos.push({ id: doc.id, ...data, tipo });
-                });
-
-                agendamentos.sort((a, b) => {
-                    const dateA = new Date(`${a.data}T${a.hora}`);
-                    const dateB = new Date(`${b.data}T${b.hora}`);
-                    return dateB - dateA;
-                });
-
-                agendamentos.forEach(agendamento => {
-                    const item = document.createElement('div');
-                    item.className = 'list-item';
-                    const info = document.createElement('div');
-                    info.className = 'info';
-                    const [year, month, day] = agendamento.data.split('-');
-                    const formattedDate = `${day}/${month}/${year}`;
-                    info.textContent = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`;
-                    const actions = document.createElement('div');
-                    actions.className = 'list-item-actions';
-                    const tipoBadge = document.createElement('span');
-                    tipoBadge.className = `tipo ${agendamento.tipo.toLowerCase()}`;
-                    tipoBadge.textContent = agendamento.tipo;
-                    const deleteButton = document.createElement('button');
-                    deleteButton.className = 'delete-btn';
-                    deleteButton.textContent = 'Excluir';
-                    deleteButton.onclick = (e) => {
-                        e.stopPropagation();
-                        openDeleteModal('agendamento', agendamento.id, `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora} (${agendamento.tipo})`);
-                        console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
-                    };
-                    actions.appendChild(tipoBadge);
-                    actions.appendChild(deleteButton);
-                    item.appendChild(info);
-                    item.appendChild(actions);
-                    item.onclick = () => openEditModal(agendamento.id, agendamento);
-                    agendamentoList.appendChild(item);
-                });
-                console.log('[SUCCESS] Agendamentos carregados com sucesso');
-            } catch (error) {
-                console.error('[ERROR] Erro ao carregar agendamentos:', error);
-                if (error.code === 'permission-denied') {
-                    document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique as permissões no Firebase e se está autenticado.';
-                } else if (error.code === 'unavailable') {
-                    document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique sua conexão com a internet.';
-                } else {
-                    document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique sua conexão ou as permissões no Firebase.';
+                    document.getElementById('agendamentoMessage').className = 'error-message';
                 }
-                document.getElementById('agendamentoMessage').className = 'error-message';
-            }
-        }
-
-        // Cadastrar cliente
-        document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nomeInput = document.getElementById('nome');
-            const telefoneInput = document.getElementById('telefone');
-            const cidadeInput = document.getElementById('cidade');
-            const dataNascimentoInput = document.getElementById('dataNascimento');
-            const message = document.getElementById('cadastroMessage');
-
-            if (!nomeInput || !telefoneInput || !cidadeInput || !dataNascimentoInput) {
-                message.textContent = 'Erro: Campos do formulário não encontrados.';
-                message.className = 'error-message';
-                console.error('[ERROR] Elementos do formulário não encontrados');
-                return;
             }
 
-            const nome = nomeInput.value.trim();
-            const telefone = telefoneInput.value ? telefoneInput.value.replace(/\D/g, '').substring(0, 11) : '';
-            const cidade = cidadeInput.value.trim();
-            const dataNascimento = dataNascimentoInput.value;
+            // Cadastrar cliente
+            document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nomeInput = document.getElementById('nome');
+                const telefoneInput = document.getElementById('telefone');
+                const cidadeInput = document.getElementById('cidade');
+                const dataNascimentoInput = document.getElementById('dataNascimento');
+                const message = document.getElementById('cadastroMessage');
 
-            if (!nome || !telefone || !cidade || !dataNascimento) {
-                message.textContent = 'Por favor, preencha todos os campos.';
-                message.className = 'error-message';
-                return;
-            }
-
-            try {
-                console.log('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, cidade, dataNascimento });
-                await addDoc(collection(db, 'clientes'), { nome, telefone, cidade, dataNascimento });
-                message.textContent = 'Cliente cadastrado com sucesso!';
-                message.className = 'success-message';
-                e.target.reset();
-                await loadClientes();
-                setTimeout(() => message.textContent = '', 3000);
-                console.log('[SUCCESS] Cliente cadastrado com sucesso');
-            } catch (error) {
-                console.error('[ERROR] Erro ao cadastrar cliente:', error);
-                if (error.code === 'permission-denied') {
-                    message.textContent = 'Erro ao cadastrar cliente. Verifique as permissões no Firebase e se está autenticado.';
-                } else if (error.code === 'unavailable') {
-                    message.textContent = 'Erro ao cadastrar cliente. Verifique sua conexão com a internet.';
-                } else {
-                    message.textContent = 'Erro ao cadastrar cliente. Verifique sua conexão ou as permissões no Firebase.';
-                }
-                message.className = 'error-message';
-            }
-        });
-
-        // Agendar consulta com validação de duplicatas
-        document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const cliente = document.getElementById('cliente').value;
-            const data = document.getElementById('data').value;
-            const hora = document.getElementById('hora').value;
-            const tipoAgendamento = document.getElementById('tipoAgendamento').value;
-            const message = document.getElementById('agendamentoMessage');
-
-            if (!cliente || !data || !hora || !tipoAgendamento) {
-                message.textContent = 'Por favor, preencha todos os campos.';
-                message.className = 'error-message';
-                return;
-            }
-
-            try {
-                // Verificar se já existe um agendamento no mesmo dia e horário
-                const q = query(collection(db, 'agendamentos'), 
-                    where('data', '==', data), 
-                    where('hora', '==', hora));
-                const querySnapshot = await getDocs(q);
-
-                if (!querySnapshot.empty) {
-                    // Abrir modal de aviso
-                    openDuplicateModal();
+                if (!nomeInput || !telefoneInput || !cidadeInput || !dataNascimentoInput) {
+                    message.textContent = 'Erro: Campos do formulário não encontrados.';
+                    message.className = 'error-message';
+                    console.error('[ERROR] Elementos do formulário não encontrados');
                     return;
                 }
 
-                console.log('[DEBUG] Tentando agendar:', { cliente, data, hora, tipoAgendamento });
-                await addDoc(collection(db, 'agendamentos'), { cliente, data, hora, tipo: tipoAgendamento, observacao: null });
-                message.textContent = 'Agendamento realizado com sucesso!';
-                message.className = 'success-message';
-                e.target.reset();
-                await loadAgendamentos();
-                setTimeout(() => message.textContent = '', 3000);
-                console.log('[SUCCESS] Agendamento realizado com sucesso');
-            } catch (error) {
-                console.error('[ERROR] Erro ao agendar:', error);
-                if (error.code === 'permission-denied') {
-                    message.textContent = 'Erro ao realizar agendamento. Verifique as permissões no Firebase e se está autenticado.';
-                } else if (error.code === 'unavailable') {
-                    message.textContent = 'Erro ao realizar agendamento. Verifique sua conexão com a internet.';
-                } else {
-                    message.textContent = 'Erro ao realizar agendamento. Verifique sua conexão ou as permissões no Firebase.';
+                const nome = nomeInput.value.trim();
+                const telefone = telefoneInput.value ? telefoneInput.value.replace(/\D/g, '').substring(0, 11) : '';
+                const cidade = cidadeInput.value.trim();
+                const dataNascimento = dataNascimentoInput.value;
+
+                if (!nome || !telefone || !cidade || !dataNascimento) {
+                    message.textContent = 'Por favor, preencha todos os campos.';
+                    message.className = 'error-message';
+                    return;
                 }
-                message.className = 'error-message';
-            }
-        });
 
-        // Modal de detalhes e edição do cliente
-        function openClientModal(docId, cliente) {
-            const modal = document.getElementById('modal');
-            console.log('[DEBUG] Abrindo modal de cliente com ID:', docId);
-            document.getElementById('modalTitle').textContent = 'Detalhes do Cliente';
-            document.getElementById('modalContent').innerHTML = `
-                <div class="form-group">
-                    <label for="editNome">Nome</label>
-                    <input type="text" id="editNome" value="${cliente.nome}" required>
-                </div>
-                <div class="form-group">
-                    <label for="editTelefone">Telefone</label>
-                    <input type="tel" id="editTelefone" value="${formatPhoneDisplay(cliente.telefone)}" required maxlength="15">
-                </div>
-                <div class="form-group">
-                    <label for="editCidade">Cidade</label>
-                    <input type="text" id="editCidade" value="${cliente.cidade || ''}" required>
-                </div>
-                <div class="form-group">
-                    <label for="editDataNascimento">Data de Nascimento</label>
-                    <input type="date" id="editDataNascimento" value="${cliente.dataNascimento}" required>
-                </div>
-                <div class="modal-buttons">
-                    <button class="cancel-btn" onclick="closeModal()">Fechar</button>
-                    <button class="save-btn" onclick="saveClientChanges('${docId}')">Salvar</button>
-                </div>
-            `;
-            modal.classList.add('active');
-
-            const editTelefone = document.getElementById('editTelefone');
-            if (editTelefone) {
-                IMask(editTelefone, {
-                    mask: '(00) 90000-0000' // Máscara para DDD + 9 dígitos no modal
-                });
-                console.log('[DEBUG] Máscara aplicada ao campo editTelefone');
-            } else {
-                console.error('[ERROR] Elemento #editTelefone não encontrado no modal');
-            }
-        }
-
-        // Salvar alterações do cliente
-        async function saveClientChanges(docId) {
-            const nome = document.getElementById('editNome').value.trim();
-            const telefone = document.getElementById('editTelefone').value ? document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11) : '';
-            const cidade = document.getElementById('editCidade').value.trim();
-            const dataNascimento = document.getElementById('editDataNascimento').value;
-            if (!nome || !telefone || !cidade || !dataNascimento) {
-                alert('Por favor, preencha todos os campos.');
-                return;
-            }
-            try {
-                console.log('[DEBUG] Tentando salvar alterações do cliente com ID:', docId);
-                await updateDoc(doc(db, 'clientes', docId), { nome, telefone, cidade, dataNascimento });
-                console.log('[SUCCESS] Cliente atualizado com sucesso');
-                closeModal();
-                await loadClientes();
-            } catch (error) {
-                console.error('[ERROR] Erro ao atualizar cliente:', error);
-                if (error.code === 'permission-denied') {
-                    alert('Erro ao salvar alterações. Verifique as permissões no Firebase e se está autenticado.');
-                } else if (error.code === 'unavailable') {
-                    alert('Erro ao salvar alterações. Verifique sua conexão com a internet.');
-                } else {
-                    alert('Erro ao salvar alterações. Verifique sua conexão ou as permissões no Firebase.');
-                }
-            }
-        }
-
-        // Modal de remarcação de agendamento com campo de observação
-        function openEditModal(id, agendamento) {
-            const modal = document.getElementById('modal');
-            console.log('[DEBUG] Abrindo modal de agendamento com ID:', id);
-            document.getElementById('modalTitle').textContent = 'Remarcar Agendamento';
-            document.getElementById('modalContent').innerHTML = `
-                <div class="form-group">
-                    <label>Nova Data</label>
-                    <input type="date" id="modalData" value="${agendamento.data}">
-                </div>
-                <div class="form-group">
-                    <label>Nova Hora</label>
-                    <input type="time" id="modalHora" value="${agendamento.hora}">
-                </div>
-                <div class="form-group">
-                    <label>Tipo de Agendamento</label>
-                    <select id="modalTipo" required>
-                        <option value="Online" ${agendamento.tipo === 'Online' ? 'selected' : ''}>Online</option>
-                        <option value="Presencial" ${agendamento.tipo === 'Presencial' ? 'selected' : ''}>Presencial</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="observacao">Observação do Atendimento</label>
-                    <textarea id="observacao" placeholder="Digite suas observações aqui" rows="4">${agendamento.observacao || ''}</textarea>
-                </div>
-                <div class="modal-buttons">
-                    <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
-                    <button class="save-btn" onclick="saveChanges('${id}')">Salvar</button>
-                </div>
-            `;
-            modal.classList.add('active');
-        }
-
-        // Salvar alterações no agendamento
-        async function saveChanges(id) {
-            const newData = document.getElementById('modalData').value;
-            const newHora = document.getElementById('modalHora').value;
-            const newTipo = document.getElementById('modalTipo').value;
-            const observacao = document.getElementById('observacao').value.trim();
-            if (!newData || !newHora || !newTipo) {
-                alert('Preencha todos os campos para remarcar.');
-                return;
-            }
-            try {
-                console.log('[DEBUG] Tentando salvar alterações do agendamento com ID:', id);
-                await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora, tipo: newTipo, observacao: observacao || null });
-                console.log('[SUCCESS] Agendamento atualizado com sucesso');
-                closeModal();
-                await loadAgendamentos();
-            } catch (error) {
-                console.error('[ERROR] Erro ao atualizar agendamento:', error);
-                if (error.code === 'permission-denied') {
-                    alert('Erro ao salvar alterações. Verifique as permissões no Firebase e se está autenticado.');
-                } else if (error.code === 'unavailable') {
-                    alert('Erro ao salvar alterações. Verifique sua conexão com a internet.');
-                } else {
-                    alert('Erro ao salvar alterações. Verifique sua conexão ou as permissões no Firebase.');
-                }
-            }
-        }
-
-        // Modal de confirmação de exclusão
-        function openDeleteModal(type, id, name) {
-            const modal = document.getElementById('modal');
-            console.log(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
-            document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
-            document.getElementById('modalContent').innerHTML = `
-                <p>Tem certeza de que deseja excluir "${name}"?</p>
-                <div class="modal-buttons">
-                    <button class="cancel-btn" onclick="closeModal()">Não</button>
-                    <button class="confirm-btn" onclick="confirmDelete('${type}', '${id}')">Sim</button>
-                </div>
-            `;
-            modal.classList.add('active');
-        }
-
-        // Modal de aviso de agendamento duplicado
-        function openDuplicateModal() {
-            const modal = document.getElementById('modal');
-            document.getElementById('modalTitle').textContent = 'Aviso';
-            document.getElementById('modalContent').innerHTML = `
-                <p>Já existe um agendamento marcado para este dia e horário. Por favor, escolha outro horário.</p>
-                <div class="modal-buttons">
-                    <button class="cancel-btn" onclick="closeModal()">Fechar</button>
-                </div>
-            `;
-            modal.classList.add('active');
-        }
-
-        // Confirmar exclusão
-        async function confirmDelete(type, id) {
-            const messageElement = type === 'cliente' ? document.getElementById('cadastroMessage') : document.getElementById('agendamentoMessage');
-            try {
-                let collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
-                console.log(`[DEBUG] Tentando excluir ${type} da coleção: ${collectionName}`);
-                await deleteDoc(doc(db, collectionName, id));
-                console.log(`[SUCCESS] ${type} excluído com sucesso`);
-                closeModal();
-                if (type === 'cliente') {
+                try {
+                    console.log('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, cidade, dataNascimento });
+                    await addDoc(collection(db, 'clientes'), { nome, telefone, cidade, dataNascimento });
+                    message.textContent = 'Cliente cadastrado com sucesso!';
+                    message.className = 'success-message';
+                    e.target.reset();
                     await loadClientes();
-                    messageElement.textContent = 'Cliente excluído com sucesso!';
-                } else {
-                    await loadAgendamentos();
-                    messageElement.textContent = 'Agendamento excluído com sucesso!';
+                    setTimeout(() => message.textContent = '', 3000);
+                    console.log('[SUCCESS] Cliente cadastrado com sucesso');
+                } catch (error) {
+                    console.error('[ERROR] Erro ao cadastrar cliente:', error);
+                    if (error.code === 'permission-denied') {
+                        message.textContent = 'Erro ao cadastrar cliente. Verifique as permissões no Firebase e se está autenticado.';
+                    } else if (error.code === 'unavailable') {
+                        message.textContent = 'Erro ao cadastrar cliente. Verifique sua conexão com a internet.';
+                    } else {
+                        message.textContent = 'Erro ao cadastrar cliente. Verifique sua conexão ou as permissões no Firebase.';
+                    }
+                    message.className = 'error-message';
                 }
-                messageElement.className = 'success-message';
-                setTimeout(() => messageElement.textContent = '', 3000);
-            } catch (error) {
-                console.error(`[ERROR] Erro ao excluir ${type}:`, error);
-                if (error.code === 'permission-denied') {
-                    messageElement.textContent = `Erro ao excluir ${type}. Verifique as permissões no Firebase e se está autenticado.`;
-                } else if (error.code === 'unavailable') {
-                    messageElement.textContent = `Erro ao excluir ${type}. Verifique sua conexão com a internet.`;
-                } else {
-                    messageElement.textContent = `Erro ao excluir ${type}. Verifique sua conexão ou as permissões no Firebase.`;
-                }
-                messageElement.className = 'error-message';
-            }
-        }
-        window.confirmDelete = confirmDelete;
+            });
 
-        // Fechar modal
-        window.closeModal = function() {
-            const modal = document.getElementById('modal');
-            modal.classList.remove('active');
-            console.log('[DEBUG] Modal fechado');
-        };
+            // Agendar consulta com validação de duplicatas
+            document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const cliente = document.getElementById('cliente').value;
+                const data = document.getElementById('data').value;
+                const hora = document.getElementById('hora').value;
+                const tipoAgendamento = document.getElementById('tipoAgendamento').value;
+                const message = document.getElementById('agendamentoMessage');
+
+                if (!cliente || !data || !hora || !tipoAgendamento) {
+                    message.textContent = 'Por favor, preencha todos os campos.';
+                    message.className = 'error-message';
+                    return;
+                }
+
+                try {
+                    // Verificar se já existe um agendamento no mesmo dia e horário
+                    const q = query(collection(db, 'agendamentos'), 
+                        where('data', '==', data), 
+                        where('hora', '==', hora));
+                    const querySnapshot = await getDocs(q);
+
+                    if (!querySnapshot.empty) {
+                        // Abrir modal de aviso
+                        openDuplicateModal();
+                        return;
+                    }
+
+                    console.log('[DEBUG] Tentando agendar:', { cliente, data, hora, tipoAgendamento });
+                    await addDoc(collection(db, 'agendamentos'), { cliente, data, hora, tipo: tipoAgendamento, observacao: null });
+                    message.textContent = 'Agendamento realizado com sucesso!';
+                    message.className = 'success-message';
+                    e.target.reset();
+                    await loadAgendamentos();
+                    setTimeout(() => message.textContent = '', 3000);
+                    console.log('[SUCCESS] Agendamento realizado com sucesso');
+                } catch (error) {
+                    console.error('[ERROR] Erro ao agendar:', error);
+                    if (error.code === 'permission-denied') {
+                        message.textContent = 'Erro ao realizar agendamento. Verifique as permissões no Firebase e se está autenticado.';
+                    } else if (error.code === 'unavailable') {
+                        message.textContent = 'Erro ao realizar agendamento. Verifique sua conexão com a internet.';
+                    } else {
+                        message.textContent = 'Erro ao realizar agendamento. Verifique sua conexão ou as permissões no Firebase.';
+                    }
+                    message.className = 'error-message';
+                }
+            });
+
+            // Modal de detalhes e edição do cliente
+            function openClientModal(docId, cliente) {
+                const modal = document.getElementById('modal');
+                console.log('[DEBUG] Abrindo modal de cliente com ID:', docId);
+                document.getElementById('modalTitle').textContent = 'Detalhes do Cliente';
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="form-group">
+                        <label for="editNome">Nome</label>
+                        <input type="text" id="editNome" value="${cliente.nome}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTelefone">Telefone</label>
+                        <input type="tel" id="editTelefone" value="${formatPhoneDisplay(cliente.telefone)}" required maxlength="15">
+                    </div>
+                    <div class="form-group">
+                        <label for="editCidade">Cidade</label>
+                        <input type="text" id="editCidade" value="${cliente.cidade || ''}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDataNascimento">Data de Nascimento</label>
+                        <input type="date" id="editDataNascimento" value="${cliente.dataNascimento}" required>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                        <button class="save-btn" onclick="saveClientChanges('${docId}')">Salvar</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+
+                const editTelefone = document.getElementById('editTelefone');
+                if (editTelefone) {
+                    IMask(editTelefone, {
+                        mask: '(00) 90000-0000' // Máscara para DDD + 9 dígitos no modal
+                    });
+                    console.log('[DEBUG] Máscara aplicada ao campo editTelefone');
+                } else {
+                    console.error('[ERROR] Elemento #editTelefone não encontrado no modal');
+                }
+            }
+
+            // Salvar alterações do cliente
+            async function saveClientChanges(docId) {
+                const nome = document.getElementById('editNome').value.trim();
+                const telefone = document.getElementById('editTelefone').value ? document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11) : '';
+                const cidade = document.getElementById('editCidade').value.trim();
+                const dataNascimento = document.getElementById('editDataNascimento').value;
+                if (!nome || !telefone || !cidade || !dataNascimento) {
+                    alert('Por favor, preencha todos os campos.');
+                    return;
+                }
+                try {
+                    console.log('[DEBUG] Tentando salvar alterações do cliente com ID:', docId);
+                    await updateDoc(doc(db, 'clientes', docId), { nome, telefone, cidade, dataNascimento });
+                    console.log('[SUCCESS] Cliente atualizado com sucesso');
+                    closeModal();
+                    await loadClientes();
+                } catch (error) {
+                    console.error('[ERROR] Erro ao atualizar cliente:', error);
+                    if (error.code === 'permission-denied') {
+                        alert('Erro ao salvar alterações. Verifique as permissões no Firebase e se está autenticado.');
+                    } else if (error.code === 'unavailable') {
+                        alert('Erro ao salvar alterações. Verifique sua conexão com a internet.');
+                    } else {
+                        alert('Erro ao salvar alterações. Verifique sua conexão ou as permissões no Firebase.');
+                    }
+                }
+            }
+
+            // Modal de remarcação de agendamento com campo de observação
+            function openEditModal(id, agendamento) {
+                const modal = document.getElementById('modal');
+                console.log('[DEBUG] Abrindo modal de agendamento com ID:', id);
+                document.getElementById('modalTitle').textContent = 'Remarcar Agendamento';
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="form-group">
+                        <label>Nova Data</label>
+                        <input type="date" id="modalData" value="${agendamento.data}">
+                    </div>
+                    <div class="form-group">
+                        <label>Nova Hora</label>
+                        <input type="time" id="modalHora" value="${agendamento.hora}">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Agendamento</label>
+                        <select id="modalTipo" required>
+                            <option value="Online" ${agendamento.tipo === 'Online' ? 'selected' : ''}>Online</option>
+                            <option value="Presencial" ${agendamento.tipo === 'Presencial' ? 'selected' : ''}>Presencial</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="observacao">Observação do Atendimento</label>
+                        <textarea id="observacao" placeholder="Digite suas observações aqui" rows="4">${agendamento.observacao || ''}</textarea>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                        <button class="save-btn" onclick="saveChanges('${id}')">Salvar</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+            }
+
+            // Salvar alterações no agendamento
+            async function saveChanges(id) {
+                const newData = document.getElementById('modalData').value;
+                const newHora = document.getElementById('modalHora').value;
+                const newTipo = document.getElementById('modalTipo').value;
+                const observacao = document.getElementById('observacao').value.trim();
+                if (!newData || !newHora || !newTipo) {
+                    alert('Preencha todos os campos para remarcar.');
+                    return;
+                }
+                try {
+                    console.log('[DEBUG] Tentando salvar alterações do agendamento com ID:', id);
+                    await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora, tipo: newTipo, observacao: observacao || null });
+                    console.log('[SUCCESS] Agendamento atualizado com sucesso');
+                    closeModal();
+                    await loadAgendamentos();
+                } catch (error) {
+                    console.error('[ERROR] Erro ao atualizar agendamento:', error);
+                    if (error.code === 'permission-denied') {
+                        alert('Erro ao salvar alterações. Verifique as permissões no Firebase e se está autenticado.');
+                    } else if (error.code === 'unavailable') {
+                        alert('Erro ao salvar alterações. Verifique sua conexão com a internet.');
+                    } else {
+                        alert('Erro ao salvar alterações. Verifique sua conexão ou as permissões no Firebase.');
+                    }
+                }
+            }
+
+            // Modal de confirmação de exclusão
+            function openDeleteModal(type, id, name) {
+                const modal = document.getElementById('modal');
+                console.log(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
+                document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
+                document.getElementById('modalContent').innerHTML = `
+                    <p>Tem certeza de que deseja excluir "${name}"?</p>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Não</button>
+                        <button class="confirm-btn" onclick="confirmDelete('${type}', '${id}')">Sim</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+            }
+
+            // Modal de aviso de agendamento duplicado
+            function openDuplicateModal() {
+                const modal = document.getElementById('modal');
+                document.getElementById('modalTitle').textContent = 'Aviso';
+                document.getElementById('modalContent').innerHTML = `
+                    <p>Já existe um agendamento marcado para este dia e horário. Por favor, escolha outro horário.</p>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+            }
+
+            // Confirmar exclusão
+            async function confirmDelete(type, id) {
+                const messageElement = type === 'cliente' ? document.getElementById('cadastroMessage') : document.getElementById('agendamentoMessage');
+                try {
+                    let collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
+                    console.log(`[DEBUG] Tentando excluir ${type} da coleção: ${collectionName}`);
+                    await deleteDoc(doc(db, collectionName, id));
+                    console.log(`[SUCCESS] ${type} excluído com sucesso`);
+                    closeModal();
+                    if (type === 'cliente') {
+                        await loadClientes();
+                        messageElement.textContent = 'Cliente excluído com sucesso!';
+                    } else {
+                        await loadAgendamentos();
+                        messageElement.textContent = 'Agendamento excluído com sucesso!';
+                    }
+                    messageElement.className = 'success-message';
+                    setTimeout(() => messageElement.textContent = '', 3000);
+                } catch (error) {
+                    console.error(`[ERROR] Erro ao excluir ${type}:`, error);
+                    if (error.code === 'permission-denied') {
+                        messageElement.textContent = `Erro ao excluir ${type}. Verifique as permissões no Firebase e se está autenticado.`;
+                    } else if (error.code === 'unavailable') {
+                        messageElement.textContent = `Erro ao excluir ${type}. Verifique sua conexão com a internet.`;
+                    } else {
+                        messageElement.textContent = `Erro ao excluir ${type}. Verifique sua conexão ou as permissões no Firebase.`;
+                    }
+                    messageElement.className = 'error-message';
+                }
+            }
+            window.confirmDelete = confirmDelete;
+
+            // Fechar modal
+            window.closeModal = function() {
+                const modal = document.getElementById('modal');
+                modal.classList.remove('active');
+                console.log('[DEBUG] Modal fechado');
+            };
+        } catch (error) {
+            console.error('[ERROR] Erro ao inicializar Firebase:', error);
+            alert('Erro ao inicializar o Firebase. Verifique sua configuração ou conexão.');
+        }
     </script>
 </body>
 </html>
