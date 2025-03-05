@@ -117,6 +117,12 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
         h2 {
             color: #2d3748;
             font-size: 22px;
@@ -211,7 +217,7 @@
 
         .list-item {
             display: grid;
-            grid-template-columns: 1fr 0.5fr; /* Simplificado para texto à esquerda e ações à direita */
+            grid-template-columns: 1fr 0.5fr;
             align-items: center;
             padding: 15px;
             background: #faf5ff;
@@ -239,25 +245,25 @@
         .list-item-actions {
             display: flex;
             align-items: center;
-            gap: 10px; /* Espaço entre o badge e o botão */
-            justify-self: end; /* Alinha as ações à direita */
+            gap: 10px;
+            justify-self: end;
         }
 
         .list-item .info .tipo {
-            font-weight: 500;
-            padding: 6px 10px;
-            border-radius: 6px;
+            font-weight: 600;
+            padding: 10px 16px; /* Maior padding para maior destaque */
+            border-radius: 10px; /* Bordas mais suaves */
             color: #ffffff;
-            font-size: 12px;
-            margin: 0; /* Remove margem para melhor alinhamento */
-        }
-
-        .list-item .info .tipo.online {
-            background: #38a169; /* Verde para Online */
+            font-size: 16px; /* Tamanho maior para destaque */
+            margin: 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada */
+            background: linear-gradient(45deg, #38a169, #2d864d); /* Gradiente vibrante para Online */
+            animation: pulse 2s infinite; /* Animação de pulsação para destaque */
         }
 
         .list-item .info .tipo.presencial {
-            background: #3182ce; /* Azul para Presencial */
+            background: linear-gradient(45deg, #3182ce, #1e5eb8); /* Gradiente vibrante para Presencial */
+            animation: pulse 2s infinite; /* Animação de pulsação para destaque */
         }
 
         .delete-btn {
@@ -294,12 +300,12 @@
 
             .list-item-actions {
                 width: 100%;
-                justify-content: flex-end; /* Alinha ações à direita em mobile */
+                justify-content: flex-end;
             }
 
             .delete-btn {
                 width: 100%;
-                margin-top: 5px; /* Menor margem para mobile */
+                margin-top: 5px;
             }
         }
 
@@ -462,7 +468,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBl55ZrLR6Bgy0WHa-HoACm25mC8_l4awY",
@@ -482,6 +488,14 @@
 
         // Carregar senha do usuário do localStorage ou usar padrão
         let currentPassword = localStorage.getItem('userPassword') || "terapia";
+
+        // Verificar logout ao carregar a página
+        document.addEventListener('DOMContentLoaded', () => {
+            const isLoggedIn = localStorage.getItem('loggedIn');
+            if (!isLoggedIn) {
+                window.location.href = 'index.html'; // Redireciona para login se não logado
+            }
+        });
 
         // Função para alternar abas
         window.openTab = function (tabId) {
@@ -691,16 +705,14 @@
                 let agendamentos = [];
                 querySnapshot.forEach(doc => {
                     const data = doc.data();
-                    // Verificar se o campo 'tipo' existe, caso contrário, usar um valor padrão
-                    const tipo = data.tipo || 'Presencial'; // Valor padrão como "Presencial"
+                    const tipo = data.tipo || 'Presencial';
                     agendamentos.push({ id: doc.id, ...data, tipo });
                 });
 
-                // Ordenar agendamentos por data e hora (mais recentes primeiro)
                 agendamentos.sort((a, b) => {
                     const dateA = new Date(`${a.data}T${a.hora}`);
                     const dateB = new Date(`${b.data}T${b.hora}`);
-                    return dateB - dateA; // Ordem decrescente
+                    return dateB - dateA;
                 });
 
                 agendamentos.forEach(agendamento => {
@@ -710,7 +722,6 @@
                     info.className = 'info';
                     const [year, month, day] = agendamento.data.split('-');
                     const formattedDate = `${day}/${month}/${year}`;
-                    // Usar o tipo do agendamento, garantindo que ele existe
                     info.textContent = `${agendamento.cliente} - ${formattedDate} às ${agendamento.hora}`;
                     const actions = document.createElement('div');
                     actions.className = 'list-item-actions';
@@ -781,7 +792,7 @@
             }
         });
 
-        // Agendar consulta
+        // Agendar consulta com validação de duplicatas
         document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const cliente = document.getElementById('cliente').value;
@@ -797,6 +808,18 @@
             }
 
             try {
+                // Verificar se já existe um agendamento no mesmo dia e horário
+                const q = query(collection(db, 'agendamentos'), 
+                    where('data', '==', data), 
+                    where('hora', '==', hora));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // Abrir modal de aviso
+                    openDuplicateModal();
+                    return;
+                }
+
                 console.log('[DEBUG] Tentando agendar:', { cliente, data, hora, tipoAgendamento });
                 await addDoc(collection(db, 'agendamentos'), { cliente, data, hora, tipo: tipoAgendamento });
                 message.textContent = 'Agendamento realizado com sucesso!';
@@ -929,6 +952,19 @@
                 <div class="modal-buttons">
                     <button class="cancel-btn" onclick="closeModal()">Não</button>
                     <button class="confirm-btn" onclick="confirmDelete('${type}', '${id}')">Sim</button>
+                </div>
+            `;
+            modal.classList.add('active');
+        }
+
+        // Modal de aviso de agendamento duplicado
+        function openDuplicateModal() {
+            const modal = document.getElementById('modal');
+            document.getElementById('modalTitle').textContent = 'Aviso';
+            document.getElementById('modalContent').innerHTML = `
+                <p>Já existe um agendamento marcado para este dia e horário. Por favor, escolha outro horário.</p>
+                <div class="modal-buttons">
+                    <button class="cancel-btn" onclick="closeModal()">Fechar</button>
                 </div>
             `;
             modal.classList.add('active');
