@@ -693,15 +693,15 @@
                     console.log('[DEBUG] Iniciando carregamento de clientes');
                     const querySnapshot = await getDocs(collection(db, 'clientes'));
                     let clientes = [];
-                    querySnapshot.forEach(doc => {
-                        const data = doc.data();
+                    querySnapshot.forEach((documentSnapshot) => {
+                        const data = documentSnapshot.data();
                         if (!data.cidade) {
-                            updateDoc(doc(db, 'clientes', doc.id), { cidade: 'Sem cidade' })
-                                .then(() => console.log(`[SUCCESS] Campo 'cidade' adicionado para cliente ${doc.id}`))
-                                .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'cidade' para cliente ${doc.id}:`, error));
+                            updateDoc(doc(db, 'clientes', documentSnapshot.id), { cidade: 'Sem cidade' })
+                                .then(() => console.log(`[SUCCESS] Campo 'cidade' adicionado para cliente ${documentSnapshot.id}`))
+                                .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'cidade' para cliente ${documentSnapshot.id}:`, error));
                             data.cidade = 'Sem cidade';
                         }
-                        clientes.push({ id: doc.id, ...data });
+                        clientes.push({ id: documentSnapshot.id, ...data });
                     });
 
                     clientes.sort((a, b) => a.nome.localeCompare(b.nome));
@@ -750,7 +750,7 @@
                     } else if (error.code === 'unavailable') {
                         document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique sua conexão com a internet.';
                     } else {
-                        document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique sua conexão ou as permissões no Firebase.';
+                        document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes: ' + error.message;
                     }
                     document.getElementById('cadastroMessage').className = 'error-message';
                 }
@@ -764,16 +764,16 @@
                     console.log('[DEBUG] Iniciando carregamento de agendamentos');
                     const querySnapshot = await getDocs(collection(db, 'agendamentos'));
                     let agendamentos = [];
-                    querySnapshot.forEach(doc => {
-                        const data = doc.data();
+                    querySnapshot.forEach((documentSnapshot) => {
+                        const data = documentSnapshot.data();
                         if (!data.observacao) {
-                            updateDoc(doc(db, 'agendamentos', doc.id), { observacao: null })
-                                .then(() => console.log(`[SUCCESS] Campo 'observacao' adicionado para agendamento ${doc.id}`))
-                                .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'observacao' para agendamento ${doc.id}:`, error));
+                            updateDoc(doc(db, 'agendamentos', documentSnapshot.id), { observacao: null })
+                                .then(() => console.log(`[SUCCESS] Campo 'observacao' adicionado para agendamento ${documentSnapshot.id}`))
+                                .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'observacao' para agendamento ${documentSnapshot.id}:`, error));
                             data.observacao = null;
                         }
                         const tipo = data.tipo || 'Presencial';
-                        agendamentos.push({ id: doc.id, ...data, tipo });
+                        agendamentos.push({ id: documentSnapshot.id, ...data, tipo });
                     });
 
                     agendamentos.sort((a, b) => {
@@ -818,7 +818,7 @@
                     } else if (error.code === 'unavailable') {
                         document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique sua conexão com a internet.';
                     } else {
-                        document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique sua conexão ou as permissões no Firebase.';
+                        document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos: ' + error.message;
                     }
                     document.getElementById('agendamentoMessage').className = 'error-message';
                 }
