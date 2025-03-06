@@ -460,7 +460,6 @@
             transform: translateY(-2px);
         }
 
-        /* Estilos para o autocomplete de clientes */
         .autocomplete-container {
             position: relative;
         }
@@ -524,7 +523,7 @@
             </div>
             <div class="form-group">
                 <label for="dataNascimento">Data de Nascimento</label>
-                <input type="date" id="dataNascimento" required>
+                <input type="text" id="dataNascimento" placeholder="dd/mm/aaaa" required>
             </div>
             <div class="form-group">
                 <button type="submit">Cadastrar</button>
@@ -599,16 +598,10 @@
             const auth = getAuth(app);
             const db = getFirestore(app);
 
-            // Senha mestra fixa
             const MASTER_PASSWORD = "administrador";
-
-            // Carregar senha do usuário do localStorage ou usar padrão
             let currentPassword = localStorage.getItem('userPassword') || "terapia";
-
-            // Lista de clientes para autocomplete
             let clientesList = [];
 
-            // Autenticar anonimamente ao carregar a página
             async function initializeAuth() {
                 try {
                     console.log('[DEBUG] Tentando autenticação anônima com auth:', auth);
@@ -616,7 +609,7 @@
                     console.log('[SUCCESS] Autenticação anônima realizada com sucesso para o usuário:', userCredential.user.uid);
                     localStorage.setItem('loggedIn', 'true');
                     await Promise.all([loadClientes(), loadAgendamentos()]);
-                    setupClienteAutocomplete(); // Configurar autocomplete após carregar clientes
+                    setupClienteAutocomplete();
                 } catch (error) {
                     console.error('[ERROR] Erro ao autenticar anonimamente:', error.code, error.message);
                     let errorMessage = 'Erro ao autenticar. ';
@@ -634,7 +627,6 @@
                 }
             }
 
-            // Verificar logout ao carregar a página
             document.addEventListener('DOMContentLoaded', () => {
                 const isLoggedIn = localStorage.getItem('loggedIn');
                 if (!isLoggedIn) {
@@ -646,7 +638,6 @@
                 }
             });
 
-            // Função para alternar abas
             window.openTab = function (tabId) {
                 console.log(`[DEBUG] Tentando abrir aba: ${tabId}`);
                 const tabs = document.querySelectorAll('.tab-content');
@@ -664,7 +655,6 @@
                 }
             };
 
-            // Inicializar IMask para o campo telefone
             document.addEventListener('DOMContentLoaded', () => {
                 const telefoneInput = document.getElementById('telefone');
                 if (telefoneInput) {
@@ -675,9 +665,27 @@
                 } else {
                     console.error('[ERROR] Elemento #telefone não encontrado no DOMContentLoaded');
                 }
+
+                const dataNascimentoInput = document.getElementById('dataNascimento');
+                if (dataNascimentoInput) {
+                    IMask(dataNascimentoInput, {
+                        mask: '00/00/0000',
+                        lazy: false,
+                        placeholderChar: '_',
+                        overwrite: true,
+                        autofix: true,
+                        blocks: {
+                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+                        }
+                    });
+                    console.log('[DEBUG] Máscara aplicada ao campo dataNascimento');
+                } else {
+                    console.error('[ERROR] Elemento #dataNascimento não encontrado no DOMContentLoaded');
+                }
             });
 
-            // Função auxiliar para formatar telefone
             function formatPhoneDisplay(telefone) {
                 const value = telefone ? telefone.replace(/\D/g, '').substring(0, 11) : '';
                 let formatted = '';
@@ -693,13 +701,11 @@
                 return formatted || telefone || '';
             }
 
-            // Função auxiliar para formatar data
             function formatDate(dateString) {
                 const [year, month, day] = dateString.split('-');
                 return `${day}/${month}/${year}`;
             }
 
-            // Abrir modal de alteração de senha
             window.openChangePasswordModal = function() {
                 const modal = document.getElementById('modal');
                 document.getElementById('modalTitle').textContent = 'Alterar Senha';
@@ -724,7 +730,6 @@
                 document.querySelector('.save-btn').addEventListener('click', changePassword);
             };
 
-            // Abrir modal de confirmação de logout
             window.openLogoutModal = function() {
                 const modal = document.getElementById('modal');
                 document.getElementById('modalTitle').textContent = 'Confirmar Saída';
@@ -738,7 +743,6 @@
                 modal.classList.add('active');
             };
 
-            // Função para realizar logout
             window.logout = function() {
                 localStorage.removeItem('loggedIn');
                 auth.signOut().then(() => {
@@ -750,7 +754,6 @@
                 });
             };
 
-            // Função para alternar visibilidade da senha
             window.togglePassword = function(inputId) {
                 const input = document.getElementById(inputId);
                 const toggleIcon = input.nextElementSibling;
@@ -763,7 +766,6 @@
                 }
             };
 
-            // Alterar senha
             function changePassword() {
                 const currentPasswordInput = document.getElementById('currentPassword').value;
                 const newPasswordInput = document.getElementById('newPassword').value;
@@ -788,7 +790,6 @@
                 }
             }
 
-            // Carregar clientes
             async function loadClientes() {
                 const clienteList = document.getElementById('clienteList');
                 const searchInput = document.getElementById('clientSearch');
@@ -821,7 +822,9 @@
                             item.className = 'list-item';
                             const info = document.createElement('div');
                             info.className = 'info';
-                            info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`;
+                            const [ano, mes, dia] = cliente.dataNascimento.split('-');
+                            const dataFormatada = `${dia}/${mes}/${ano}`;
+                            info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${dataFormatada}`;
                             item.appendChild(info);
                             const deleteButton = document.createElement('button');
                             deleteButton.className = 'delete-btn';
@@ -857,7 +860,6 @@
                 }
             }
 
-            // Configurar o autocomplete para o campo cliente
             function setupClienteAutocomplete() {
                 const clienteInput = document.getElementById('cliente');
                 const autocompleteList = document.getElementById('clienteAutocomplete');
@@ -892,22 +894,19 @@
                     }
                 });
 
-                // Fechar a lista ao clicar fora
                 document.addEventListener('click', (e) => {
                     if (!clienteInput.contains(e.target) && !autocompleteList.contains(e.target)) {
                         autocompleteList.style.display = 'none';
                     }
                 });
 
-                // Fechar a lista ao perder foco, mas manter o valor selecionado
                 clienteInput.addEventListener('blur', () => {
                     setTimeout(() => {
                         autocompleteList.style.display = 'none';
-                    }, 200); // Pequeno atraso para permitir clique na lista
+                    }, 200);
                 });
             }
 
-            // Carregar agendamentos
             async function loadAgendamentos() {
                 const agendamentoList = document.getElementById('agendamentoList');
                 agendamentoList.innerHTML = '';
@@ -975,7 +974,6 @@
                 }
             }
 
-            // Cadastrar cliente
             document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const nomeInput = document.getElementById('nome');
@@ -994,7 +992,23 @@
                 const nome = nomeInput.value.trim();
                 const telefone = telefoneInput.value ? telefoneInput.value.replace(/\D/g, '').substring(0, 11) : '';
                 const cidade = cidadeInput.value.trim();
-                const dataNascimento = dataNascimentoInput.value;
+                const dataNascimentoRaw = dataNascimentoInput.value;
+
+                let dataNascimento = '';
+                if (dataNascimentoRaw && dataNascimentoRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    const [dia, mes, ano] = dataNascimentoRaw.split('/');
+                    dataNascimento = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                    const date = new Date(dataNascimento);
+                    if (isNaN(date.getTime()) || date.getFullYear() < 1925 || date.getFullYear() > new Date().getFullYear()) {
+                        message.textContent = 'Data de nascimento inválida.';
+                        message.className = 'error-message';
+                        return;
+                    }
+                } else {
+                    message.textContent = 'Por favor, insira a data no formato dd/mm/aaaa.';
+                    message.className = 'error-message';
+                    return;
+                }
 
                 if (!nome || !telefone || !cidade || !dataNascimento) {
                     message.textContent = 'Por favor, preencha todos os campos.';
@@ -1009,7 +1023,7 @@
                     message.className = 'success-message';
                     e.target.reset();
                     await loadClientes();
-                    setupClienteAutocomplete(); // Atualizar autocomplete após novo cliente
+                    setupClienteAutocomplete();
                     setTimeout(() => message.textContent = '', 3000);
                     console.log('[SUCCESS] Cliente cadastrado com sucesso');
                 } catch (error) {
@@ -1025,7 +1039,6 @@
                 }
             });
 
-            // Agendar consulta com validação de duplicatas
             document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const clienteInput = document.getElementById('cliente');
@@ -1041,7 +1054,6 @@
                     return;
                 }
 
-                // Verificar se o cliente existe
                 const clienteExists = clientesList.some(c => c.nome === cliente);
                 if (!clienteExists) {
                     message.textContent = 'Cliente não encontrado. Por favor, selecione um cliente válido.';
@@ -1081,10 +1093,11 @@
                 }
             });
 
-            // Modal de detalhes e edição do cliente com botão de histórico
             function openClientModal(docId, cliente) {
                 const modal = document.getElementById('modal');
                 console.log('[DEBUG] Abrindo modal de cliente com ID:', docId);
+                const [ano, mes, dia] = cliente.dataNascimento.split('-');
+                const dataFormatada = `${dia}/${mes}/${ano}`;
                 document.getElementById('modalTitle').textContent = 'Detalhes do Cliente';
                 document.getElementById('modalContent').innerHTML = `
                     <div class="form-group">
@@ -1101,7 +1114,7 @@
                     </div>
                     <div class="form-group">
                         <label for="editDataNascimento">Data de Nascimento</label>
-                        <input type="date" id="editDataNascimento" value="${cliente.dataNascimento}" required>
+                        <input type="text" id="editDataNascimento" value="${dataFormatada}" required>
                     </div>
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Fechar</button>
@@ -1119,27 +1132,61 @@
                     console.error('[ERROR] Elemento #editTelefone não encontrado no modal');
                 }
 
+                const editDataNascimento = document.getElementById('editDataNascimento');
+                if (editDataNascimento) {
+                    IMask(editDataNascimento, {
+                        mask: '00/00/0000',
+                        lazy: false,
+                        placeholderChar: '_',
+                        overwrite: true,
+                        autofix: true,
+                        blocks: {
+                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+                        }
+                    });
+                    console.log('[DEBUG] Máscara aplicada ao campo editDataNascimento');
+                } else {
+                    console.error('[ERROR] Elemento #editDataNascimento não encontrado no modal');
+                }
+
                 document.querySelector('.save-btn').addEventListener('click', () => saveClientChanges(docId));
                 document.querySelector('.history-btn').addEventListener('click', () => openHistoryModal(cliente.nome));
             }
 
-            // Salvar alterações do cliente
             async function saveClientChanges(docId) {
                 const nome = document.getElementById('editNome').value.trim();
                 const telefone = document.getElementById('editTelefone').value ? document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11) : '';
                 const cidade = document.getElementById('editCidade').value.trim();
-                const dataNascimento = document.getElementById('editDataNascimento').value;
+                const dataNascimentoRaw = document.getElementById('editDataNascimento').value;
+
+                let dataNascimento = '';
+                if (dataNascimentoRaw && dataNascimentoRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    const [dia, mes, ano] = dataNascimentoRaw.split('/');
+                    dataNascimento = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                    const date = new Date(dataNascimento);
+                    if (isNaN(date.getTime()) || date.getFullYear() < 1925 || date.getFullYear() > new Date().getFullYear()) {
+                        alert('Data de nascimento inválida.');
+                        return;
+                    }
+                } else {
+                    alert('Por favor, insira a data no formato dd/mm/aaaa.');
+                    return;
+                }
+
                 if (!nome || !telefone || !cidade || !dataNascimento) {
                     alert('Por favor, preencha todos os campos.');
                     return;
                 }
+
                 try {
                     console.log('[DEBUG] Tentando salvar alterações do cliente com ID:', docId);
                     await updateDoc(doc(db, 'clientes', docId), { nome, telefone, cidade, dataNascimento });
                     console.log('[SUCCESS] Cliente atualizado com sucesso');
                     closeModal();
                     await loadClientes();
-                    setupClienteAutocomplete(); // Atualizar autocomplete após edição
+                    setupClienteAutocomplete();
                 } catch (error) {
                     console.error('[ERROR] Erro ao atualizar cliente:', error);
                     if (error.code === 'permission-denied') {
@@ -1152,7 +1199,6 @@
                 }
             }
 
-            // Modal de remarcação de agendamento com observação
             function openEditModal(id, agendamento) {
                 const modal = document.getElementById('modal');
                 console.log('[DEBUG] Abrindo modal de agendamento com ID:', id);
@@ -1186,7 +1232,6 @@
                 document.querySelector('.save-btn').addEventListener('click', () => saveChanges(id, agendamento));
             }
 
-            // Salvar alterações no agendamento e atualizar/editar observação no histórico
             async function saveChanges(id, agendamento) {
                 const newData = document.getElementById('modalData').value;
                 const newHora = document.getElementById('modalHora').value;
@@ -1213,7 +1258,6 @@
                         const dataToUse = newData || currentData.data;
                         const horaToUse = newHora || currentData.hora;
 
-                        // Verificar se já existe uma entrada no histórico para essa data e hora
                         const historyQuery = query(
                             collection(db, 'historico'),
                             where('cliente', '==', agendamento.cliente),
@@ -1223,14 +1267,12 @@
                         const historySnapshot = await getDocs(historyQuery);
 
                         if (!historySnapshot.empty) {
-                            // Atualizar a entrada existente
                             const historyDoc = historySnapshot.docs[0];
                             await updateDoc(doc(db, 'historico', historyDoc.id), {
                                 observacao: observacao
                             });
                             console.log('[SUCCESS] Observação atualizada no histórico');
                         } else {
-                            // Adicionar nova entrada se não existir
                             await addDoc(collection(db, 'historico'), {
                                 cliente: agendamento.cliente,
                                 data: dataToUse,
@@ -1257,7 +1299,6 @@
                 }
             }
 
-            // Modal de histórico com botão de deletar
             async function openHistoryModal(clienteNome) {
                 const modal = document.getElementById('modal');
                 console.log('[DEBUG] Abrindo modal de histórico para cliente:', clienteNome);
@@ -1333,7 +1374,6 @@
                 }
             }
 
-            // Modal de confirmação de exclusão de histórico
             function openDeleteHistoryModal(historyId, historyName) {
                 const modal = document.getElementById('modal');
                 console.log(`[DEBUG] Abrindo modal de exclusão para histórico com ID: ${historyId}`);
@@ -1349,7 +1389,6 @@
             }
             window.openDeleteHistoryModal = openDeleteHistoryModal;
 
-            // Confirmar exclusão do histórico
             async function confirmDeleteHistory(historyId) {
                 try {
                     console.log(`[DEBUG] Tentando excluir histórico com ID: ${historyId}`);
@@ -1365,7 +1404,6 @@
             }
             window.confirmDeleteHistory = confirmDeleteHistory;
 
-            // Modal de confirmação de exclusão de agendamento ou cliente
             function openDeleteModal(type, id, name) {
                 const modal = document.getElementById('modal');
                 console.log(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
@@ -1380,7 +1418,6 @@
                 modal.classList.add('active');
             }
 
-            // Confirmar exclusão de agendamento ou cliente
             async function confirmDelete(type, id) {
                 const messageElement = type === 'cliente' ? document.getElementById('cadastroMessage') : document.getElementById('agendamentoMessage');
                 try {
@@ -1392,7 +1429,7 @@
                     closeModal();
                     if (type === 'cliente') {
                         await loadClientes();
-                        setupClienteAutocomplete(); // Atualizar autocomplete após exclusão
+                        setupClienteAutocomplete();
                         messageElement.textContent = 'Cliente excluído com sucesso!';
                     } else {
                         await loadAgendamentos();
@@ -1414,7 +1451,6 @@
             }
             window.confirmDelete = confirmDelete;
 
-            // Modal de aviso de agendamento duplicado
             function openDuplicateModal() {
                 const modal = document.getElementById('modal');
                 document.getElementById('modalTitle').textContent = 'Aviso';
@@ -1427,7 +1463,6 @@
                 modal.classList.add('active');
             }
 
-            // Fechar modal
             window.closeModal = function() {
                 const modal = document.getElementById('modal');
                 modal.classList.remove('active');
