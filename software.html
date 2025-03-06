@@ -459,6 +459,38 @@
             background: #e53e3e;
             transform: translateY(-2px);
         }
+
+        /* Estilos para o autocomplete de clientes */
+        .autocomplete-container {
+            position: relative;
+        }
+
+        .autocomplete-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #d6bcfa;
+            border-radius: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .autocomplete-item {
+            padding: 10px;
+            font-size: 14px;
+            color: #2d3748;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .autocomplete-item:hover {
+            background: #e9d8fd;
+        }
     </style>
 </head>
 <body>
@@ -509,11 +541,10 @@
     <div id="novoAgendamentos" class="tab-content">
         <h2>Novo Agendamento</h2>
         <form id="agendamentoForm">
-            <div class="form-group">
+            <div class="form-group autocomplete-container">
                 <label for="cliente">Cliente</label>
-                <select id="cliente" required>
-                    <option value="">Selecione um cliente</option>
-                </select>
+                <input type="text" id="cliente" placeholder="Digite o nome do cliente" required>
+                <div id="clienteAutocomplete" class="autocomplete-list"></div>
             </div>
             <div class="form-group">
                 <label for="data">Data</label>
@@ -574,6 +605,9 @@
             // Carregar senha do usuário do localStorage ou usar padrão
             let currentPassword = localStorage.getItem('userPassword') || "terapia";
 
+            // Lista de clientes para autocomplete
+            let clientesList = [];
+
             // Autenticar anonimamente ao carregar a página
             async function initializeAuth() {
                 try {
@@ -582,6 +616,7 @@
                     console.log('[SUCCESS] Autenticação anônima realizada com sucesso para o usuário:', userCredential.user.uid);
                     localStorage.setItem('loggedIn', 'true');
                     await Promise.all([loadClientes(), loadAgendamentos()]);
+                    setupClienteAutocomplete(); // Configurar autocomplete após carregar clientes
                 } catch (error) {
                     console.error('[ERROR] Erro ao autenticar anonimamente:', error.code, error.message);
                     let errorMessage = 'Erro ao autenticar. ';
@@ -756,15 +791,13 @@
             // Carregar clientes
             async function loadClientes() {
                 const clienteList = document.getElementById('clienteList');
-                const clienteSelect = document.getElementById('cliente');
                 const searchInput = document.getElementById('clientSearch');
                 clienteList.innerHTML = '';
-                clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
 
                 try {
                     console.log('[DEBUG] Iniciando carregamento de clientes');
                     const querySnapshot = await getDocs(collection(db, 'clientes'));
-                    let clientes = [];
+                    clientesList = [];
                     querySnapshot.forEach((documentSnapshot) => {
                         const data = documentSnapshot.data();
                         if (!data.cidade) {
@@ -773,14 +806,14 @@
                                 .catch(error => console.error(`[ERROR] Erro ao adicionar campo 'cidade' para cliente ${documentSnapshot.id}:`, error));
                             data.cidade = 'Sem cidade';
                         }
-                        clientes.push({ id: documentSnapshot.id, ...data });
+                        clientesList.push({ id: documentSnapshot.id, ...data });
                     });
 
-                    clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+                    clientesList.sort((a, b) => a.nome.localeCompare(b.nome));
 
                     function renderClientes(filter = '') {
                         clienteList.innerHTML = '';
-                        const filteredClientes = clientes.filter(cliente => 
+                        const filteredClientes = clientesList.filter(cliente => 
                             cliente.nome.toLowerCase().includes(filter.toLowerCase())
                         );
                         filteredClientes.forEach(cliente => {
@@ -802,10 +835,6 @@
                             item.onclick = () => openClientModal(cliente.id, cliente);
                             clienteList.appendChild(item);
                         });
-                        clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
-                        clientes.forEach(cliente => {
-                            clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}</option>`;
-                        });
                     }
 
                     renderClientes();
@@ -826,6 +855,56 @@
                     }
                     document.getElementById('cadastroMessage').className = 'error-message';
                 }
+            }
+
+            // Configurar o autocomplete para o campo cliente
+            function setupClienteAutocomplete() {
+                const clienteInput = document.getElementById('cliente');
+                const autocompleteList = document.getElementById('clienteAutocomplete');
+
+                clienteInput.addEventListener('input', (e) => {
+                    const filter = e.target.value.toLowerCase();
+                    autocompleteList.innerHTML = '';
+                    if (filter.length === 0) {
+                        autocompleteList.style.display = 'none';
+                        return;
+                    }
+
+                    const filteredClientes = clientesList.filter(cliente => 
+                        cliente.nome.toLowerCase().includes(filter)
+                    );
+
+                    if (filteredClientes.length > 0) {
+                        filteredClientes.forEach(cliente => {
+                            const item = document.createElement('div');
+                            item.className = 'autocomplete-item';
+                            item.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`;
+                            item.addEventListener('click', () => {
+                                clienteInput.value = cliente.nome;
+                                autocompleteList.innerHTML = '';
+                                autocompleteList.style.display = 'none';
+                            });
+                            autocompleteList.appendChild(item);
+                        });
+                        autocompleteList.style.display = 'block';
+                    } else {
+                        autocompleteList.style.display = 'none';
+                    }
+                });
+
+                // Fechar a lista ao clicar fora
+                document.addEventListener('click', (e) => {
+                    if (!clienteInput.contains(e.target) && !autocompleteList.contains(e.target)) {
+                        autocompleteList.style.display = 'none';
+                    }
+                });
+
+                // Fechar a lista ao perder foco, mas manter o valor selecionado
+                clienteInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        autocompleteList.style.display = 'none';
+                    }, 200); // Pequeno atraso para permitir clique na lista
+                });
             }
 
             // Carregar agendamentos
@@ -930,6 +1009,7 @@
                     message.className = 'success-message';
                     e.target.reset();
                     await loadClientes();
+                    setupClienteAutocomplete(); // Atualizar autocomplete após novo cliente
                     setTimeout(() => message.textContent = '', 3000);
                     console.log('[SUCCESS] Cliente cadastrado com sucesso');
                 } catch (error) {
@@ -948,14 +1028,23 @@
             // Agendar consulta com validação de duplicatas
             document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const cliente = document.getElementById('cliente').value;
+                const clienteInput = document.getElementById('cliente');
                 const data = document.getElementById('data').value;
                 const hora = document.getElementById('hora').value;
                 const tipoAgendamento = document.getElementById('tipoAgendamento').value;
                 const message = document.getElementById('agendamentoMessage');
 
+                const cliente = clienteInput.value.trim();
                 if (!cliente || !data || !hora || !tipoAgendamento) {
                     message.textContent = 'Por favor, preencha todos os campos.';
+                    message.className = 'error-message';
+                    return;
+                }
+
+                // Verificar se o cliente existe
+                const clienteExists = clientesList.some(c => c.nome === cliente);
+                if (!clienteExists) {
+                    message.textContent = 'Cliente não encontrado. Por favor, selecione um cliente válido.';
                     message.className = 'error-message';
                     return;
                 }
@@ -1050,6 +1139,7 @@
                     console.log('[SUCCESS] Cliente atualizado com sucesso');
                     closeModal();
                     await loadClientes();
+                    setupClienteAutocomplete(); // Atualizar autocomplete após edição
                 } catch (error) {
                     console.error('[ERROR] Erro ao atualizar cliente:', error);
                     if (error.code === 'permission-denied') {
@@ -1257,7 +1347,7 @@
                 `;
                 modal.classList.add('active');
             }
-            window.openDeleteHistoryModal = openDeleteHistoryModal; // Expor ao escopo global
+            window.openDeleteHistoryModal = openDeleteHistoryModal;
 
             // Confirmar exclusão do histórico
             async function confirmDeleteHistory(historyId) {
@@ -1266,7 +1356,6 @@
                     await deleteDoc(doc(db, 'historico', historyId));
                     console.log('[SUCCESS] Histórico excluído com sucesso');
                     closeModal();
-                    // Recarregar o modal de histórico do cliente
                     const clienteNome = document.getElementById('modalTitle').textContent.replace('Histórico de ', '');
                     await openHistoryModal(clienteNome);
                 } catch (error) {
@@ -1274,7 +1363,7 @@
                     alert('Erro ao excluir histórico: ' + error.message);
                 }
             }
-            window.confirmDeleteHistory = confirmDeleteHistory; // Expor ao escopo global
+            window.confirmDeleteHistory = confirmDeleteHistory;
 
             // Modal de confirmação de exclusão de agendamento ou cliente
             function openDeleteModal(type, id, name) {
@@ -1303,6 +1392,7 @@
                     closeModal();
                     if (type === 'cliente') {
                         await loadClientes();
+                        setupClienteAutocomplete(); // Atualizar autocomplete após exclusão
                         messageElement.textContent = 'Cliente excluído com sucesso!';
                     } else {
                         await loadAgendamentos();
