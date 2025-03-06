@@ -532,7 +532,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBl55ZrLR6Bgy0WHa-HoACm25mC8_l4awY",
@@ -1075,11 +1075,11 @@
                     </div>
                 `;
                 modal.classList.add('active');
-                document.querySelector('.save-btn').addEventListener('click', () => saveChanges(id, agendamento.cliente));
+                document.querySelector('.save-btn').addEventListener('click', () => saveChanges(id, agendamento));
             }
 
             // Salvar alterações no agendamento e adicionar observação ao histórico
-            async function saveChanges(id, clienteNome) {
+            async function saveChanges(id, agendamento) {
                 const newData = document.getElementById('modalData').value;
                 const newHora = document.getElementById('modalHora').value;
                 const newTipo = document.getElementById('modalTipo').value;
@@ -1098,12 +1098,16 @@
                         return;
                     }
 
-                    // Se houver uma observação preenchida, salvar no histórico
+                    // Salvar a observação no histórico se ela for preenchida
                     if (observacao) {
+                        const agendamentoRef = doc(db, 'agendamentos', id);
+                        const agendamentoSnap = await getDoc(agendamentoRef);
+                        const currentData = agendamentoSnap.data();
+
                         await addDoc(collection(db, 'historico'), {
-                            cliente: clienteNome,
-                            data: newData || (await getDocs(doc(db, 'agendamentos', id))).docs[0].data().data,
-                            hora: newHora || (await getDocs(doc(db, 'agendamentos', id))).docs[0].data().hora,
+                            cliente: agendamento.cliente,
+                            data: newData || currentData.data,
+                            hora: newHora || currentData.hora,
                             observacao: observacao
                         });
                         console.log('[SUCCESS] Observação salva no histórico');
@@ -1220,9 +1224,10 @@
                     console.log(`[DEBUG] Tentando excluir ${type} da coleção: ${collectionName}`);
 
                     if (type === 'agendamento') {
-                        const agendamentoDoc = await getDocs(query(collection(db, 'agendamentos'), where('__name__', '==', id)));
-                        if (!agendamentoDoc.empty) {
-                            const agendamentoData = agendamentoDoc.docs[0].data();
+                        const agendamentoRef = doc(db, 'agendamentos', id);
+                        const agendamentoSnap = await getDoc(agendamentoRef);
+                        if (agendamentoSnap.exists()) {
+                            const agendamentoData = agendamentoSnap.data();
                             if (agendamentoData.observacao) {
                                 await addDoc(collection(db, 'historico'), {
                                     cliente: agendamentoData.cliente,
