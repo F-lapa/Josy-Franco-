@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* Estilos ajustados para botão e histórico */
+        /* Estilos permanecem iguais ao anterior */
         * {
             margin: 0;
             padding: 0;
@@ -412,7 +412,6 @@
             color: #e53e3e;
         }
 
-        /* Estilos para o modal de histórico */
         .history-list {
             max-height: 300px;
             overflow-y: auto;
@@ -1013,7 +1012,6 @@
                     console.error('[ERROR] Elemento #editTelefone não encontrado no modal');
                 }
 
-                // Adicionar eventos aos botões
                 document.querySelector('.save-btn').addEventListener('click', () => saveClientChanges(docId));
                 document.querySelector('.history-btn').addEventListener('click', () => openHistoryModal(cliente.nome));
             }
@@ -1077,11 +1075,11 @@
                     </div>
                 `;
                 modal.classList.add('active');
-                document.querySelector('.save-btn').addEventListener('click', () => saveChanges(id));
+                document.querySelector('.save-btn').addEventListener('click', () => saveChanges(id, agendamento.cliente));
             }
 
-            // Salvar alterações no agendamento
-            async function saveChanges(id) {
+            // Salvar alterações no agendamento e adicionar observação ao histórico
+            async function saveChanges(id, clienteNome) {
                 const newData = document.getElementById('modalData').value;
                 const newHora = document.getElementById('modalHora').value;
                 const newTipo = document.getElementById('modalTipo').value;
@@ -1098,6 +1096,17 @@
                     if (Object.keys(updatedData).length === 0) {
                         alert('Nenhuma alteração foi feita.');
                         return;
+                    }
+
+                    // Se houver uma observação preenchida, salvar no histórico
+                    if (observacao) {
+                        await addDoc(collection(db, 'historico'), {
+                            cliente: clienteNome,
+                            data: newData || (await getDocs(doc(db, 'agendamentos', id))).docs[0].data().data,
+                            hora: newHora || (await getDocs(doc(db, 'agendamentos', id))).docs[0].data().hora,
+                            observacao: observacao
+                        });
+                        console.log('[SUCCESS] Observação salva no histórico');
                     }
 
                     await updateDoc(doc(db, 'agendamentos', id), updatedData);
@@ -1135,11 +1144,10 @@
                             </div>
                         `;
                     } else {
-                        // Agrupar por data
                         querySnapshot.forEach((documentSnapshot) => {
                             const data = documentSnapshot.data();
                             if (data.observacao) {
-                                const dateKey = data.data; // Usar a data como chave (YYYY-MM-DD)
+                                const dateKey = data.data;
                                 if (!historyByDate[dateKey]) {
                                     historyByDate[dateKey] = [];
                                 }
@@ -1150,12 +1158,10 @@
                             }
                         });
 
-                        // Ordenar os horários dentro de cada dia
                         for (const date in historyByDate) {
                             historyByDate[date].sort((a, b) => a.hora.localeCompare(b.hora));
                         }
 
-                        // Gerar o conteúdo do modal
                         let historyContent = '<div class="history-list">';
                         for (const date in historyByDate) {
                             const formattedDate = formatDate(date);
@@ -1214,7 +1220,6 @@
                     console.log(`[DEBUG] Tentando excluir ${type} da coleção: ${collectionName}`);
 
                     if (type === 'agendamento') {
-                        // Antes de excluir, salvar a observação no histórico
                         const agendamentoDoc = await getDocs(query(collection(db, 'agendamentos'), where('__name__', '==', id)));
                         if (!agendamentoDoc.empty) {
                             const agendamentoData = agendamentoDoc.docs[0].data();
