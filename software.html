@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* Estilos permanecem iguais ao original */
+        /* Estilos permanecem iguais ao original, com adição para o modal de histórico */
         * {
             margin: 0;
             padding: 0;
@@ -379,6 +379,17 @@
             color: #ffffff;
         }
 
+        .history-btn {
+            background: #38a169;
+            color: #ffffff;
+            margin-top: 10px;
+        }
+
+        .history-btn:hover {
+            background: #2d864d;
+            transform: translateY(-2px);
+        }
+
         .success-message, .error-message {
             font-size: 12px;
             margin-top: 10px;
@@ -391,6 +402,29 @@
 
         .error-message {
             color: #e53e3e;
+        }
+
+        /* Estilos para o modal de histórico */
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #d6bcfa;
+            font-size: 14px;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-item span {
+            font-weight: 500;
+            color: #2d3748;
         }
     </style>
 </head>
@@ -613,8 +647,6 @@
                     <div id="passwordMessage" class="success-message"></div>
                 `;
                 modal.classList.add('active');
-
-                // Adicionar evento ao botão "Salvar" dentro do módulo
                 document.querySelector('.save-btn').addEventListener('click', changePassword);
             };
 
@@ -921,7 +953,7 @@
                 }
             });
 
-            // Modal de detalhes e edição do cliente
+            // Modal de detalhes e edição do cliente com botão de histórico
             function openClientModal(docId, cliente) {
                 const modal = document.getElementById('modal');
                 console.log('[DEBUG] Abrindo modal de cliente com ID:', docId);
@@ -947,6 +979,7 @@
                         <button class="cancel-btn" onclick="closeModal()">Fechar</button>
                         <button class="save-btn">Salvar</button>
                     </div>
+                    <button class="history-btn">Histórico</button>
                 `;
                 modal.classList.add('active');
 
@@ -958,8 +991,9 @@
                     console.error('[ERROR] Elemento #editTelefone não encontrado no modal');
                 }
 
-                // Adicionar evento ao botão "Salvar"
+                // Adicionar eventos aos botões
                 document.querySelector('.save-btn').addEventListener('click', () => saveClientChanges(docId));
+                document.querySelector('.history-btn').addEventListener('click', () => openHistoryModal(cliente.nome));
             }
 
             // Salvar alterações do cliente
@@ -1021,8 +1055,6 @@
                     </div>
                 `;
                 modal.classList.add('active');
-
-                // Adicionar evento ao botão "Salvar"
                 document.querySelector('.save-btn').addEventListener('click', () => saveChanges(id));
             }
 
@@ -1059,6 +1091,55 @@
                     } else {
                         alert('Erro ao salvar alterações: ' + error.message);
                     }
+                }
+            }
+
+            // Novo modal para exibir o histórico do cliente
+            async function openHistoryModal(clienteNome) {
+                const modal = document.getElementById('modal');
+                console.log('[DEBUG] Abrindo modal de histórico para cliente:', clienteNome);
+                document.getElementById('modalTitle').textContent = `Histórico de ${clienteNome}`;
+
+                try {
+                    const q = query(collection(db, 'agendamentos'), where('cliente', '==', clienteNome));
+                    const querySnapshot = await getDocs(q);
+                    let historyContent = '<div class="history-list">';
+
+                    if (querySnapshot.empty) {
+                        historyContent += '<p>Nenhum histórico encontrado para este cliente.</p>';
+                    } else {
+                        querySnapshot.forEach((documentSnapshot) => {
+                            const data = documentSnapshot.data();
+                            if (data.observacao) { // Exibe apenas se houver observação
+                                const [year, month, day] = data.data.split('-');
+                                const formattedDate = `${day}/${month}/${year}`;
+                                historyContent += `
+                                    <div class="history-item">
+                                        <span>${formattedDate} às ${data.hora}</span><br>
+                                        ${data.observacao}
+                                    </div>
+                                `;
+                            }
+                        });
+                    }
+
+                    historyContent += '</div>';
+                    document.getElementById('modalContent').innerHTML = `
+                        ${historyContent}
+                        <div class="modal-buttons">
+                            <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                        </div>
+                    `;
+                    modal.classList.add('active');
+                } catch (error) {
+                    console.error('[ERROR] Erro ao carregar histórico:', error);
+                    document.getElementById('modalContent').innerHTML = `
+                        <p>Erro ao carregar histórico: ${error.message}</p>
+                        <div class="modal-buttons">
+                            <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                        </div>
+                    `;
+                    modal.classList.add('active');
                 }
             }
 
