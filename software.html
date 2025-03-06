@@ -1098,7 +1098,6 @@
                         return;
                     }
 
-                    // Salvar a observação no histórico se ela for preenchida
                     if (observacao) {
                         const agendamentoRef = doc(db, 'agendamentos', id);
                         const agendamentoSnap = await getDoc(agendamentoRef);
@@ -1201,7 +1200,7 @@
                 }
             }
 
-            // Modal de confirmação de exclusão com salvamento de histórico
+            // Modal de confirmação de exclusão sem salvar observação novamente
             function openDeleteModal(type, id, name) {
                 const modal = document.getElementById('modal');
                 console.log(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
@@ -1216,30 +1215,14 @@
                 modal.classList.add('active');
             }
 
-            // Confirmar exclusão e salvar observação no histórico
+            // Confirmar exclusão sem duplicar observação no histórico
             async function confirmDelete(type, id) {
                 const messageElement = type === 'cliente' ? document.getElementById('cadastroMessage') : document.getElementById('agendamentoMessage');
                 try {
                     let collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
                     console.log(`[DEBUG] Tentando excluir ${type} da coleção: ${collectionName}`);
 
-                    if (type === 'agendamento') {
-                        const agendamentoRef = doc(db, 'agendamentos', id);
-                        const agendamentoSnap = await getDoc(agendamentoRef);
-                        if (agendamentoSnap.exists()) {
-                            const agendamentoData = agendamentoSnap.data();
-                            if (agendamentoData.observacao) {
-                                await addDoc(collection(db, 'historico'), {
-                                    cliente: agendamentoData.cliente,
-                                    data: agendamentoData.data,
-                                    hora: agendamentoData.hora,
-                                    observacao: agendamentoData.observacao
-                                });
-                                console.log('[SUCCESS] Observação salva no histórico antes da exclusão');
-                            }
-                        }
-                    }
-
+                    // Não salvamos a observação no histórico aqui, pois ela já foi salva em saveChanges
                     await deleteDoc(doc(db, collectionName, id));
                     console.log(`[SUCCESS] ${type} excluído com sucesso`);
                     closeModal();
