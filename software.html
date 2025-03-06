@@ -513,7 +513,7 @@
                     console.log('[DEBUG] Tentando autenticação anônima com auth:', auth);
                     const userCredential = await signInAnonymously(auth);
                     console.log('[SUCCESS] Autenticação anônima realizada com sucesso para o usuário:', userCredential.user.uid);
-                    localStorage.setItem('loggedIn', 'true'); // Marca como logado
+                    localStorage.setItem('loggedIn', 'true');
                     await Promise.all([loadClientes(), loadAgendamentos()]);
                 } catch (error) {
                     console.error('[ERROR] Erro ao autenticar anonimamente:', error.code, error.message);
@@ -608,11 +608,14 @@
                     </div>
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
-                        <button class="save-btn" onclick="changePassword()">Salvar</button>
+                        <button class="save-btn">Salvar</button>
                     </div>
                     <div id="passwordMessage" class="success-message"></div>
                 `;
                 modal.classList.add('active');
+
+                // Adicionar evento ao botão "Salvar" dentro do módulo
+                document.querySelector('.save-btn').addEventListener('click', changePassword);
             };
 
             // Abrir modal de confirmação de logout
@@ -655,7 +658,7 @@
             };
 
             // Alterar senha
-            window.changePassword = function() {
+            function changePassword() {
                 const currentPasswordInput = document.getElementById('currentPassword').value;
                 const newPasswordInput = document.getElementById('newPassword').value;
                 const message = document.getElementById('passwordMessage');
@@ -677,7 +680,7 @@
                     message.textContent = 'Senha atual incorreta.';
                     message.className = 'error-message';
                 }
-            };
+            }
 
             // Carregar clientes (sem exibir cidade na lista)
             async function loadClientes() {
@@ -714,7 +717,7 @@
                             item.className = 'list-item';
                             const info = document.createElement('div');
                             info.className = 'info';
-                            info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`; // Removida a cidade
+                            info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`;
                             item.appendChild(info);
                             const deleteButton = document.createElement('button');
                             deleteButton.className = 'delete-btn';
@@ -730,7 +733,7 @@
                         });
                         clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
                         clientes.forEach(cliente => {
-                            clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}</option>`; // Cidade removida do select
+                            clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}</option>`;
                         });
                     }
 
@@ -942,7 +945,7 @@
                     </div>
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Fechar</button>
-                        <button class="save-btn" onclick="saveClientChanges('${docId}')">Salvar</button>
+                        <button class="save-btn">Salvar</button>
                     </div>
                 `;
                 modal.classList.add('active');
@@ -954,6 +957,9 @@
                 } else {
                     console.error('[ERROR] Elemento #editTelefone não encontrado no modal');
                 }
+
+                // Adicionar evento ao botão "Salvar"
+                document.querySelector('.save-btn').addEventListener('click', () => saveClientChanges(docId));
             }
 
             // Salvar alterações do cliente
@@ -1011,27 +1017,29 @@
                     </div>
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
-                        <button class="save-btn" onclick="saveChanges('${id}')">Salvar</button>
+                        <button class="save-btn">Salvar</button>
                     </div>
                 `;
                 modal.classList.add('active');
+
+                // Adicionar evento ao botão "Salvar"
+                document.querySelector('.save-btn').addEventListener('click', () => saveChanges(id));
             }
 
-            // Salvar alterações no agendamento (corrigido para salvar observações)
+            // Salvar alterações no agendamento
             async function saveChanges(id) {
                 const newData = document.getElementById('modalData').value;
                 const newHora = document.getElementById('modalHora').value;
                 const newTipo = document.getElementById('modalTipo').value;
                 const observacao = document.getElementById('observacao').value.trim();
 
-                // Removida a validação obrigatória para permitir salvar apenas observação
                 try {
                     console.log('[DEBUG] Tentando salvar alterações do agendamento com ID:', id);
                     const updatedData = {};
                     if (newData) updatedData.data = newData;
                     if (newHora) updatedData.hora = newHora;
                     if (newTipo) updatedData.tipo = newTipo;
-                    if (observacao || observacao === '') updatedData.observacao = observacao; // Permite salvar observação vazia
+                    if (observacao || observacao === '') updatedData.observacao = observacao;
 
                     if (Object.keys(updatedData).length === 0) {
                         alert('Nenhuma alteração foi feita.');
