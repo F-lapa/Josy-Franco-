@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
+        /* Estilos permanecem iguais ao original */
         * {
             margin: 0;
             padding: 0;
@@ -482,7 +483,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where, setDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyBl55ZrLR6Bgy0WHa-HoACm25mC8_l4awY",
@@ -509,20 +510,25 @@
             // Autenticar anonimamente ao carregar a página
             async function initializeAuth() {
                 try {
+                    console.log('[DEBUG] Tentando autenticação anônima com auth:', auth);
                     const userCredential = await signInAnonymously(auth);
                     console.log('[SUCCESS] Autenticação anônima realizada com sucesso para o usuário:', userCredential.user.uid);
                     localStorage.setItem('loggedIn', 'true'); // Marca como logado
-                    loadClientes().catch(error => console.error('[ERROR] Erro ao carregar clientes após autenticação:', error));
-                    loadAgendamentos().catch(error => console.error('[ERROR] Erro ao carregar agendamentos após autenticação:', error));
+                    await Promise.all([loadClientes(), loadAgendamentos()]); // Carrega clientes e agendamentos após autenticação
                 } catch (error) {
-                    console.error('[ERROR] Erro ao autenticar anonimamente:', error);
+                    console.error('[ERROR] Erro ao autenticar anonimamente:', error.code, error.message);
+                    let errorMessage = 'Erro ao autenticar. ';
                     if (error.code === 'auth/network-request-failed') {
-                        alert('Erro ao autenticar. Verifique sua conexão com a internet.');
+                        errorMessage += 'Verifique sua conexão com a internet.';
+                    } else if (error.code === 'auth/admin-restricted-operation') {
+                        errorMessage += 'Autenticação anônima restrita. Habilite-a no Firebase Console.';
                     } else if (error.code === 'auth/operation-not-allowed') {
-                        alert('Erro ao autenticar. A autenticação anônima não está habilitada no Firebase. Ative-a no Console do Firebase.');
+                        errorMessage += 'Autenticação anônima não permitida. Ative-a no Console do Firebase.';
                     } else {
-                        alert('Erro ao autenticar. Verifique sua conexão ou as permissões no Firebase.');
+                        errorMessage += 'Verifique sua conexão ou as permissões no Firebase.';
                     }
+                    alert(errorMessage);
+                    throw error; // Propaga o erro para ser tratado no carregamento da página
                 }
             }
 
@@ -532,7 +538,9 @@
                 if (!isLoggedIn) {
                     window.location.href = 'index.html'; // Redireciona para login se não logado
                 } else {
-                    initializeAuth().catch(error => console.error('[ERROR] Erro ao inicializar autenticação:', error));
+                    initializeAuth().catch(error => {
+                        console.error('[ERROR] Erro ao inicializar autenticação:', error);
+                    });
                 }
             });
 
@@ -687,7 +695,6 @@
                     let clientes = [];
                     querySnapshot.forEach(doc => {
                         const data = doc.data();
-                        // Adicionar campo "cidade" se não existir
                         if (!data.cidade) {
                             updateDoc(doc(db, 'clientes', doc.id), { cidade: 'Sem cidade' })
                                 .then(() => console.log(`[SUCCESS] Campo 'cidade' adicionado para cliente ${doc.id}`))
@@ -697,10 +704,8 @@
                         clientes.push({ id: doc.id, ...data });
                     });
 
-                    // Ordenar clientes em ordem alfabética
                     clientes.sort((a, b) => a.nome.localeCompare(b.nome));
 
-                    // Função para renderizar a lista filtrada
                     function renderClientes(filter = '') {
                         clienteList.innerHTML = '';
                         const filteredClientes = clientes.filter(cliente => 
@@ -731,10 +736,8 @@
                         });
                     }
 
-                    // Renderizar inicialmente
                     renderClientes();
 
-                    // Adicionar evento de busca
                     searchInput.addEventListener('input', (e) => {
                         renderClientes(e.target.value);
                     });
@@ -763,7 +766,6 @@
                     let agendamentos = [];
                     querySnapshot.forEach(doc => {
                         const data = doc.data();
-                        // Adicionar campo "observacao" se não existir
                         if (!data.observacao) {
                             updateDoc(doc(db, 'agendamentos', doc.id), { observacao: null })
                                 .then(() => console.log(`[SUCCESS] Campo 'observacao' adicionado para agendamento ${doc.id}`))
@@ -887,14 +889,12 @@
                 }
 
                 try {
-                    // Verificar se já existe um agendamento no mesmo dia e horário
                     const q = query(collection(db, 'agendamentos'), 
                         where('data', '==', data), 
                         where('hora', '==', hora));
                     const querySnapshot = await getDocs(q);
 
                     if (!querySnapshot.empty) {
-                        // Abrir modal de aviso
                         openDuplicateModal();
                         return;
                     }
@@ -952,7 +952,7 @@
                 const editTelefone = document.getElementById('editTelefone');
                 if (editTelefone) {
                     IMask(editTelefone, {
-                        mask: '(00) 90000-0000' // Máscara para DDD + 9 dígitos no modal
+                        mask: '(00) 90000-0000'
                     });
                     console.log('[DEBUG] Máscara aplicada ao campo editTelefone');
                 } else {
