@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* Estilos permanecem iguais ao anterior */
+        /* Estilos existentes mantidos, com adição para o botão de deletar no histórico */
         * {
             margin: 0;
             padding: 0;
@@ -435,11 +435,30 @@
             margin-bottom: 10px;
             font-size: 14px;
             line-height: 1.5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .history-item span {
             font-weight: 500;
             color: #2d3748;
+        }
+
+        .history-item .delete-history-btn {
+            padding: 6px 12px;
+            background: #f56565;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .history-item .delete-history-btn:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -1078,7 +1097,7 @@
                 document.querySelector('.save-btn').addEventListener('click', () => saveChanges(id, agendamento));
             }
 
-            // Salvar alterações no agendamento e adicionar observação ao histórico
+            // Salvar alterações no agendamento e atualizar/editar observação no histórico
             async function saveChanges(id, agendamento) {
                 const newData = document.getElementById('modalData').value;
                 const newHora = document.getElementById('modalHora').value;
@@ -1102,14 +1121,35 @@
                         const agendamentoRef = doc(db, 'agendamentos', id);
                         const agendamentoSnap = await getDoc(agendamentoRef);
                         const currentData = agendamentoSnap.data();
+                        const dataToUse = newData || currentData.data;
+                        const horaToUse = newHora || currentData.hora;
 
-                        await addDoc(collection(db, 'historico'), {
-                            cliente: agendamento.cliente,
-                            data: newData || currentData.data,
-                            hora: newHora || currentData.hora,
-                            observacao: observacao
-                        });
-                        console.log('[SUCCESS] Observação salva no histórico');
+                        // Verificar se já existe uma entrada no histórico para essa data e hora
+                        const historyQuery = query(
+                            collection(db, 'historico'),
+                            where('cliente', '==', agendamento.cliente),
+                            where('data', '==', dataToUse),
+                            where('hora', '==', horaToUse)
+                        );
+                        const historySnapshot = await getDocs(historyQuery);
+
+                        if (!historySnapshot.empty) {
+                            // Atualizar a entrada existente
+                            const historyDoc = historySnapshot.docs[0];
+                            await updateDoc(doc(db, 'historico', historyDoc.id), {
+                                observacao: observacao
+                            });
+                            console.log('[SUCCESS] Observação atualizada no histórico');
+                        } else {
+                            // Adicionar nova entrada se não existir
+                            await addDoc(collection(db, 'historico'), {
+                                cliente: agendamento.cliente,
+                                data: dataToUse,
+                                hora: horaToUse,
+                                observacao: observacao
+                            });
+                            console.log('[SUCCESS] Nova observação salva no histórico');
+                        }
                     }
 
                     await updateDoc(doc(db, 'agendamentos', id), updatedData);
@@ -1128,7 +1168,7 @@
                 }
             }
 
-            // Modal de histórico organizado por dia
+            // Modal de histórico com botão de deletar
             async function openHistoryModal(clienteNome) {
                 const modal = document.getElementById('modal');
                 console.log('[DEBUG] Abrindo modal de histórico para cliente:', clienteNome);
@@ -1155,6 +1195,7 @@
                                     historyByDate[dateKey] = [];
                                 }
                                 historyByDate[dateKey].push({
+                                    id: documentSnapshot.id,
                                     hora: data.hora,
                                     observacao: data.observacao
                                 });
@@ -1172,8 +1213,11 @@
                             historyByDate[date].forEach(entry => {
                                 historyContent += `
                                     <div class="history-item">
-                                        <span>${entry.hora}</span><br>
-                                        ${entry.observacao}
+                                        <div>
+                                            <span>${entry.hora}</span><br>
+                                            ${entry.observacao}
+                                        </div>
+                                        <button class="delete-history-btn" onclick="openDeleteHistoryModal('${entry.id}', '${formattedDate} às ${entry.hora}')">Excluir</button>
                                     </div>
                                 `;
                             });
@@ -1200,7 +1244,39 @@
                 }
             }
 
-            // Modal de confirmação de exclusão sem salvar observação novamente
+            // Modal de confirmação de exclusão de histórico
+            function openDeleteHistoryModal(historyId, historyName) {
+                const modal = document.getElementById('modal');
+                console.log(`[DEBUG] Abrindo modal de exclusão para histórico com ID: ${historyId}`);
+                document.getElementById('modalTitle').textContent = 'Confirmar Exclusão do Histórico';
+                document.getElementById('modalContent').innerHTML = `
+                    <p>Tem certeza de que deseja excluir o histórico "${historyName}"?</p>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Não</button>
+                        <button class="confirm-btn" onclick="confirmDeleteHistory('${historyId}')">Sim</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+            }
+
+            // Confirmar exclusão do histórico
+            async function confirmDeleteHistory(historyId) {
+                try {
+                    console.log(`[DEBUG] Tentando excluir histórico com ID: ${historyId}`);
+                    await deleteDoc(doc(db, 'historico', historyId));
+                    console.log('[SUCCESS] Histórico excluído com sucesso');
+                    closeModal();
+                    // Recarregar o modal de histórico do cliente
+                    const clienteNome = document.getElementById('modalTitle').textContent.replace('Histórico de ', '');
+                    await openHistoryModal(clienteNome);
+                } catch (error) {
+                    console.error('[ERROR] Erro ao excluir histórico:', error);
+                    alert('Erro ao excluir histórico: ' + error.message);
+                }
+            }
+            window.confirmDeleteHistory = confirmDeleteHistory;
+
+            // Modal de confirmação de exclusão de agendamento ou cliente
             function openDeleteModal(type, id, name) {
                 const modal = document.getElementById('modal');
                 console.log(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
@@ -1215,14 +1291,13 @@
                 modal.classList.add('active');
             }
 
-            // Confirmar exclusão sem duplicar observação no histórico
+            // Confirmar exclusão de agendamento ou cliente
             async function confirmDelete(type, id) {
                 const messageElement = type === 'cliente' ? document.getElementById('cadastroMessage') : document.getElementById('agendamentoMessage');
                 try {
                     let collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
                     console.log(`[DEBUG] Tentando excluir ${type} da coleção: ${collectionName}`);
 
-                    // Não salvamos a observação no histórico aqui, pois ela já foi salva em saveChanges
                     await deleteDoc(doc(db, collectionName, id));
                     console.log(`[SUCCESS] ${type} excluído com sucesso`);
                     closeModal();
