@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* Estilos existentes mantidos, com adição para o botão de deletar no histórico */
         * {
             margin: 0;
             padding: 0;
@@ -1258,6 +1257,7 @@
                 `;
                 modal.classList.add('active');
             }
+            window.openDeleteHistoryModal = openDeleteHistoryModal; // Expor ao escopo global
 
             // Confirmar exclusão do histórico
             async function confirmDeleteHistory(historyId) {
@@ -1274,7 +1274,7 @@
                     alert('Erro ao excluir histórico: ' + error.message);
                 }
             }
-            window.confirmDeleteHistory = confirmDeleteHistory;
+            window.confirmDeleteHistory = confirmDeleteHistory; // Expor ao escopo global
 
             // Modal de confirmação de exclusão de agendamento ou cliente
             function openDeleteModal(type, id, name) {
