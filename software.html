@@ -514,7 +514,7 @@
                     const userCredential = await signInAnonymously(auth);
                     console.log('[SUCCESS] Autenticação anônima realizada com sucesso para o usuário:', userCredential.user.uid);
                     localStorage.setItem('loggedIn', 'true'); // Marca como logado
-                    await Promise.all([loadClientes(), loadAgendamentos()]); // Carrega clientes e agendamentos após autenticação
+                    await Promise.all([loadClientes(), loadAgendamentos()]);
                 } catch (error) {
                     console.error('[ERROR] Erro ao autenticar anonimamente:', error.code, error.message);
                     let errorMessage = 'Erro ao autenticar. ';
@@ -528,7 +528,7 @@
                         errorMessage += 'Verifique sua conexão ou as permissões no Firebase.';
                     }
                     alert(errorMessage);
-                    throw error; // Propaga o erro para ser tratado no carregamento da página
+                    throw error;
                 }
             }
 
@@ -536,7 +536,7 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const isLoggedIn = localStorage.getItem('loggedIn');
                 if (!isLoggedIn) {
-                    window.location.href = 'index.html'; // Redireciona para login se não logado
+                    window.location.href = 'index.html';
                 } else {
                     initializeAuth().catch(error => {
                         console.error('[ERROR] Erro ao inicializar autenticação:', error);
@@ -562,12 +562,12 @@
                 }
             };
 
-            // Inicializar IMask para o campo telefone com DDD + 9 dígitos
+            // Inicializar IMask para o campo telefone
             document.addEventListener('DOMContentLoaded', () => {
                 const telefoneInput = document.getElementById('telefone');
                 if (telefoneInput) {
                     IMask(telefoneInput, {
-                        mask: '(00) 90000-0000' // Máscara para DDD + 9 dígitos
+                        mask: '(00) 90000-0000'
                     });
                     console.log('[DEBUG] Máscara aplicada ao campo telefone');
                 } else {
@@ -575,7 +575,7 @@
                 }
             });
 
-            // Função auxiliar para exibir telefone formatado
+            // Função auxiliar para formatar telefone
             function formatPhoneDisplay(telefone) {
                 const value = telefone ? telefone.replace(/\D/g, '').substring(0, 11) : '';
                 let formatted = '';
@@ -631,10 +631,10 @@
 
             // Função para realizar logout
             window.logout = function() {
-                localStorage.removeItem('loggedIn'); // Remove o status de login
+                localStorage.removeItem('loggedIn');
                 auth.signOut().then(() => {
                     console.log('[SUCCESS] Logout realizado com sucesso');
-                    window.location.href = 'index.html'; // Redireciona para a página de login
+                    window.location.href = 'index.html';
                 }).catch(error => {
                     console.error('[ERROR] Erro ao realizar logout:', error);
                     alert('Erro ao sair. Tente novamente.');
@@ -647,10 +647,10 @@
                 const toggleIcon = input.nextElementSibling;
                 if (input.type === 'password') {
                     input.type = 'text';
-                    toggleIcon.textContent = '👁️‍🗨️'; // Ícone de olho aberto
+                    toggleIcon.textContent = '👁️‍🗨️';
                 } else {
                     input.type = 'password';
-                    toggleIcon.textContent = '👁️'; // Ícone de olho fechado
+                    toggleIcon.textContent = '👁️';
                 }
             };
 
@@ -671,9 +671,7 @@
                     localStorage.setItem('userPassword', newPasswordInput);
                     message.textContent = 'Senha alterada com sucesso!';
                     message.className = 'success-message';
-                    setTimeout(() => {
-                        closeModal();
-                    }, 1500);
+                    setTimeout(() => closeModal(), 1500);
                     console.log('[DEBUG] Senha alterada para:', currentPassword);
                 } else {
                     message.textContent = 'Senha atual incorreta.';
@@ -681,7 +679,7 @@
                 }
             };
 
-            // Carregar e atualizar clientes com campo "Cidade"
+            // Carregar clientes (sem exibir cidade na lista)
             async function loadClientes() {
                 const clienteList = document.getElementById('clienteList');
                 const clienteSelect = document.getElementById('cliente');
@@ -716,14 +714,14 @@
                             item.className = 'list-item';
                             const info = document.createElement('div');
                             info.className = 'info';
-                            info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${cliente.cidade || 'Sem cidade'}`;
+                            info.textContent = `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`; // Removida a cidade
                             item.appendChild(info);
                             const deleteButton = document.createElement('button');
                             deleteButton.className = 'delete-btn';
                             deleteButton.textContent = 'Excluir';
                             deleteButton.onclick = (e) => {
                                 e.stopPropagation();
-                                openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)} - ${cliente.cidade || 'Sem cidade'}`);
+                                openDeleteModal('cliente', cliente.id, `${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}`);
                                 console.log(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
                             };
                             item.appendChild(deleteButton);
@@ -732,7 +730,7 @@
                         });
                         clienteSelect.innerHTML = '<option value="">Selecione um cliente</option>';
                         clientes.forEach(cliente => {
-                            clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome} - ${cliente.cidade || 'Sem cidade'}</option>`;
+                            clienteSelect.innerHTML += `<option value="${cliente.nome}">${cliente.nome} - ${formatPhoneDisplay(cliente.telefone)}</option>`; // Cidade removida do select
                         });
                     }
 
@@ -756,7 +754,7 @@
                 }
             }
 
-            // Carregar e atualizar agendamentos com campo "Observação"
+            // Carregar agendamentos
             async function loadAgendamentos() {
                 const agendamentoList = document.getElementById('agendamentoList');
                 agendamentoList.innerHTML = '';
@@ -867,7 +865,7 @@
                     } else if (error.code === 'unavailable') {
                         message.textContent = 'Erro ao cadastrar cliente. Verifique sua conexão com a internet.';
                     } else {
-                        message.textContent = 'Erro ao cadastrar cliente. Verifique sua conexão ou as permissões no Firebase.';
+                        message.textContent = 'Erro ao cadastrar cliente: ' + error.message;
                     }
                     message.className = 'error-message';
                 }
@@ -914,7 +912,7 @@
                     } else if (error.code === 'unavailable') {
                         message.textContent = 'Erro ao realizar agendamento. Verifique sua conexão com a internet.';
                     } else {
-                        message.textContent = 'Erro ao realizar agendamento. Verifique sua conexão ou as permissões no Firebase.';
+                        message.textContent = 'Erro ao realizar agendamento: ' + error.message;
                     }
                     message.className = 'error-message';
                 }
@@ -951,9 +949,7 @@
 
                 const editTelefone = document.getElementById('editTelefone');
                 if (editTelefone) {
-                    IMask(editTelefone, {
-                        mask: '(00) 90000-0000'
-                    });
+                    IMask(editTelefone, { mask: '(00) 90000-0000' });
                     console.log('[DEBUG] Máscara aplicada ao campo editTelefone');
                 } else {
                     console.error('[ERROR] Elemento #editTelefone não encontrado no modal');
@@ -983,12 +979,12 @@
                     } else if (error.code === 'unavailable') {
                         alert('Erro ao salvar alterações. Verifique sua conexão com a internet.');
                     } else {
-                        alert('Erro ao salvar alterações. Verifique sua conexão ou as permissões no Firebase.');
+                        alert('Erro ao salvar alterações: ' + error.message);
                     }
                 }
             }
 
-            // Modal de remarcação de agendamento com campo de observação
+            // Modal de remarcação de agendamento com observação
             function openEditModal(id, agendamento) {
                 const modal = document.getElementById('modal');
                 console.log('[DEBUG] Abrindo modal de agendamento com ID:', id);
@@ -1021,19 +1017,28 @@
                 modal.classList.add('active');
             }
 
-            // Salvar alterações no agendamento
+            // Salvar alterações no agendamento (corrigido para salvar observações)
             async function saveChanges(id) {
                 const newData = document.getElementById('modalData').value;
                 const newHora = document.getElementById('modalHora').value;
                 const newTipo = document.getElementById('modalTipo').value;
                 const observacao = document.getElementById('observacao').value.trim();
-                if (!newData || !newHora || !newTipo) {
-                    alert('Preencha todos os campos para remarcar.');
-                    return;
-                }
+
+                // Removida a validação obrigatória para permitir salvar apenas observação
                 try {
                     console.log('[DEBUG] Tentando salvar alterações do agendamento com ID:', id);
-                    await updateDoc(doc(db, 'agendamentos', id), { data: newData, hora: newHora, tipo: newTipo, observacao: observacao || null });
+                    const updatedData = {};
+                    if (newData) updatedData.data = newData;
+                    if (newHora) updatedData.hora = newHora;
+                    if (newTipo) updatedData.tipo = newTipo;
+                    if (observacao || observacao === '') updatedData.observacao = observacao; // Permite salvar observação vazia
+
+                    if (Object.keys(updatedData).length === 0) {
+                        alert('Nenhuma alteração foi feita.');
+                        return;
+                    }
+
+                    await updateDoc(doc(db, 'agendamentos', id), updatedData);
                     console.log('[SUCCESS] Agendamento atualizado com sucesso');
                     closeModal();
                     await loadAgendamentos();
@@ -1044,7 +1049,7 @@
                     } else if (error.code === 'unavailable') {
                         alert('Erro ao salvar alterações. Verifique sua conexão com a internet.');
                     } else {
-                        alert('Erro ao salvar alterações. Verifique sua conexão ou as permissões no Firebase.');
+                        alert('Erro ao salvar alterações: ' + error.message);
                     }
                 }
             }
@@ -1102,7 +1107,7 @@
                     } else if (error.code === 'unavailable') {
                         messageElement.textContent = `Erro ao excluir ${type}. Verifique sua conexão com a internet.`;
                     } else {
-                        messageElement.textContent = `Erro ao excluir ${type}. Verifique sua conexão ou as permissões no Firebase.`;
+                        messageElement.textContent = `Erro ao excluir ${type}: ` + error.message;
                     }
                     messageElement.className = 'error-message';
                 }
