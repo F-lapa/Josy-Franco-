@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* Estilos permanecem iguais ao original, com adição para o modal de histórico */
+        /* Estilos ajustados para botão e histórico */
         * {
             margin: 0;
             padding: 0;
@@ -380,14 +380,22 @@
         }
 
         .history-btn {
-            background: #38a169;
+            background: linear-gradient(45deg, #38a169, #2d864d);
             color: #ffffff;
-            margin-top: 10px;
+            flex: 1;
+            max-width: 90px;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
         }
 
         .history-btn:hover {
-            background: #2d864d;
+            background: linear-gradient(45deg, #2d864d, #1e5e3d);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .success-message, .error-message {
@@ -412,14 +420,22 @@
             text-align: left;
         }
 
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #d6bcfa;
-            font-size: 14px;
+        .history-date {
+            margin: 15px 0 5px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+            border-bottom: 2px solid #ed64a6;
+            padding-bottom: 5px;
         }
 
-        .history-item:last-child {
-            border-bottom: none;
+        .history-item {
+            padding: 10px;
+            background: #faf5ff;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .history-item span {
@@ -625,6 +641,12 @@
                 return formatted || telefone || '';
             }
 
+            // Função auxiliar para formatar data
+            function formatDate(dateString) {
+                const [year, month, day] = dateString.split('-');
+                return `${day}/${month}/${year}`;
+            }
+
             // Abrir modal de alteração de senha
             window.openChangePasswordModal = function() {
                 const modal = document.getElementById('modal');
@@ -714,7 +736,7 @@
                 }
             }
 
-            // Carregar clientes (sem exibir cidade na lista)
+            // Carregar clientes
             async function loadClientes() {
                 const clienteList = document.getElementById('clienteList');
                 const clienteSelect = document.getElementById('cliente');
@@ -978,8 +1000,8 @@
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Fechar</button>
                         <button class="save-btn">Salvar</button>
+                        <button class="history-btn">Histórico</button>
                     </div>
-                    <button class="history-btn">Histórico</button>
                 `;
                 modal.classList.add('active');
 
@@ -1094,42 +1116,68 @@
                 }
             }
 
-            // Novo modal para exibir o histórico do cliente
+            // Modal de histórico organizado por dia
             async function openHistoryModal(clienteNome) {
                 const modal = document.getElementById('modal');
                 console.log('[DEBUG] Abrindo modal de histórico para cliente:', clienteNome);
                 document.getElementById('modalTitle').textContent = `Histórico de ${clienteNome}`;
 
                 try {
-                    const q = query(collection(db, 'agendamentos'), where('cliente', '==', clienteNome));
+                    const q = query(collection(db, 'historico'), where('cliente', '==', clienteNome));
                     const querySnapshot = await getDocs(q);
-                    let historyContent = '<div class="history-list">';
+                    const historyByDate = {};
 
                     if (querySnapshot.empty) {
-                        historyContent += '<p>Nenhum histórico encontrado para este cliente.</p>';
+                        document.getElementById('modalContent').innerHTML = `
+                            <p>Nenhum histórico encontrado para este cliente.</p>
+                            <div class="modal-buttons">
+                                <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                            </div>
+                        `;
                     } else {
+                        // Agrupar por data
                         querySnapshot.forEach((documentSnapshot) => {
                             const data = documentSnapshot.data();
-                            if (data.observacao) { // Exibe apenas se houver observação
-                                const [year, month, day] = data.data.split('-');
-                                const formattedDate = `${day}/${month}/${year}`;
-                                historyContent += `
-                                    <div class="history-item">
-                                        <span>${formattedDate} às ${data.hora}</span><br>
-                                        ${data.observacao}
-                                    </div>
-                                `;
+                            if (data.observacao) {
+                                const dateKey = data.data; // Usar a data como chave (YYYY-MM-DD)
+                                if (!historyByDate[dateKey]) {
+                                    historyByDate[dateKey] = [];
+                                }
+                                historyByDate[dateKey].push({
+                                    hora: data.hora,
+                                    observacao: data.observacao
+                                });
                             }
                         });
-                    }
 
-                    historyContent += '</div>';
-                    document.getElementById('modalContent').innerHTML = `
-                        ${historyContent}
-                        <div class="modal-buttons">
-                            <button class="cancel-btn" onclick="closeModal()">Fechar</button>
-                        </div>
-                    `;
+                        // Ordenar os horários dentro de cada dia
+                        for (const date in historyByDate) {
+                            historyByDate[date].sort((a, b) => a.hora.localeCompare(b.hora));
+                        }
+
+                        // Gerar o conteúdo do modal
+                        let historyContent = '<div class="history-list">';
+                        for (const date in historyByDate) {
+                            const formattedDate = formatDate(date);
+                            historyContent += `<div class="history-date">${formattedDate}</div>`;
+                            historyByDate[date].forEach(entry => {
+                                historyContent += `
+                                    <div class="history-item">
+                                        <span>${entry.hora}</span><br>
+                                        ${entry.observacao}
+                                    </div>
+                                `;
+                            });
+                        }
+                        historyContent += '</div>';
+
+                        document.getElementById('modalContent').innerHTML = `
+                            ${historyContent}
+                            <div class="modal-buttons">
+                                <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                            </div>
+                        `;
+                    }
                     modal.classList.add('active');
                 } catch (error) {
                     console.error('[ERROR] Erro ao carregar histórico:', error);
@@ -1143,7 +1191,7 @@
                 }
             }
 
-            // Modal de confirmação de exclusão
+            // Modal de confirmação de exclusão com salvamento de histórico
             function openDeleteModal(type, id, name) {
                 const modal = document.getElementById('modal');
                 console.log(`[DEBUG] Abrindo modal de exclusão para ${type} com ID: ${id}`);
@@ -1158,25 +1206,30 @@
                 modal.classList.add('active');
             }
 
-            // Modal de aviso de agendamento duplicado
-            function openDuplicateModal() {
-                const modal = document.getElementById('modal');
-                document.getElementById('modalTitle').textContent = 'Aviso';
-                document.getElementById('modalContent').innerHTML = `
-                    <p>Já existe um agendamento marcado para este dia e horário. Por favor, escolha outro horário.</p>
-                    <div class="modal-buttons">
-                        <button class="cancel-btn" onclick="closeModal()">Fechar</button>
-                    </div>
-                `;
-                modal.classList.add('active');
-            }
-
-            // Confirmar exclusão
+            // Confirmar exclusão e salvar observação no histórico
             async function confirmDelete(type, id) {
                 const messageElement = type === 'cliente' ? document.getElementById('cadastroMessage') : document.getElementById('agendamentoMessage');
                 try {
                     let collectionName = type === 'cliente' ? 'clientes' : 'agendamentos';
                     console.log(`[DEBUG] Tentando excluir ${type} da coleção: ${collectionName}`);
+
+                    if (type === 'agendamento') {
+                        // Antes de excluir, salvar a observação no histórico
+                        const agendamentoDoc = await getDocs(query(collection(db, 'agendamentos'), where('__name__', '==', id)));
+                        if (!agendamentoDoc.empty) {
+                            const agendamentoData = agendamentoDoc.docs[0].data();
+                            if (agendamentoData.observacao) {
+                                await addDoc(collection(db, 'historico'), {
+                                    cliente: agendamentoData.cliente,
+                                    data: agendamentoData.data,
+                                    hora: agendamentoData.hora,
+                                    observacao: agendamentoData.observacao
+                                });
+                                console.log('[SUCCESS] Observação salva no histórico antes da exclusão');
+                            }
+                        }
+                    }
+
                     await deleteDoc(doc(db, collectionName, id));
                     console.log(`[SUCCESS] ${type} excluído com sucesso`);
                     closeModal();
@@ -1202,6 +1255,19 @@
                 }
             }
             window.confirmDelete = confirmDelete;
+
+            // Modal de aviso de agendamento duplicado
+            function openDuplicateModal() {
+                const modal = document.getElementById('modal');
+                document.getElementById('modalTitle').textContent = 'Aviso';
+                document.getElementById('modalContent').innerHTML = `
+                    <p>Já existe um agendamento marcado para este dia e horário. Por favor, escolha outro horário.</p>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+            }
 
             // Fechar modal
             window.closeModal = function() {
