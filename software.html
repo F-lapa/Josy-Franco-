@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* O CSS permanece o mesmo, apenas adicionarei um ajuste para o novo campo de busca */
+        /* O CSS permanece o mesmo, não há alterações necessárias aqui */
         * {
             margin: 0;
             padding: 0;
@@ -965,11 +965,25 @@
                         listaAgendamento.innerHTML = '';
                         let agendamentosFiltrados = listaAgendamentos;
 
-                        if (filtroData && filtroData.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-                            const dataFirebase = converterDataParaFirebase(filtroData);
-                            agendamentosFiltrados = listaAgendamentos.filter(agendamento => 
-                                agendamento.data === dataFirebase
-                            );
+                        if (filtroData) {
+                            const partesFiltro = filtroData.split('/');
+                            const diaFiltro = partesFiltro[0];
+                            const mesFiltro = partesFiltro[1];
+                            const anoFiltro = partesFiltro[2];
+
+                            agendamentosFiltrados = listaAgendamentos.filter(agendamento => {
+                                const [ano, mes, dia] = agendamento.data.split('-');
+                                const dataFormatada = `${dia}/${mes}/${ano}`;
+
+                                if (diaFiltro && !mesFiltro && !anoFiltro) {
+                                    return dia === diaFiltro.padStart(2, '0');
+                                } else if (diaFiltro && mesFiltro && !anoFiltro) {
+                                    return dia === diaFiltro.padStart(2, '0') && mes === mesFiltro.padStart(2, '0');
+                                } else if (diaFiltro && mesFiltro && anoFiltro) {
+                                    return dataFormatada === filtroData;
+                                }
+                                return true;
+                            });
                         }
 
                         agendamentosFiltrados.forEach(agendamento => {
