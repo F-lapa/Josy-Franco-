@@ -966,21 +966,21 @@
                         let agendamentosFiltrados = listaAgendamentos;
 
                         if (filtroData) {
-                            const partesFiltro = filtroData.split('/');
-                            const diaFiltro = partesFiltro[0];
-                            const mesFiltro = partesFiltro[1];
-                            const anoFiltro = partesFiltro[2];
+                            const filtroNumerico = filtroData.replace(/[^0-9]/g, ''); // Remove barras e mantém apenas números
+                            const diaFiltro = filtroNumerico.slice(0, 2); // Primeiros 2 dígitos (dia)
+                            const mesFiltro = filtroNumerico.slice(2, 4); // Próximos 2 dígitos (mês)
+                            const anoFiltro = filtroNumerico.slice(4, 8); // Últimos 4 dígitos (ano)
 
                             agendamentosFiltrados = listaAgendamentos.filter(agendamento => {
                                 const [ano, mes, dia] = agendamento.data.split('-');
-                                const dataFormatada = `${dia}/${mes}/${ano}`;
+                                const dataFormatada = `${dia}${mes}${ano}`;
 
-                                if (diaFiltro && !mesFiltro && !anoFiltro) {
-                                    return dia === diaFiltro.padStart(2, '0');
-                                } else if (diaFiltro && mesFiltro && !anoFiltro) {
-                                    return dia === diaFiltro.padStart(2, '0') && mes === mesFiltro.padStart(2, '0');
-                                } else if (diaFiltro && mesFiltro && anoFiltro) {
-                                    return dataFormatada === filtroData;
+                                if (diaFiltro && filtroNumerico.length <= 2) {
+                                    return dia === diaFiltro;
+                                } else if (diaFiltro && mesFiltro && filtroNumerico.length <= 4) {
+                                    return dia === diaFiltro && mes === mesFiltro;
+                                } else if (diaFiltro && mesFiltro && anoFiltro && filtroNumerico.length <= 8) {
+                                    return dia === diaFiltro && mes === mesFiltro && ano === anoFiltro;
                                 }
                                 return true;
                             });
