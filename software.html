@@ -946,19 +946,29 @@
                     querySnapshot.forEach((documento) => {
                         const dados = documento.data();
                         if (!dados.observacao) {
-                            updateDoc(doc(db, 'agendamentos', documento.id), { observacao: null })
-                                .then(() => console.log(`[SUCESSO] Campo 'observacao' adicionado para agendamento ${documento.id}`))
-                                .catch(error => console.error(`[ERRO] Erro ao adicionar campo 'observacao' para agendamento ${documento.id}:`, error));
+                            updateDoc(doc(db, 'agendamentos', documento.id), { observacao: null });
                             dados.observacao = null;
                         }
                         const tipo = dados.tipo || 'Presencial';
                         listaAgendamentos.push({ id: documento.id, ...dados, tipo });
                     });
 
+                    // Ordenar agendamentos com base na data atual ou mais próxima
+                    const hoje = new Date();
+                    const dataAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+
                     listaAgendamentos.sort((a, b) => {
-                        const dataA = new Date(`${a.data}T${a.hora}`);
-                        const dataB = new Date(`${b.data}T${b.hora}`);
-                        return dataB - dataA;
+                        const dataHoraA = new Date(`${a.data}T${a.hora}`);
+                        const dataHoraB = new Date(`${b.data}T${b.hora}`);
+                        const diffA = Math.abs(new Date(dataAtual) - dataHoraA);
+                        const diffB = Math.abs(new Date(dataAtual) - dataHoraB);
+                        
+                        // Se as datas forem iguais à data atual, ordenar por hora
+                        if (a.data === dataAtual && b.data === dataAtual) {
+                            return a.hora.localeCompare(b.hora);
+                        }
+                        // Priorizar data atual ou mais próxima
+                        return diffA - diffB || dataHoraA - dataHoraB;
                     });
 
                     function renderizarAgendamentos(filtroData = '') {
@@ -966,10 +976,10 @@
                         let agendamentosFiltrados = listaAgendamentos;
 
                         if (filtroData) {
-                            const filtroNumerico = filtroData.replace(/[^0-9]/g, ''); // Remove barras e mantém apenas números
-                            const diaFiltro = filtroNumerico.slice(0, 2); // Primeiros 2 dígitos (dia)
-                            const mesFiltro = filtroNumerico.slice(2, 4); // Próximos 2 dígitos (mês)
-                            const anoFiltro = filtroNumerico.slice(4, 8); // Últimos 4 dígitos (ano)
+                            const filtroNumerico = filtroData.replace(/[^0-9]/g, '');
+                            const diaFiltro = filtroNumerico.slice(0, 2);
+                            const mesFiltro = filtroNumerico.slice(2, 4);
+                            const anoFiltro = filtroNumerico.slice(4, 8);
 
                             agendamentosFiltrados = listaAgendamentos.filter(agendamento => {
                                 const [ano, mes, dia] = agendamento.data.split('-');
@@ -1371,30 +1381,32 @@
                     const querySnapshot = await getDocs(q);
                     const historicoPorData = {};
 
+                    querySnapshot.forEach((documento) => {
+                        const dados = documento.data();
+                        if (dados.observacao) {
+                            const chaveData = dados.data;
+                            if (!historicoPorData[chaveData]) {
+                                historicoPorData[chaveData] = [];
+                            }
+                            historicoPorData[chaveData].push({
+                                id: documento.id,
+                                hora: dados.hora,
+                                observacao: dados.observacao
+                            });
+                        }
+                    });
+
                     let conteudoHistorico = '<div class="history-list">';
-                    if (querySnapshot.empty) {
+                    if (Object.keys(historicoPorData).length === 0) {
                         conteudoHistorico += '<p>Nenhum histórico encontrado para este cliente.</p>';
                     } else {
-                        querySnapshot.forEach((documento) => {
-                            const dados = documento.data();
-                            if (dados.observacao) {
-                                const chaveData = dados.data;
-                                if (!historicoPorData[chaveData]) {
-                                    historicoPorData[chaveData] = [];
-                                }
-                                historicoPorData[chaveData].push({
-                                    id: documento.id,
-                                    hora: dados.hora,
-                                    observacao: dados.observacao
-                                });
-                            }
+                        // Ordenar as datas do mais recente para o mais antigo
+                        const datasOrdenadas = Object.keys(historicoPorData).sort((a, b) => {
+                            return new Date(b) - new Date(a);
                         });
 
-                        for (const data in historicoPorData) {
-                            historicoPorData[data].sort((a, b) => a.hora.localeCompare(b.hora));
-                        }
-
-                        for (const data in historicoPorData) {
+                        datasOrdenadas.forEach(data => {
+                            historicoPorData[data].sort((a, b) => b.hora.localeCompare(a.hora)); // Ordem descendente por hora
                             const dataFormatada = formatarData(data);
                             conteudoHistorico += `<div class="history-date">${dataFormatada}</div>`;
                             historicoPorData[data].forEach(entrada => {
@@ -1408,7 +1420,7 @@
                                     </div>
                                 `;
                             });
-                        }
+                        });
                     }
                     conteudoHistorico += '</div>';
 
