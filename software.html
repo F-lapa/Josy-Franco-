@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
+        /* O CSS permanece o mesmo que você forneceu anteriormente, então não o repetirei aqui para economizar espaço. */
         * {
             margin: 0;
             padding: 0;
@@ -269,7 +270,7 @@
         }
 
         .delete-btn {
-            padding: 8px 16px;
+            pledding: 8px 16px;
             background: #f56565;
             color: #ffffff;
             border: none;
@@ -1117,7 +1118,7 @@
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Fechar</button>
                         <button class="save-btn">Salvar</button>
-                        <button class="history-btn">Histórico</button>
+                        <button class="history-btn" id="historyBtn">Histórico</button>
                     </div>
                 `;
                 modal.classList.add('active');
@@ -1150,7 +1151,7 @@
                 }
 
                 document.querySelector('.save-btn').addEventListener('click', () => salvarAlteracoesCliente(docId));
-                document.querySelector('.history-btn').addEventListener('click', () => abrirModalHistorico(cliente.nome));
+                document.getElementById('historyBtn').addEventListener('click', () => abrirModalHistorico(cliente.nome));
             }
 
             async function salvarAlteracoesCliente(docId) {
@@ -1340,7 +1341,7 @@
                                             <span>${entrada.hora}</span><br>
                                             ${entrada.observacao}
                                         </div>
-                                        <button class="delete-history-btn" onclick="abrirModalExcluirHistorico('${entrada.id}', '${dataFormatada} às ${entrada.hora}')">Excluir</button>
+                                        <button class="delete-history-btn" data-id="${entrada.id}" data-nome="${dataFormatada} às ${entrada.hora}">Excluir</button>
                                     </div>
                                 `;
                             });
@@ -1351,11 +1352,26 @@
                     document.getElementById('modalContent').innerHTML = `
                         ${conteudoHistorico}
                         <div class="modal-buttons">
-                            <button class="history-btn" onclick="abrirModalAdicionarObservacao('${nomeCliente}')">Adicionar Observação</button>
+                            <button class="history-btn" id="addObservationBtn">Adicionar Observação</button>
                             <button class="cancel-btn" onclick="closeModal()">Fechar</button>
                         </div>
                     `;
                     modal.classList.add('active');
+
+                    // Adicionar evento ao botão "Adicionar Observação"
+                    document.getElementById('addObservationBtn').addEventListener('click', () => {
+                        abrirModalAdicionarObservacao(nomeCliente);
+                    });
+
+                    // Adicionar eventos aos botões de exclusão
+                    document.querySelectorAll('.delete-history-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const id = btn.getAttribute('data-id');
+                            const nome = btn.getAttribute('data-nome');
+                            abrirModalExcluirHistorico(id, nome);
+                        });
+                    });
+
                 } catch (error) {
                     console.error('[ERRO] Erro ao carregar histórico:', error);
                     document.getElementById('modalContent').innerHTML = `
@@ -1386,11 +1402,13 @@
                     </div>
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
-                        <button class="save-btn" onclick="salvarNovaObservacao('${nomeCliente}')">Salvar</button>
+                        <button class="save-btn" id="saveObservationBtn">Salvar</button>
                     </div>
                     <div id="obsMessage" class="success-message"></div>
                 `;
                 modal.classList.add('active');
+
+                document.getElementById('saveObservationBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
             }
 
             async function salvarNovaObservacao(nomeCliente) {
@@ -1441,12 +1459,12 @@
                     <p>Tem certeza de que deseja excluir o histórico "${nomeHistorico}"?</p>
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Não</button>
-                        <button class="confirm-btn" onclick="confirmarExclusaoHistorico('${idHistorico}')">Sim</button>
+                        <button class="confirm-btn" id="confirmDeleteHistoryBtn">Sim</button>
                     </div>
                 `;
                 modal.classList.add('active');
+                document.getElementById('confirmDeleteHistoryBtn').addEventListener('click', () => confirmarExclusaoHistorico(idHistorico));
             }
-            window.abrirModalExcluirHistorico = abrirModalExcluirHistorico;
 
             async function confirmarExclusaoHistorico(idHistorico) {
                 try {
@@ -1461,7 +1479,6 @@
                     alert('Erro ao excluir histórico: ' + error.message);
                 }
             }
-            window.confirmarExclusaoHistorico = confirmarExclusaoHistorico;
 
             function abrirModalExcluir(tipo, id, nome) {
                 const modal = document.getElementById('modal');
@@ -1471,10 +1488,11 @@
                     <p>Tem certeza de que deseja excluir "${nome}"?</p>
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Não</button>
-                        <button class="confirm-btn" onclick="confirmarExclusao('${tipo}', '${id}')">Sim</button>
+                        <button class="confirm-btn" id="confirmDeleteBtn">Sim</button>
                     </div>
                 `;
                 modal.classList.add('active');
+                document.getElementById('confirmDeleteBtn').addEventListener('click', () => confirmarExclusao(tipo, id));
             }
 
             async function confirmarExclusao(tipo, id) {
@@ -1508,7 +1526,6 @@
                     elementoMensagem.className = 'error-message';
                 }
             }
-            window.confirmarExclusao = confirmarExclusao;
 
             function abrirModalDuplicado() {
                 const modal = document.getElementById('modal');
