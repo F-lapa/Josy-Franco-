@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* O CSS permanece o mesmo que você forneceu anteriormente, então não o repetirei aqui para economizar espaço. */
+        /* O CSS permanece o mesmo, apenas adicionarei um ajuste para o novo campo de busca */
         * {
             margin: 0;
             padding: 0;
@@ -270,7 +270,7 @@
         }
 
         .delete-btn {
-            pledding: 8px 16px;
+            padding: 8px 16px;
             background: #f56565;
             color: #ffffff;
             border: none;
@@ -567,6 +567,9 @@
             </div>
             <div id="agendamentoMessage" class="success-message"></div>
         </form>
+        <div class="search-container">
+            <input type="text" id="dateSearch" placeholder="Buscar por data (dd/mm/aaaa)" inputmode="numeric">
+        </div>
         <h3 style="margin-bottom: 10px;">Agendamentos</h3>
         <div class="list-container" id="agendamentoList"></div>
     </div>
@@ -602,6 +605,7 @@
             const SENHA_MESTRE = "administrador";
             let senhaAtual = localStorage.getItem('userPassword') || "terapia";
             let listaClientes = [];
+            let listaAgendamentos = [];
 
             async function inicializarAutenticacao() {
                 try {
@@ -685,6 +689,25 @@
                 } else {
                     console.error('[ERRO] Elemento #dataNascimento não encontrado no DOMContentLoaded');
                 }
+
+                const entradaBuscaData = document.getElementById('dateSearch');
+                if (entradaBuscaData) {
+                    IMask(entradaBuscaData, {
+                        mask: '00/00/0000',
+                        lazy: false,
+                        placeholderChar: '_',
+                        overwrite: true,
+                        autofix: true,
+                        blocks: {
+                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+                        }
+                    });
+                    console.log('[DEBUG] Máscara aplicada ao campo dateSearch');
+                } else {
+                    console.error('[ERRO] Elemento #dateSearch não encontrado no DOMContentLoaded');
+                }
             });
 
             function formatarTelefoneExibicao(telefone) {
@@ -705,6 +728,11 @@
             function formatarData(dataString) {
                 const [ano, mes, dia] = dataString.split('-');
                 return `${dia}/${mes}/${ano}`;
+            }
+
+            function converterDataParaFirebase(dataString) {
+                const [dia, mes, ano] = dataString.split('/');
+                return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
             }
 
             window.openChangePasswordModal = function() {
@@ -908,11 +936,13 @@
 
             async function carregarAgendamentos() {
                 const listaAgendamento = document.getElementById('agendamentoList');
+                const entradaBuscaData = document.getElementById('dateSearch');
                 listaAgendamento.innerHTML = '';
+
                 try {
                     console.log('[DEBUG] Iniciando carregamento de agendamentos');
                     const querySnapshot = await getDocs(collection(db, 'agendamentos'));
-                    let agendamentos = [];
+                    listaAgendamentos = [];
                     querySnapshot.forEach((documento) => {
                         const dados = documento.data();
                         if (!dados.observacao) {
@@ -922,43 +952,62 @@
                             dados.observacao = null;
                         }
                         const tipo = dados.tipo || 'Presencial';
-                        agendamentos.push({ id: documento.id, ...dados, tipo });
+                        listaAgendamentos.push({ id: documento.id, ...dados, tipo });
                     });
 
-                    agendamentos.sort((a, b) => {
+                    listaAgendamentos.sort((a, b) => {
                         const dataA = new Date(`${a.data}T${a.hora}`);
                         const dataB = new Date(`${b.data}T${b.hora}`);
                         return dataB - dataA;
                     });
 
-                    agendamentos.forEach(agendamento => {
-                        const item = document.createElement('div');
-                        item.className = 'list-item';
-                        const info = document.createElement('div');
-                        info.className = 'info';
-                        const [ano, mes, dia] = agendamento.data.split('-');
-                        const dataFormatada = `${dia}/${mes}/${ano}`;
-                        info.textContent = `${agendamento.cliente} - ${dataFormatada} às ${agendamento.hora}`;
-                        const acoes = document.createElement('div');
-                        acoes.className = 'list-item-actions';
-                        const badgeTipo = document.createElement('span');
-                        badgeTipo.className = `tipo ${agendamento.tipo.toLowerCase()}`;
-                        badgeTipo.textContent = agendamento.tipo;
-                        const botaoExcluir = document.createElement('button');
-                        botaoExcluir.className = 'delete-btn';
-                        botaoExcluir.textContent = 'Excluir';
-                        botaoExcluir.onclick = (e) => {
-                            e.stopPropagation();
-                            abrirModalExcluir('agendamento', agendamento.id, `${agendamento.cliente} - ${dataFormatada} às ${agendamento.hora} (${agendamento.tipo})`);
-                            console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
-                        };
-                        acoes.appendChild(badgeTipo);
-                        acoes.appendChild(botaoExcluir);
-                        item.appendChild(info);
-                        item.appendChild(acoes);
-                        item.onclick = () => abrirModalEditar(agendamento.id, agendamento);
-                        listaAgendamento.appendChild(item);
+                    function renderizarAgendamentos(filtroData = '') {
+                        listaAgendamento.innerHTML = '';
+                        let agendamentosFiltrados = listaAgendamentos;
+
+                        if (filtroData && filtroData.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                            const dataFirebase = converterDataParaFirebase(filtroData);
+                            agendamentosFiltrados = listaAgendamentos.filter(agendamento => 
+                                agendamento.data === dataFirebase
+                            );
+                        }
+
+                        agendamentosFiltrados.forEach(agendamento => {
+                            const item = document.createElement('div');
+                            item.className = 'list-item';
+                            const info = document.createElement('div');
+                            info.className = 'info';
+                            const [ano, mes, dia] = agendamento.data.split('-');
+                            const dataFormatada = `${dia}/${mes}/${ano}`;
+                            info.textContent = `${agendamento.cliente} - ${dataFormatada} às ${agendamento.hora}`;
+                            const acoes = document.createElement('div');
+                            acoes.className = 'list-item-actions';
+                            const badgeTipo = document.createElement('span');
+                            badgeTipo.className = `tipo ${agendamento.tipo.toLowerCase()}`;
+                            badgeTipo.textContent = agendamento.tipo;
+                            const botaoExcluir = document.createElement('button');
+                            botaoExcluir.className = 'delete-btn';
+                            botaoExcluir.textContent = 'Excluir';
+                            botaoExcluir.onclick = (e) => {
+                                e.stopPropagation();
+                                abrirModalExcluir('agendamento', agendamento.id, `${agendamento.cliente} - ${dataFormatada} às ${agendamento.hora} (${agendamento.tipo})`);
+                                console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
+                            };
+                            acoes.appendChild(badgeTipo);
+                            acoes.appendChild(botaoExcluir);
+                            item.appendChild(info);
+                            item.appendChild(acoes);
+                            item.onclick = () => abrirModalEditar(agendamento.id, agendamento);
+                            listaAgendamento.appendChild(item);
+                        });
+                    }
+
+                    renderizarAgendamentos();
+
+                    entradaBuscaData.addEventListener('input', (e) => {
+                        renderizarAgendamentos(e.target.value);
                     });
+
                     console.log('[SUCESSO] Agendamentos carregados com sucesso');
                 } catch (error) {
                     console.error('[ERRO] Erro ao carregar agendamentos:', error);
@@ -1358,12 +1407,10 @@
                     `;
                     modal.classList.add('active');
 
-                    // Adicionar evento ao botão "Adicionar Observação"
                     document.getElementById('addObservationBtn').addEventListener('click', () => {
                         abrirModalAdicionarObservacao(nomeCliente);
                     });
 
-                    // Adicionar eventos aos botões de exclusão
                     document.querySelectorAll('.delete-history-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             const id = btn.getAttribute('data-id');
@@ -1390,7 +1437,7 @@
                 document.getElementById('modalContent').innerHTML = `
                     <div class="form-group">
                         <label for="obsData">Data</label>
-                        <input type="date" id="obsData" required>
+                        <input type="text" id="obsData" placeholder="dd/mm/aaaa" inputmode="numeric" required>
                     </div>
                     <div class="form-group">
                         <label for="obsHora">Hora</label>
@@ -1408,14 +1455,49 @@
                 `;
                 modal.classList.add('active');
 
+                const obsData = document.getElementById('obsData');
+                if (obsData) {
+                    IMask(obsData, {
+                        mask: '00/00/0000',
+                        lazy: false,
+                        placeholderChar: '_',
+                        overwrite: true,
+                        autofix: true,
+                        blocks: {
+                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+                        }
+                    });
+                    console.log('[DEBUG] Máscara aplicada ao campo obsData');
+                } else {
+                    console.error('[ERRO] Elemento #obsData não encontrado no modal');
+                }
+
                 document.getElementById('saveObservationBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
             }
 
             async function salvarNovaObservacao(nomeCliente) {
-                const data = document.getElementById('obsData').value;
+                const dataRaw = document.getElementById('obsData').value;
                 const hora = document.getElementById('obsHora').value;
                 const observacao = document.getElementById('novaObservacao').value.trim();
                 const mensagem = document.getElementById('obsMessage');
+
+                let data = '';
+                if (dataRaw && dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    const [dia, mes, ano] = dataRaw.split('/');
+                    data = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                    const dataValidacao = new Date(data);
+                    if (isNaN(dataValidacao.getTime()) || dataValidacao.getFullYear() < 1925 || dataValidacao.getFullYear() > new Date().getFullYear()) {
+                        mensagem.textContent = 'Data inválida.';
+                        mensagem.className = 'error-message';
+                        return;
+                    }
+                } else {
+                    mensagem.textContent = 'Por favor, insira a data no formato dd/mm/aaaa.';
+                    mensagem.className = 'error-message';
+                    return;
+                }
 
                 if (!data || !hora || !observacao) {
                     mensagem.textContent = 'Por favor, preencha todos os campos.';
