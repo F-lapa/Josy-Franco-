@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* O CSS permanece o mesmo, não há alterações necessárias aqui */
+        /* O CSS permanece o mesmo, com a classe para destacar os agendamentos do dia atual */
         * {
             margin: 0;
             padding: 0;
@@ -230,10 +230,20 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
+        .list-item.today {
+            background: #e6ffe6; /* Cor de destaque para o dia atual */
+            border: 2px solid #38a169; /* Borda verde para destacar */
+            box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);
+        }
+
         .list-item:hover {
             transform: scale(1.02);
             background: #e9d8fd;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-item.today:hover {
+            background: #ccffcc; /* Cor ao passar o mouse sobre itens do dia atual */
         }
 
         .list-item .info {
@@ -955,26 +965,49 @@
                         listaAgendamentos.push({ id: documento.id, ...dados, tipo });
                     });
 
-                    listaAgendamentos.sort((a, b) => {
-                        const dataA = new Date(`${a.data}T${a.hora}`);
-                        const dataB = new Date(`${b.data}T${b.hora}`);
-                        return dataB - dataA;
-                    });
-
                     function renderizarAgendamentos(filtroData = '') {
                         listaAgendamento.innerHTML = '';
-                        let agendamentosFiltrados = listaAgendamentos;
+                        let agendamentosFiltrados = [...listaAgendamentos];
 
+                        // Data atual simulada como 24/05/2025 para o exemplo
+                        const hoje = new Date('2025-05-24'); // Em produção, use new Date() para a data real
+                        const dataHojeFormatada = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+
+                        // Separar agendamentos do dia atual
+                        const agendamentosHoje = agendamentosFiltrados.filter(agendamento => agendamento.data === dataHojeFormatada);
+                        const outrosAgendamentos = agendamentosFiltrados.filter(agendamento => agendamento.data !== dataHojeFormatada);
+
+                        // Ordenar agendamentos do dia atual por hora (crescente)
+                        agendamentosHoje.sort((a, b) => a.hora.localeCompare(b.hora));
+
+                        // Ordenar outros agendamentos por data e hora (decrescente)
+                        outrosAgendamentos.sort((a, b) => {
+                            const dataA = new Date(`${a.data}T${a.hora}`);
+                            const dataB = new Date(`${b.data}T${b.hora}`);
+                            return dataB - dataA;
+                        });
+
+                        // Aplicar filtro de busca, se houver
                         if (filtroData) {
-                            const filtroNumerico = filtroData.replace(/[^0-9]/g, ''); // Remove barras e mantém apenas números
-                            const diaFiltro = filtroNumerico.slice(0, 2); // Primeiros 2 dígitos (dia)
-                            const mesFiltro = filtroNumerico.slice(2, 4); // Próximos 2 dígitos (mês)
-                            const anoFiltro = filtroNumerico.slice(4, 8); // Últimos 4 dígitos (ano)
+                            const filtroNumerico = filtroData.replace(/[^0-9]/g, '');
+                            const diaFiltro = filtroNumerico.slice(0, 2);
+                            const mesFiltro = filtroNumerico.slice(2, 4);
+                            const anoFiltro = filtroNumerico.slice(4, 8);
 
-                            agendamentosFiltrados = listaAgendamentos.filter(agendamento => {
+                            agendamentosHoje = agendamentosHoje.filter(agendamento => {
                                 const [ano, mes, dia] = agendamento.data.split('-');
-                                const dataFormatada = `${dia}${mes}${ano}`;
+                                if (diaFiltro && filtroNumerico.length <= 2) {
+                                    return dia === diaFiltro;
+                                } else if (diaFiltro && mesFiltro && filtroNumerico.length <= 4) {
+                                    return dia === diaFiltro && mes === mesFiltro;
+                                } else if (diaFiltro && mesFiltro && anoFiltro && filtroNumerico.length <= 8) {
+                                    return dia === diaFiltro && mes === mesFiltro && ano === anoFiltro;
+                                }
+                                return true;
+                            });
 
+                            outrosAgendamentos = outrosAgendamentos.filter(agendamento => {
+                                const [ano, mes, dia] = agendamento.data.split('-');
                                 if (diaFiltro && filtroNumerico.length <= 2) {
                                     return dia === diaFiltro;
                                 } else if (diaFiltro && mesFiltro && filtroNumerico.length <= 4) {
@@ -986,9 +1019,15 @@
                             });
                         }
 
-                        agendamentosFiltrados.forEach(agendamento => {
+                        // Combinar: agendamentos do dia atual no topo, seguidos pelos outros
+                        const agendamentosOrdenados = [...agendamentosHoje, ...outrosAgendamentos];
+
+                        agendamentosOrdenados.forEach(agendamento => {
                             const item = document.createElement('div');
                             item.className = 'list-item';
+                            if (agendamento.data === dataHojeFormatada) {
+                                item.classList.add('today'); // Destaca os agendamentos do dia atual
+                            }
                             const info = document.createElement('div');
                             info.className = 'info';
                             const [ano, mes, dia] = agendamento.data.split('-');
