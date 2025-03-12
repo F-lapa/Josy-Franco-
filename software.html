@@ -566,17 +566,12 @@
             background: #faf5ff;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
         }
 
         .balance-container p {
             font-size: 14px;
             color: #2d3748;
-            margin: 0;
-            flex: 1;
-            text-align: center;
+            margin-bottom: 10px;
         }
 
         .balance-container span {
@@ -681,7 +676,7 @@
             </div>
             <div class="form-group">
                 <label for="dataFluxo">Data</label>
-                <input type="text" id="dataFluxo" placeholder="dd/mm/aaaa" inputmode="numeric" required>
+                <input type="date" id="dataFluxo" required>
             </div>
             <div class="form-group">
                 <button type="submit">Registrar</button>
@@ -692,9 +687,6 @@
             <p>Saldo do Dia: <span id="saldoDia">R$ 0,00</span></p>
             <p>Saldo do Mês: <span id="saldoMes">R$ 0,00</span></p>
             <p>Saldo do Ano: <span id="saldoAno">R$ 0,00</span></p>
-        </div>
-        <div class="search-container">
-            <input type="text" id="fluxoCaixaSearch" placeholder="Buscar por cliente">
         </div>
         <h3 style="margin-bottom: 10px;">Registros</h3>
         <div class="list-container" id="fluxoCaixaList"></div>
@@ -807,22 +799,6 @@
                         padFractionalZeros: true,
                         normalizeZeros: true,
                         radix: ','
-                    });
-                }
-
-                const dataFluxo = document.getElementById('dataFluxo');
-                if (dataFluxo) {
-                    IMask(dataFluxo, {
-                        mask: '00/00/0000',
-                        lazy: false,
-                        placeholderChar: '_',
-                        overwrite: true,
-                        autofix: true,
-                        blocks: {
-                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
-                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
-                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
-                        }
                     });
                 }
             });
@@ -984,7 +960,7 @@
                             const item = document.createElement('div');
                             item.className = 'list-item';
                             const info = document.createElement('div');
-                            info.className 'info';
+                            info.className = 'info';
                             info.textContent = `${cliente.nome} - ${formatarTelefoneExibicao(cliente.telefone)}`;
                             item.appendChild(info);
                             const botaoExcluir = document.createElement('button');
@@ -1151,7 +1127,6 @@
 
             async function carregarFluxoCaixa() {
                 const listaFluxo = document.getElementById('fluxoCaixaList');
-                const entradaBuscaFluxo = document.getElementById('fluxoCaixaSearch');
                 listaFluxo.innerHTML = '';
 
                 try {
@@ -1164,37 +1139,8 @@
 
                     listaFluxoCaixa.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-                    function renderizarFluxoCaixa(filtro = '') {
-                        listaFluxo.innerHTML = '';
-                        const fluxoFiltrado = listaFluxoCaixa.filter(item => 
-                            item.cliente.toLowerCase().includes(filtro.toLowerCase())
-                        );
-                        fluxoFiltrado.forEach(item => {
-                            const elemento = document.createElement('div');
-                            elemento.className = 'list-item';
-                            const info = document.createElement('div');
-                            info.className = 'info';
-                            const dataFormatada = formatarData(item.data);
-                            info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
-                            const botaoExcluir = document.createElement('button');
-                            botaoExcluir.className = 'delete-btn';
-                            botaoExcluir.textContent = 'Excluir';
-                            botaoExcluir.onclick = (e) => {
-                                e.stopPropagation();
-                                abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`);
-                            };
-                            elemento.appendChild(info);
-                            elemento.appendChild(botaoExcluir);
-                            listaFluxo.appendChild(elemento);
-                        });
-                    }
-
                     renderizarFluxoCaixa();
                     atualizarSaldos();
-
-                    entradaBuscaFluxo.addEventListener('input', (e) => {
-                        renderizarFluxoCaixa(e.target.value);
-                    });
                 } catch (error) {
                     console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
                     document.getElementById('fluxoCaixaMessage').textContent = 'Erro ao carregar registros: ' + error.message;
@@ -1202,23 +1148,46 @@
                 }
             }
 
+            function renderizarFluxoCaixa() {
+                const listaFluxo = document.getElementById('fluxoCaixaList');
+                listaFluxo.innerHTML = '';
+
+                listaFluxoCaixa.forEach(item => {
+                    const elemento = document.createElement('div');
+                    elemento.className = 'list-item';
+                    const info = document.createElement('div');
+                    info.className = 'info';
+                    const dataFormatada = formatarData(item.data);
+                    info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
+                    const botaoExcluir = document.createElement('button');
+                    botaoExcluir.className = 'delete-btn';
+                    botaoExcluir.textContent = 'Excluir';
+                    botaoExcluir.onclick = (e) => {
+                        e.stopPropagation();
+                        abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`);
+                    };
+                    elemento.appendChild(info);
+                    elemento.appendChild(botaoExcluir);
+                    listaFluxo.appendChild(elemento);
+                });
+            }
+
             function atualizarSaldos() {
-                const hoje = new Date();
-                const diaAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
-                const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-                const anoAtual = hoje.getFullYear().toString();
+                const hoje = new Date().toISOString().split('T')[0];
+                const mesAtual = hoje.slice(0, 7);
+                const anoAtual = hoje.slice(0, 4);
 
                 const saldoDia = listaFluxoCaixa
-                    .filter(item => item.data === diaAtual)
-                    .reduce((sum, item) => sum + parseFloat(item.valor), 0);
+                    .filter(item => item.data === hoje)
+                    .reduce((sum, item) => sum + item.valor, 0);
 
                 const saldoMes = listaFluxoCaixa
                     .filter(item => item.data.startsWith(mesAtual))
-                    .reduce((sum, item) => sum + parseFloat(item.valor), 0);
+                    .reduce((sum, item) => sum + item.valor, 0);
 
                 const saldoAno = listaFluxoCaixa
                     .filter(item => item.data.startsWith(anoAtual))
-                    .reduce((sum, item) => sum + parseFloat(item.valor), 0);
+                    .reduce((sum, item) => sum + item.valor, 0);
 
                 document.getElementById('saldoDia').textContent = `R$ ${saldoDia.toFixed(2).replace('.', ',')}`;
                 document.getElementById('saldoMes').textContent = `R$ ${saldoMes.toFixed(2).replace('.', ',')}`;
@@ -1352,20 +1321,10 @@
                 e.preventDefault();
                 const cliente = document.getElementById('clienteFluxo').value.trim();
                 const valorRaw = document.getElementById('valorConsulta').value.replace(',', '.');
-                const dataRaw = document.getElementById('dataFluxo').value;
+                const data = document.getElementById('dataFluxo').value;
                 const mensagem = document.getElementById('fluxoCaixaMessage');
 
                 const valor = parseFloat(valorRaw);
-                let data = '';
-                if (dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-                    const [dia, mes, ano] = dataRaw.split('/');
-                    data = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-                } else {
-                    mensagem.textContent = 'Por favor, insira a data no formato dd/mm/aaaa.';
-                    mensagem.className = 'error-message';
-                    return;
-                }
-
                 if (!cliente || isNaN(valor) || !data) {
                     mensagem.textContent = 'Por favor, preencha todos os campos corretamente.';
                     mensagem.className = 'error-message';
@@ -1791,11 +1750,11 @@
                 }
             }
 
-                         function abrirModalDuplicado() {
+            function abrirModalDuplicado() {
                 const modal = document.getElementById('modal');
-                document.getElementById('modalTitle').textContent = 'Aviso de Agendamento Duplicado';
+                document.getElementById('modalTitle').textContent = 'Aviso';
                 document.getElementById('modalContent').innerHTML = `
-                    <p>Este horário já possui um agendamento. Por favor, selecione um horário diferente.</p>
+                    <p>Já existe um agendamento marcado para este dia e horário. Por favor, escolha outro horário.</p>
                     <div class="modal-buttons">
                         <button class="cancel-btn" onclick="closeModal()">Fechar</button>
                     </div>
@@ -1806,12 +1765,10 @@
             window.closeModal = function() {
                 const modal = document.getElementById('modal');
                 modal.classList.remove('active');
-                document.getElementById('modalContent').innerHTML = '';
             };
-
         } catch (error) {
-            console.error('[ERRO] Erro na inicialização do Firebase ou configurações:', error);
-            alert('Erro crítico na inicialização do sistema: ' + error.message);
+            console.error('[ERRO] Erro ao inicializar Firebase:', error);
+            alert('Erro ao inicializar o Firebase. Verifique sua configuração ou conexão.');
         }
     </script>
 </body>
