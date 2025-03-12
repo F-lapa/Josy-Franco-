@@ -1118,17 +1118,34 @@
 
                     const hoje = new Date();
                     const dataAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+                    const agora = new Date();
 
-                    listaAgendamentos.sort((a, b) => {
+                    // Separar agendamentos futuros e passados
+                    const agendamentosFuturos = listaAgendamentos.filter(a => {
+                        const dataHoraAgendamento = new Date(`${a.data}T${a.hora}`);
+                        return dataHoraAgendamento >= agora || a.data >= dataAtual;
+                    });
+                    const agendamentosPassados = listaAgendamentos.filter(a => {
+                        const dataHoraAgendamento = new Date(`${a.data}T${a.hora}`);
+                        return dataHoraAgendamento < agora && a.data < dataAtual;
+                    });
+
+                    // Ordenar futuros por proximidade da data atual (crescente)
+                    agendamentosFuturos.sort((a, b) => {
                         const dataHoraA = new Date(`${a.data}T${a.hora}`);
                         const dataHoraB = new Date(`${b.data}T${b.hora}`);
-                        const diffA = Math.abs(new Date(dataAtual) - dataHoraA);
-                        const diffB = Math.abs(new Date(dataAtual) - dataHoraB);
-                        if (a.data === dataAtual && b.data === dataAtual) {
-                            return a.hora.localeCompare(b.hora);
-                        }
-                        return diffA - diffB || dataHoraA - dataHoraB;
+                        return dataHoraA - dataHoraB;
                     });
+
+                    // Ordenar passados por data decrescente (mais recente primeiro)
+                    agendamentosPassados.sort((a, b) => {
+                        const dataHoraA = new Date(`${a.data}T${a.hora}`);
+                        const dataHoraB = new Date(`${b.data}T${b.hora}`);
+                        return dataHoraB - dataHoraA;
+                    });
+
+                    // Combinar as listas: futuros no topo, passados abaixo
+                    listaAgendamentos = [...agendamentosFuturos, ...agendamentosPassados];
 
                     function renderizarAgendamentos(filtroData = '') {
                         listaAgendamento.innerHTML = '';
@@ -1770,69 +1787,59 @@
             }
 
             function abrirModalAdicionarObservacao(nomeCliente) {
-                const modal = document.getElementById('modal');
-                document.getElementById('modalTitle').textContent = `Adicionar Observação para ${nomeCliente}`;
-                document.getElementById('modalContent').innerHTML = `
-                    <div class="form-group">
-                        <label for="obsData">Data</label>
-                        <input type="text" id="obsData" placeholder="dd/mm/aaaa" inputmode="numeric" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="obsHora">Hora</label>
-                        <input type="time" id="obsHora" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="novaObservacao">Observação</label>
-                        <textarea id="novaObservacao" placeholder="Digite a nova observação" rows="4" required></textarea>
-                    </div>
-                    <div class="modal-buttons">
-                        <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
-                        <button class="save-btn" id="saveObservationBtn">Salvar</button>
-                    </div>
-                    <div id="obsMessage" class="success-message"></div>
-                `;
-                modal.classList.add('active');
+    const modal = document.getElementById('modal');
+    document.getElementById('modalTitle').textContent = `Adicionar Observação para ${nomeCliente}`;
+    document.getElementById('modalContent').innerHTML = `
+        <div class="form-group">
+            <label for="obsData">Data</label>
+            <input type="text" id="obsData" placeholder="dd/mm/aaaa" inputmode="numeric" required>
+        </div>
+        <div class="form-group">
+            <label for="obsHora">Hora</label>
+            <input type="time" id="obsHora" required>
+        </div>
+        <div class="form-group">
+            <label for="novaObservacao">Observação</label>
+            <textarea id="novaObservacao" placeholder="Digite a nova observação" rows="4" required></textarea>
+        </div>
+        <div class="modal-buttons">
+            <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+            <button class="save-btn" id="saveObservationBtn">Salvar</button>
+        </div>
+        <div id="observacaoMessage" class="success-message"></div>
+    `;
+    modal.classList.add('active');
 
-                const obsData = document.getElementById('obsData');
-                if (obsData) {
-                    IMask(obsData, {
-                        mask: '00/00/0000',
-                        lazy: false,
-                        placeholderChar: '_',
-                        overwrite: true,
-                        autofix: true,
-                        blocks: {
-                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
-                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
-                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
-                        }
-                    });
-                }
+    const obsData = document.getElementById('obsData');
+    IMask(obsData, {
+        mask: '00/00/0000',
+        lazy: false,
+        placeholderChar: '_',
+        overwrite: true,
+        autofix: true,
+        blocks: {
+            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+        }
+    });
 
-                document.getElementById('saveObservationBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
-            }
+    document.getElementById('saveObservationBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
+}
 
-            async function salvarNovaObservacao(nomeCliente) {
+async function salvarNovaObservacao(nomeCliente) {
     const dataRaw = document.getElementById('obsData').value;
     const hora = document.getElementById('obsHora').value;
     const observacao = document.getElementById('novaObservacao').value.trim();
-    const mensagem = document.getElementById('obsMessage');
+    const mensagem = document.getElementById('observacaoMessage');
 
-    let data = '';
-    if (dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-        const [dia, mes, ano] = dataRaw.split('/');
-        data = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-    } else {
-        mensagem.textContent = 'Por favor, insira a data no formato dd/mm/aaaa.';
+    if (!dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/) || !hora || !observacao) {
+        mensagem.textContent = 'Por favor, preencha todos os campos corretamente.';
         mensagem.className = 'error-message';
         return;
     }
 
-    if (!data || !hora || !observacao) {
-        mensagem.textContent = 'Por favor, preencha todos os campos.';
-        mensagem.className = 'error-message';
-        return;
-    }
+    const data = converterDataParaFirebase(dataRaw);
 
     try {
         await addDoc(collection(db, 'historico'), {
@@ -1858,45 +1865,44 @@ function abrirModalExcluir(tipo, id, descricao) {
     const modal = document.getElementById('modal');
     document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
     document.getElementById('modalContent').innerHTML = `
-        <p>Tem certeza de que deseja excluir: <strong>${descricao}</strong>?</p>
+        <p>Tem certeza de que deseja excluir: <br><strong>${descricao}</strong>?</p>
         <div class="modal-buttons">
             <button class="cancel-btn" onclick="closeModal()">Não</button>
-            <button class="confirm-btn">Sim</button>
+            <button class="confirm-btn" onclick="excluirItem('${tipo}', '${id}')">Sim</button>
         </div>
     `;
     modal.classList.add('active');
-    document.querySelector('.confirm-btn').addEventListener('click', () => excluirRegistro(tipo, id));
 }
 
-async function excluirRegistro(tipo, id) {
+async function excluirItem(tipo, id) {
     try {
         let colecao;
-        let atualizarFuncao;
-
         switch (tipo) {
             case 'cliente':
                 colecao = 'clientes';
-                atualizarFuncao = carregarClientes;
                 break;
             case 'agendamento':
                 colecao = 'agendamentos';
-                atualizarFuncao = carregarAgendamentos;
                 break;
             case 'fluxoCaixa':
                 colecao = 'fluxoCaixa';
-                atualizarFuncao = carregarFluxoCaixa;
                 break;
             default:
-                throw new Error('Tipo de registro inválido');
+                throw new Error('Tipo de item inválido');
         }
-
         await deleteDoc(doc(db, colecao, id));
         closeModal();
-        await atualizarFuncao();
-        if (tipo === 'cliente') configurarAutocompletarCliente();
+        if (tipo === 'cliente') {
+            await carregarClientes();
+            configurarAutocompletarCliente();
+        } else if (tipo === 'agendamento') {
+            await carregarAgendamentos();
+        } else if (tipo === 'fluxoCaixa') {
+            await carregarFluxoCaixa();
+        }
     } catch (error) {
         console.error(`[ERRO] Erro ao excluir ${tipo}:`, error);
-        alert(`Erro ao excluir ${tipo}: ${error.message}`);
+        alert('Erro ao excluir: ' + error.message);
     }
 }
 
@@ -1907,21 +1913,20 @@ function abrirModalExcluirHistorico(id, nome) {
         <p>Tem certeza de que deseja excluir o histórico de <strong>${nome}</strong>?</p>
         <div class="modal-buttons">
             <button class="cancel-btn" onclick="closeModal()">Não</button>
-            <button class="confirm-btn">Sim</button>
+            <button class="confirm-btn" onclick="excluirHistorico('${id}')">Sim</button>
         </div>
     `;
     modal.classList.add('active');
-    document.querySelector('.confirm-btn').addEventListener('click', () => excluirHistorico(id));
 }
 
 async function excluirHistorico(id) {
     try {
-        const referenciaHistorico = doc(db, 'historico', id);
-        const snapshotHistorico = await getDoc(referenciaHistorico);
+        const refHistorico = doc(db, 'historico', id);
+        const snapshotHistorico = await getDoc(refHistorico);
         const dadosHistorico = snapshotHistorico.data();
         const nomeCliente = dadosHistorico.cliente;
 
-        await deleteDoc(referenciaHistorico);
+        await deleteDoc(refHistorico);
         closeModal();
         abrirModalHistorico(nomeCliente);
     } catch (error) {
@@ -1932,27 +1937,25 @@ async function excluirHistorico(id) {
 
 function abrirModalDuplicado() {
     const modal = document.getElementById('modal');
-    document.getElementById('modalTitle').textContent = 'Horário Já Agendado';
+    document.getElementById('modalTitle').textContent = 'Agendamento Duplicado';
     document.getElementById('modalContent').innerHTML = `
-        <p>Este horário já está agendado. Por favor, escolha outro horário.</p>
+        <p>Já existe um agendamento para este horário. Por favor, escolha outro horário.</p>
         <div class="modal-buttons">
-            <button class="cancel-btn" onclick="closeModal()">OK</button>
+            <button class="cancel-btn" onclick="closeModal()">Fechar</button>
         </div>
     `;
     modal.classList.add('active');
 }
 
-window.closeModal = function() {
+window.closeModal = function () {
     const modal = document.getElementById('modal');
     modal.classList.remove('active');
     document.getElementById('modalContent').innerHTML = '';
 };
 
-// Inicialização das abas ao carregar a página
-openTab('cadastro');
         } catch (error) {
-            console.error('[ERRO] Erro crítico na inicialização do Firebase ou aplicação:', error);
-            alert('Erro ao iniciar a aplicação. Verifique a console para mais detalhes.');
+            console.error('[ERRO] Erro geral no Firebase:', error);
+            alert('Erro ao inicializar o sistema: ' + error.message);
         }
     </script>
 </body>
