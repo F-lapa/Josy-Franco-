@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
-        /* O CSS permanece o mesmo, não há alterações necessárias aqui */
         * {
             margin: 0;
             padding: 0;
@@ -58,6 +57,8 @@
             font-size: 18px;
             cursor: pointer;
             transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 12px;
         }
 
         .change-password-btn:hover, .logout-btn:hover {
@@ -76,7 +77,7 @@
         }
 
         .tab-button {
-            padding: 10px 25px;
+            padding: 12px 30px;
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
@@ -85,6 +86,26 @@
             border: none;
             border-radius: 20px;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(237, 100, 166, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .tab-button:hover::after {
+            width: 200%;
+            height: 200%;
         }
 
         .tab-button.active {
@@ -116,12 +137,6 @@
         @keyframes slideDown {
             from { transform: translateY(-100%); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
         }
 
         h2 {
@@ -173,21 +188,41 @@
 
         .form-group button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: #ed64a6;
             color: #ffffff;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(237, 100, 166, 0.3);
+        }
+
+        .form-group button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .form-group button:hover::after {
+            width: 200%;
+            height: 200%;
         }
 
         .form-group button:hover {
-            background: #d53f8c;
             transform: translateY(-2px);
-            box-shadow: 0 3px 12px rgba(237, 100, 166, 0.4);
+            box-shadow: 0 6px 16px rgba(237, 100, 166, 0.5);
         }
 
         .search-container {
@@ -259,14 +294,12 @@
             margin: 0;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
             background: linear-gradient(45deg, #38a169, #2d864d);
-            animation: pulse 2s infinite;
             width: 90px;
             text-align: center;
         }
 
         .list-item .tipo.presencial {
             background: linear-gradient(45deg, #3182ce, #1e5eb8);
-            animation: pulse 2s infinite;
         }
 
         .delete-btn {
@@ -274,17 +307,38 @@
             background: #f56565;
             color: #ffffff;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 12px;
             width: 90px;
             transition: all 0.3s ease;
-            justify-self: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(245, 101, 101, 0.3);
+        }
+
+        .delete-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .delete-btn:hover::after {
+            width: 200%;
+            height: 200%;
         }
 
         .delete-btn:hover {
             background: #e53e3e;
             transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(245, 101, 101, 0.5);
         }
 
         @media (max-width: 480px) {
@@ -358,10 +412,31 @@
             flex: 1;
             max-width: 90px;
             padding: 8px;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-buttons button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .modal-buttons button:hover::after {
+            width: 200%;
+            height: 200%;
         }
 
         .cancel-btn {
@@ -382,20 +457,13 @@
         .history-btn {
             background: linear-gradient(45deg, #38a169, #2d864d);
             color: #ffffff;
-            flex: 1;
-            max-width: 90px;
-            padding: 8px;
-            border-radius: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 3px 8px rgba(56, 161, 105, 0.3);
         }
 
         .history-btn:hover {
             background: linear-gradient(45deg, #2d864d, #1e5e3d);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 5px 12px rgba(56, 161, 105, 0.5);
         }
 
         .success-message, .error-message {
@@ -491,6 +559,25 @@
         .autocomplete-item:hover {
             background: #e9d8fd;
         }
+
+        .balance-container {
+            margin-top: 20px;
+            padding: 15px;
+            background: #faf5ff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .balance-container p {
+            font-size: 14px;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .balance-container span {
+            font-weight: 600;
+            color: #38a169;
+        }
     </style>
 </head>
 <body>
@@ -505,6 +592,7 @@
     <div class="tab-container">
         <button class="tab-button active" onclick="openTab('cadastro')">Cadastro</button>
         <button class="tab-button" onclick="openTab('novoAgendamentos')">Agendamentos</button>
+        <button class="tab-button" onclick="openTab('fluxoCaixa')">Fluxo de Caixa</button>
     </div>
 
     <div id="cadastro" class="tab-content active">
@@ -574,6 +662,36 @@
         <div class="list-container" id="agendamentoList"></div>
     </div>
 
+    <div id="fluxoCaixa" class="tab-content">
+        <h2>Fluxo de Caixa</h2>
+        <form id="fluxoCaixaForm">
+            <div class="form-group autocomplete-container">
+                <label for="clienteFluxo">Cliente</label>
+                <input type="text" id="clienteFluxo" placeholder="Digite o nome do cliente" required>
+                <div id="clienteFluxoAutocomplete" class="autocomplete-list"></div>
+            </div>
+            <div class="form-group">
+                <label for="valorConsulta">Valor da Consulta (R$)</label>
+                <input type="text" id="valorConsulta" placeholder="Ex: 150,00" inputmode="decimal" required>
+            </div>
+            <div class="form-group">
+                <label for="dataFluxo">Data</label>
+                <input type="date" id="dataFluxo" required>
+            </div>
+            <div class="form-group">
+                <button type="submit">Registrar</button>
+            </div>
+            <div id="fluxoCaixaMessage" class="success-message"></div>
+        </form>
+        <div class="balance-container">
+            <p>Saldo do Dia: <span id="saldoDia">R$ 0,00</span></p>
+            <p>Saldo do Mês: <span id="saldoMes">R$ 0,00</span></p>
+            <p>Saldo do Ano: <span id="saldoAno">R$ 0,00</span></p>
+        </div>
+        <h3 style="margin-bottom: 10px;">Registros</h3>
+        <div class="list-container" id="fluxoCaixaList"></div>
+    </div>
+
     <div class="modal" id="modal">
         <div class="modal-content">
             <h2 id="modalTitle"></h2>
@@ -606,6 +724,7 @@
             let senhaAtual = localStorage.getItem('userPassword') || "terapia";
             let listaClientes = [];
             let listaAgendamentos = [];
+            let listaFluxoCaixa = [];
 
             async function inicializarAutenticacao() {
                 try {
@@ -613,21 +732,12 @@
                     const credencialUsuario = await signInAnonymously(auth);
                     console.log('[SUCESSO] Autenticação anônima realizada com sucesso para o usuário:', credencialUsuario.user.uid);
                     localStorage.setItem('loggedIn', 'true');
-                    await Promise.all([carregarClientes(), carregarAgendamentos()]);
+                    await Promise.all([carregarClientes(), carregarAgendamentos(), carregarFluxoCaixa()]);
                     configurarAutocompletarCliente();
+                    configurarAutocompletarFluxoCaixa();
                 } catch (error) {
                     console.error('[ERRO] Erro ao autenticar anonimamente:', error.code, error.message);
-                    let mensagemErro = 'Erro ao autenticar. ';
-                    if (error.code === 'auth/network-request-failed') {
-                        mensagemErro += 'Verifique sua conexão com a internet.';
-                    } else if (error.code === 'auth/admin-restricted-operation') {
-                        mensagemErro += 'Autenticação anônima restrita. Habilite-a no Firebase Console.';
-                    } else if (error.code === 'auth/operation-not-allowed') {
-                        mensagemErro += 'Autenticação anônima não permitida. Ative-a no Console do Firebase.';
-                    } else {
-                        mensagemErro += 'Verifique sua conexão ou as permissões no Firebase.';
-                    }
-                    alert(mensagemErro);
+                    alert('Erro ao autenticar. Verifique sua conexão ou as permissões no Firebase.');
                     throw error;
                 }
             }
@@ -641,34 +751,10 @@
                         console.error('[ERRO] Erro ao inicializar autenticação:', error);
                     });
                 }
-            });
 
-            window.openTab = function (tabId) {
-                console.log(`[DEBUG] Tentando abrir aba: ${tabId}`);
-                const abas = document.querySelectorAll('.tab-content');
-                const botoes = document.querySelectorAll('.tab-button');
-                abas.forEach(aba => aba.classList.remove('active'));
-                botoes.forEach(btn => btn.classList.remove('active'));
-                const abaSelecionada = document.getElementById(tabId);
-                const botaoSelecionado = document.querySelector(`.tab-button[onclick="openTab('${tabId}')"]`);
-                if (abaSelecionada && botaoSelecionado) {
-                    abaSelecionada.classList.add('active');
-                    botaoSelecionado.classList.add('active');
-                    console.log(`[SUCESSO] Aba ${tabId} aberta com sucesso`);
-                } else {
-                    console.error('[ERRO] Erro: Aba ou botão não encontrados', { tabId, abaSelecionada, botaoSelecionado });
-                }
-            };
-
-            document.addEventListener('DOMContentLoaded', () => {
                 const entradaTelefone = document.getElementById('telefone');
                 if (entradaTelefone) {
-                    IMask(entradaTelefone, {
-                        mask: '(00) 90000-0000'
-                    });
-                    console.log('[DEBUG] Máscara aplicada ao campo telefone');
-                } else {
-                    console.error('[ERRO] Elemento #telefone não encontrado no DOMContentLoaded');
+                    IMask(entradaTelefone, { mask: '(00) 90000-0000' });
                 }
 
                 const entradaDataNascimento = document.getElementById('dataNascimento');
@@ -685,9 +771,6 @@
                             '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
                         }
                     });
-                    console.log('[DEBUG] Máscara aplicada ao campo dataNascimento');
-                } else {
-                    console.error('[ERRO] Elemento #dataNascimento não encontrado no DOMContentLoaded');
                 }
 
                 const entradaBuscaData = document.getElementById('dateSearch');
@@ -704,11 +787,41 @@
                             '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
                         }
                     });
-                    console.log('[DEBUG] Máscara aplicada ao campo dateSearch');
-                } else {
-                    console.error('[ERRO] Elemento #dateSearch não encontrado no DOMContentLoaded');
+                }
+
+                const valorConsulta = document.getElementById('valorConsulta');
+                if (valorConsulta) {
+                    IMask(valorConsulta, {
+                        mask: Number,
+                        scale: 2,
+                        signed: false,
+                        thousandsSeparator: '',
+                        padFractionalZeros: true,
+                        normalizeZeros: true,
+                        radix: ','
+                    });
                 }
             });
+
+            window.openTab = function (tabId) {
+                console.log(`[DEBUG] Tentando abrir aba: ${tabId}`);
+                const abas = document.querySelectorAll('.tab-content');
+                const botoes = document.querySelectorAll('.tab-button');
+                abas.forEach(aba => aba.classList.remove('active'));
+                botoes.forEach(btn => btn.classList.remove('active'));
+                const abaSelecionada = document.getElementById(tabId);
+                const botaoSelecionado = document.querySelector(`.tab-button[onclick="openTab('${tabId}')"]`);
+                if (abaSelecionada && botaoSelecionado) {
+                    abaSelecionada.classList.add('active');
+                    botaoSelecionado.classList.add('active');
+                    console.log(`[SUCESSO] Aba ${tabId} aberta com sucesso`);
+                    if (tabId === 'fluxoCaixa') {
+                        carregarFluxoCaixa();
+                    }
+                } else {
+                    console.error('[ERRO] Erro: Aba ou botão não encontrados', { tabId, abaSelecionada, botaoSelecionado });
+                }
+            };
 
             function formatarTelefoneExibicao(telefone) {
                 const valor = telefone ? telefone.replace(/\D/g, '').substring(0, 11) : '';
@@ -825,15 +938,12 @@
                 listaCliente.innerHTML = '';
 
                 try {
-                    console.log('[DEBUG] Iniciando carregamento de clientes');
                     const querySnapshot = await getDocs(collection(db, 'clientes'));
                     listaClientes = [];
                     querySnapshot.forEach((documento) => {
                         const dados = documento.data();
                         if (!dados.cidade) {
-                            updateDoc(doc(db, 'clientes', documento.id), { cidade: 'Sem cidade' })
-                                .then(() => console.log(`[SUCESSO] Campo 'cidade' adicionado para cliente ${documento.id}`))
-                                .catch(error => console.error(`[ERRO] Erro ao adicionar campo 'cidade' para cliente ${documento.id}:`, error));
+                            updateDoc(doc(db, 'clientes', documento.id), { cidade: 'Sem cidade' });
                             dados.cidade = 'Sem cidade';
                         }
                         listaClientes.push({ id: documento.id, ...dados });
@@ -859,7 +969,6 @@
                             botaoExcluir.onclick = (e) => {
                                 e.stopPropagation();
                                 abrirModalExcluir('cliente', cliente.id, `${cliente.nome} - ${formatarTelefoneExibicao(cliente.telefone)}`);
-                                console.log(`[DEBUG] Clicou em Excluir cliente com ID: ${cliente.id}`);
                             };
                             item.appendChild(botaoExcluir);
                             item.onclick = () => abrirModalCliente(cliente.id, cliente);
@@ -872,17 +981,9 @@
                     entradaBusca.addEventListener('input', (e) => {
                         renderizarClientes(e.target.value);
                     });
-
-                    console.log('[SUCESSO] Clientes carregados com sucesso');
                 } catch (error) {
                     console.error('[ERRO] Erro ao carregar clientes:', error);
-                    if (error.code === 'permission-denied') {
-                        document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique as permissões no Firebase e se está autenticado.';
-                    } else if (error.code === 'unavailable') {
-                        document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes. Verifique sua conexão com a internet.';
-                    } else {
-                        document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes: ' + error.message;
-                    }
+                    document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes: ' + error.message;
                     document.getElementById('cadastroMessage').className = 'error-message';
                 }
             }
@@ -926,12 +1027,6 @@
                         listaAutocompletar.style.display = 'none';
                     }
                 });
-
-                entradaCliente.addEventListener('blur', () => {
-                    setTimeout(() => {
-                        listaAutocompletar.style.display = 'none';
-                    }, 200);
-                });
             }
 
             async function carregarAgendamentos() {
@@ -940,7 +1035,6 @@
                 listaAgendamento.innerHTML = '';
 
                 try {
-                    console.log('[DEBUG] Iniciando carregamento de agendamentos');
                     const querySnapshot = await getDocs(collection(db, 'agendamentos'));
                     listaAgendamentos = [];
                     querySnapshot.forEach((documento) => {
@@ -953,7 +1047,6 @@
                         listaAgendamentos.push({ id: documento.id, ...dados, tipo });
                     });
 
-                    // Ordenar agendamentos com base na data atual ou mais próxima
                     const hoje = new Date();
                     const dataAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
 
@@ -962,12 +1055,9 @@
                         const dataHoraB = new Date(`${b.data}T${b.hora}`);
                         const diffA = Math.abs(new Date(dataAtual) - dataHoraA);
                         const diffB = Math.abs(new Date(dataAtual) - dataHoraB);
-                        
-                        // Se as datas forem iguais à data atual, ordenar por hora
                         if (a.data === dataAtual && b.data === dataAtual) {
                             return a.hora.localeCompare(b.hora);
                         }
-                        // Priorizar data atual ou mais próxima
                         return diffA - diffB || dataHoraA - dataHoraB;
                     });
 
@@ -984,7 +1074,6 @@
                             agendamentosFiltrados = listaAgendamentos.filter(agendamento => {
                                 const [ano, mes, dia] = agendamento.data.split('-');
                                 const dataFormatada = `${dia}${mes}${ano}`;
-
                                 if (diaFiltro && filtroNumerico.length <= 2) {
                                     return dia === diaFiltro;
                                 } else if (diaFiltro && mesFiltro && filtroNumerico.length <= 4) {
@@ -1001,8 +1090,7 @@
                             item.className = 'list-item';
                             const info = document.createElement('div');
                             info.className = 'info';
-                            const [ano, mes, dia] = agendamento.data.split('-');
-                            const dataFormatada = `${dia}/${mes}/${ano}`;
+                            const dataFormatada = formatarData(agendamento.data);
                             info.textContent = `${agendamento.cliente} - ${dataFormatada} às ${agendamento.hora}`;
                             const acoes = document.createElement('div');
                             acoes.className = 'list-item-actions';
@@ -1015,7 +1103,6 @@
                             botaoExcluir.onclick = (e) => {
                                 e.stopPropagation();
                                 abrirModalExcluir('agendamento', agendamento.id, `${agendamento.cliente} - ${dataFormatada} às ${agendamento.hora} (${agendamento.tipo})`);
-                                console.log(`[DEBUG] Clicou em Excluir agendamento com ID: ${agendamento.id}`);
                             };
                             acoes.appendChild(badgeTipo);
                             acoes.appendChild(botaoExcluir);
@@ -1031,51 +1118,135 @@
                     entradaBuscaData.addEventListener('input', (e) => {
                         renderizarAgendamentos(e.target.value);
                     });
-
-                    console.log('[SUCESSO] Agendamentos carregados com sucesso');
                 } catch (error) {
                     console.error('[ERRO] Erro ao carregar agendamentos:', error);
-                    if (error.code === 'permission-denied') {
-                        document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique as permissões no Firebase e se está autenticado.';
-                    } else if (error.code === 'unavailable') {
-                        document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos. Verifique sua conexão com a internet.';
-                    } else {
-                        document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos: ' + error.message;
-                    }
+                    document.getElementById('agendamentoMessage').textContent = 'Erro ao carregar agendamentos: ' + error.message;
                     document.getElementById('agendamentoMessage').className = 'error-message';
                 }
             }
 
-            document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const entradaNome = document.getElementById('nome');
-                const entradaTelefone = document.getElementById('telefone');
-                const entradaCidade = document.getElementById('cidade');
-                const entradaDataNascimento = document.getElementById('dataNascimento');
-                const mensagem = document.getElementById('cadastroMessage');
+            async function carregarFluxoCaixa() {
+                const listaFluxo = document.getElementById('fluxoCaixaList');
+                listaFluxo.innerHTML = '';
 
-                if (!entradaNome || !entradaTelefone || !entradaCidade || !entradaDataNascimento) {
-                    mensagem.textContent = 'Erro: Campos do formulário não encontrados.';
-                    mensagem.className = 'error-message';
-                    console.error('[ERRO] Elementos do formulário não encontrados');
-                    return;
+                try {
+                    const querySnapshot = await getDocs(collection(db, 'fluxoCaixa'));
+                    listaFluxoCaixa = [];
+                    querySnapshot.forEach((doc) => {
+                        const dados = doc.data();
+                        listaFluxoCaixa.push({ id: doc.id, ...dados });
+                    });
+
+                    listaFluxoCaixa.sort((a, b) => new Date(b.data) - new Date(a.data));
+
+                    renderizarFluxoCaixa();
+                    atualizarSaldos();
+                } catch (error) {
+                    console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
+                    document.getElementById('fluxoCaixaMessage').textContent = 'Erro ao carregar registros: ' + error.message;
+                    document.getElementById('fluxoCaixaMessage').className = 'error-message';
                 }
+            }
 
-                const nome = entradaNome.value.trim();
-                const telefone = entradaTelefone.value ? entradaTelefone.value.replace(/\D/g, '').substring(0, 11) : '';
-                const cidade = entradaCidade.value.trim();
-                const dataNascimentoRaw = entradaDataNascimento.value;
+            function renderizarFluxoCaixa() {
+                const listaFluxo = document.getElementById('fluxoCaixaList');
+                listaFluxo.innerHTML = '';
 
-                let dataNascimento = '';
-                if (dataNascimentoRaw && dataNascimentoRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-                    const [dia, mes, ano] = dataNascimentoRaw.split('/');
-                    dataNascimento = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-                    const data = new Date(dataNascimento);
-                    if (isNaN(data.getTime()) || data.getFullYear() < 1925 || data.getFullYear() > new Date().getFullYear()) {
-                        mensagem.textContent = 'Data de nascimento inválida.';
-                        mensagem.className = 'error-message';
+                listaFluxoCaixa.forEach(item => {
+                    const elemento = document.createElement('div');
+                    elemento.className = 'list-item';
+                    const info = document.createElement('div');
+                    info.className = 'info';
+                    const dataFormatada = formatarData(item.data);
+                    info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
+                    const botaoExcluir = document.createElement('button');
+                    botaoExcluir.className = 'delete-btn';
+                    botaoExcluir.textContent = 'Excluir';
+                    botaoExcluir.onclick = (e) => {
+                        e.stopPropagation();
+                        abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`);
+                    };
+                    elemento.appendChild(info);
+                    elemento.appendChild(botaoExcluir);
+                    listaFluxo.appendChild(elemento);
+                });
+            }
+
+            function atualizarSaldos() {
+                const hoje = new Date().toISOString().split('T')[0];
+                const mesAtual = hoje.slice(0, 7);
+                const anoAtual = hoje.slice(0, 4);
+
+                const saldoDia = listaFluxoCaixa
+                    .filter(item => item.data === hoje)
+                    .reduce((sum, item) => sum + item.valor, 0);
+
+                const saldoMes = listaFluxoCaixa
+                    .filter(item => item.data.startsWith(mesAtual))
+                    .reduce((sum, item) => sum + item.valor, 0);
+
+                const saldoAno = listaFluxoCaixa
+                    .filter(item => item.data.startsWith(anoAtual))
+                    .reduce((sum, item) => sum + item.valor, 0);
+
+                document.getElementById('saldoDia').textContent = `R$ ${saldoDia.toFixed(2).replace('.', ',')}`;
+                document.getElementById('saldoMes').textContent = `R$ ${saldoMes.toFixed(2).replace('.', ',')}`;
+                document.getElementById('saldoAno').textContent = `R$ ${saldoAno.toFixed(2).replace('.', ',')}`;
+            }
+
+            function configurarAutocompletarFluxoCaixa() {
+                const entradaCliente = document.getElementById('clienteFluxo');
+                const listaAutocompletar = document.getElementById('clienteFluxoAutocomplete');
+
+                entradaCliente.addEventListener('input', (e) => {
+                    const filtro = e.target.value.toLowerCase();
+                    listaAutocompletar.innerHTML = '';
+                    if (filtro.length === 0) {
+                        listaAutocompletar.style.display = 'none';
                         return;
                     }
+
+                    const clientesFiltrados = listaClientes.filter(cliente => 
+                        cliente.nome.toLowerCase().includes(filtro)
+                    );
+
+                    if (clientesFiltrados.length > 0) {
+                        clientesFiltrados.forEach(cliente => {
+                            const item = document.createElement('div');
+                            item.className = 'autocomplete-item';
+                            item.textContent = `${cliente.nome} - ${formatarTelefoneExibicao(cliente.telefone)}`;
+                            item.addEventListener('click', () => {
+                                entradaCliente.value = cliente.nome;
+                                listaAutocompletar.innerHTML = '';
+                                listaAutocompletar.style.display = 'none';
+                            });
+                            listaAutocompletar.appendChild(item);
+                        });
+                        listaAutocompletar.style.display = 'block';
+                    } else {
+                        listaAutocompletar.style.display = 'none';
+                    }
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!entradaCliente.contains(e.target) && !listaAutocompletar.contains(e.target)) {
+                        listaAutocompletar.style.display = 'none';
+                    }
+                });
+            }
+
+            document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const nome = document.getElementById('nome').value.trim();
+                const telefone = document.getElementById('telefone').value.replace(/\D/g, '').substring(0, 11);
+                const cidade = document.getElementById('cidade').value.trim();
+                const dataNascimentoRaw = document.getElementById('dataNascimento').value;
+                const mensagem = document.getElementById('cadastroMessage');
+
+                let dataNascimento = '';
+                if (dataNascimentoRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    const [dia, mes, ano] = dataNascimentoRaw.split('/');
+                    dataNascimento = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
                 } else {
                     mensagem.textContent = 'Por favor, insira a data no formato dd/mm/aaaa.';
                     mensagem.className = 'error-message';
@@ -1089,7 +1260,6 @@
                 }
 
                 try {
-                    console.log('[DEBUG] Tentando cadastrar cliente:', { nome, telefone, cidade, dataNascimento });
                     await addDoc(collection(db, 'clientes'), { nome, telefone, cidade, dataNascimento });
                     mensagem.textContent = 'Cliente cadastrado com sucesso!';
                     mensagem.className = 'success-message';
@@ -1097,29 +1267,21 @@
                     await carregarClientes();
                     configurarAutocompletarCliente();
                     setTimeout(() => mensagem.textContent = '', 3000);
-                    console.log('[SUCESSO] Cliente cadastrado com sucesso');
                 } catch (error) {
                     console.error('[ERRO] Erro ao cadastrar cliente:', error);
-                    if (error.code === 'permission-denied') {
-                        mensagem.textContent = 'Erro ao cadastrar cliente. Verifique as permissões no Firebase e se está autenticado.';
-                    } else if (error.code === 'unavailable') {
-                        mensagem.textContent = 'Erro ao cadastrar cliente. Verifique sua conexão com a internet.';
-                    } else {
-                        mensagem.textContent = 'Erro ao cadastrar cliente: ' + error.message;
-                    }
-                    mensagem.className = 'error-message';
+                    document.getElementById('cadastroMessage').textContent = 'Erro ao cadastrar cliente: ' + error.message;
+                    document.getElementById('cadastroMessage').className = 'error-message';
                 }
             });
 
             document.getElementById('agendamentoForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const entradaCliente = document.getElementById('cliente');
+                const cliente = document.getElementById('cliente').value.trim();
                 const data = document.getElementById('data').value;
                 const hora = document.getElementById('hora').value;
                 const tipoAgendamento = document.getElementById('tipoAgendamento').value;
                 const mensagem = document.getElementById('agendamentoMessage');
 
-                const cliente = entradaCliente.value.trim();
                 if (!cliente || !data || !hora || !tipoAgendamento) {
                     mensagem.textContent = 'Por favor, preencha todos os campos.';
                     mensagem.className = 'error-message';
@@ -1128,15 +1290,13 @@
 
                 const clienteExiste = listaClientes.some(c => c.nome === cliente);
                 if (!clienteExiste) {
-                    mensagem.textContent = 'Cliente não encontrado. Por favor, selecione um cliente válido.';
+                    mensagem.textContent = 'Cliente não encontrado.';
                     mensagem.className = 'error-message';
                     return;
                 }
 
                 try {
-                    const q = query(collection(db, 'agendamentos'), 
-                        where('data', '==', data), 
-                        where('hora', '==', hora));
+                    const q = query(collection(db, 'agendamentos'), where('data', '==', data), where('hora', '==', hora));
                     const querySnapshot = await getDocs(q);
 
                     if (!querySnapshot.empty) {
@@ -1144,30 +1304,56 @@
                         return;
                     }
 
-                    console.log('[DEBUG] Tentando agendar:', { cliente, data, hora, tipoAgendamento });
                     await addDoc(collection(db, 'agendamentos'), { cliente, data, hora, tipo: tipoAgendamento, observacao: null });
                     mensagem.textContent = 'Agendamento realizado com sucesso!';
                     mensagem.className = 'success-message';
                     e.target.reset();
                     await carregarAgendamentos();
                     setTimeout(() => mensagem.textContent = '', 3000);
-                    console.log('[SUCESSO] Agendamento realizado com sucesso');
                 } catch (error) {
                     console.error('[ERRO] Erro ao agendar:', error);
-                    if (error.code === 'permission-denied') {
-                        mensagem.textContent = 'Erro ao realizar agendamento. Verifique as permissões no Firebase e se está autenticado.';
-                    } else if (error.code === 'unavailable') {
-                        mensagem.textContent = 'Erro ao realizar agendamento. Verifique sua conexão com a internet.';
-                    } else {
-                        mensagem.textContent = 'Erro ao realizar agendamento: ' + error.message;
-                    }
+                    document.getElementById('agendamentoMessage').textContent = 'Erro ao realizar agendamento: ' + error.message;
+                    document.getElementById('agendamentoMessage').className = 'error-message';
+                }
+            });
+
+            document.getElementById('fluxoCaixaForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const cliente = document.getElementById('clienteFluxo').value.trim();
+                const valorRaw = document.getElementById('valorConsulta').value.replace(',', '.');
+                const data = document.getElementById('dataFluxo').value;
+                const mensagem = document.getElementById('fluxoCaixaMessage');
+
+                const valor = parseFloat(valorRaw);
+                if (!cliente || isNaN(valor) || !data) {
+                    mensagem.textContent = 'Por favor, preencha todos os campos corretamente.';
+                    mensagem.className = 'error-message';
+                    return;
+                }
+
+                const clienteExiste = listaClientes.some(c => c.nome === cliente);
+                if (!clienteExiste) {
+                    mensagem.textContent = 'Cliente não encontrado.';
+                    mensagem.className = 'error-message';
+                    return;
+                }
+
+                try {
+                    await addDoc(collection(db, 'fluxoCaixa'), { cliente, valor, data });
+                    mensagem.textContent = 'Registro adicionado com sucesso!';
+                    mensagem.className = 'success-message';
+                    e.target.reset();
+                    await carregarFluxoCaixa();
+                    setTimeout(() => mensagem.textContent = '', 3000);
+                } catch (error) {
+                    console.error('[ERRO] Erro ao registrar fluxo de caixa:', error);
+                    mensagem.textContent = 'Erro ao registrar: ' + error.message;
                     mensagem.className = 'error-message';
                 }
             });
 
             function abrirModalCliente(docId, cliente) {
                 const modal = document.getElementById('modal');
-                console.log('[DEBUG] Abrindo modal de cliente com ID:', docId);
                 const [ano, mes, dia] = cliente.dataNascimento.split('-');
                 const dataFormatada = `${dia}/${mes}/${ano}`;
                 document.getElementById('modalTitle').textContent = 'Detalhes do Cliente';
@@ -1199,9 +1385,6 @@
                 const editTelefone = document.getElementById('editTelefone');
                 if (editTelefone) {
                     IMask(editTelefone, { mask: '(00) 90000-0000' });
-                    console.log('[DEBUG] Máscara aplicada ao campo editTelefone');
-                } else {
-                    console.error('[ERRO] Elemento #editTelefone não encontrado no modal');
                 }
 
                 const editDataNascimento = document.getElementById('editDataNascimento');
@@ -1218,9 +1401,6 @@
                             '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
                         }
                     });
-                    console.log('[DEBUG] Máscara aplicada ao campo editDataNascimento');
-                } else {
-                    console.error('[ERRO] Elemento #editDataNascimento não encontrado no modal');
                 }
 
                 document.querySelector('.save-btn').addEventListener('click', () => salvarAlteracoesCliente(docId));
@@ -1229,19 +1409,14 @@
 
             async function salvarAlteracoesCliente(docId) {
                 const nome = document.getElementById('editNome').value.trim();
-                const telefone = document.getElementById('editTelefone').value ? document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11) : '';
+                const telefone = document.getElementById('editTelefone').value.replace(/\D/g, '').substring(0, 11);
                 const cidade = document.getElementById('editCidade').value.trim();
                 const dataNascimentoRaw = document.getElementById('editDataNascimento').value;
 
                 let dataNascimento = '';
-                if (dataNascimentoRaw && dataNascimentoRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                if (dataNascimentoRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
                     const [dia, mes, ano] = dataNascimentoRaw.split('/');
                     dataNascimento = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-                    const data = new Date(dataNascimento);
-                    if (isNaN(data.getTime()) || data.getFullYear() < 1925 || data.getFullYear() > new Date().getFullYear()) {
-                        alert('Data de nascimento inválida.');
-                        return;
-                    }
                 } else {
                     alert('Por favor, insira a data no formato dd/mm/aaaa.');
                     return;
@@ -1253,27 +1428,18 @@
                 }
 
                 try {
-                    console.log('[DEBUG] Tentando salvar alterações do cliente com ID:', docId);
                     await updateDoc(doc(db, 'clientes', docId), { nome, telefone, cidade, dataNascimento });
-                    console.log('[SUCESSO] Cliente atualizado com sucesso');
                     closeModal();
                     await carregarClientes();
                     configurarAutocompletarCliente();
                 } catch (error) {
                     console.error('[ERRO] Erro ao atualizar cliente:', error);
-                    if (error.code === 'permission-denied') {
-                        alert('Erro ao salvar alterações. Verifique as permissões no Firebase e se está autenticado.');
-                    } else if (error.code === 'unavailable') {
-                        alert('Erro ao salvar alterações. Verifique sua conexão com a internet.');
-                    } else {
-                        alert('Erro ao salvar alterações: ' + error.message);
-                    }
+                    alert('Erro ao salvar alterações: ' + error.message);
                 }
             }
 
             function abrirModalEditar(id, agendamento) {
                 const modal = document.getElementById('modal');
-                console.log('[DEBUG] Abrindo modal de agendamento com ID:', id);
                 document.getElementById('modalTitle').textContent = 'Remarcar Agendamento';
                 document.getElementById('modalContent').innerHTML = `
                     <div class="form-group">
@@ -1311,7 +1477,6 @@
                 const observacao = document.getElementById('observacao').value.trim();
 
                 try {
-                    console.log('[DEBUG] Tentando salvar alterações do agendamento com ID:', id);
                     const dadosAtualizados = {};
                     if (novaData) dadosAtualizados.data = novaData;
                     if (novaHora) dadosAtualizados.hora = novaHora;
@@ -1340,40 +1505,28 @@
 
                         if (!snapshotHistorico.empty) {
                             const docHistorico = snapshotHistorico.docs[0];
-                            await updateDoc(doc(db, 'historico', docHistorico.id), {
-                                observacao: observacao
-                            });
-                            console.log('[SUCESSO] Observação atualizada no histórico');
+                            await updateDoc(doc(db, 'historico', docHistorico.id), { observacao });
                         } else {
                             await addDoc(collection(db, 'historico'), {
                                 cliente: agendamento.cliente,
                                 data: dataUsar,
                                 hora: horaUsar,
-                                observacao: observacao
+                                observacao
                             });
-                            console.log('[SUCESSO] Nova observação salva no histórico');
                         }
                     }
 
                     await updateDoc(doc(db, 'agendamentos', id), dadosAtualizados);
-                    console.log('[SUCESSO] Agendamento atualizado com sucesso');
                     closeModal();
                     await carregarAgendamentos();
                 } catch (error) {
                     console.error('[ERRO] Erro ao atualizar agendamento:', error);
-                    if (error.code === 'permission-denied') {
-                        alert('Erro ao salvar alterações. Verifique as permissões no Firebase e se está autenticado.');
-                    } else if (error.code === 'unavailable') {
-                        alert('Erro ao salvar alterações. Verifique sua conexão com a internet.');
-                    } else {
-                        alert('Erro ao salvar alterações: ' + error.message);
-                    }
+                    alert('Erro ao salvar alterações: ' + error.message);
                 }
             }
 
             async function abrirModalHistorico(nomeCliente) {
                 const modal = document.getElementById('modal');
-                console.log('[DEBUG] Abrindo modal de histórico para cliente:', nomeCliente);
                 document.getElementById('modalTitle').textContent = `Histórico de ${nomeCliente}`;
 
                 try {
@@ -1400,13 +1553,9 @@
                     if (Object.keys(historicoPorData).length === 0) {
                         conteudoHistorico += '<p>Nenhum histórico encontrado para este cliente.</p>';
                     } else {
-                        // Ordenar as datas do mais recente para o mais antigo
-                        const datasOrdenadas = Object.keys(historicoPorData).sort((a, b) => {
-                            return new Date(b) - new Date(a);
-                        });
-
+                        const datasOrdenadas = Object.keys(historicoPorData).sort((a, b) => new Date(b) - new Date(a));
                         datasOrdenadas.forEach(data => {
-                            historicoPorData[data].sort((a, b) => b.hora.localeCompare(a.hora)); // Ordem descendente por hora
+                            historicoPorData[data].sort((a, b) => b.hora.localeCompare(a.hora));
                             const dataFormatada = formatarData(data);
                             conteudoHistorico += `<div class="history-date">${dataFormatada}</div>`;
                             historicoPorData[data].forEach(entrada => {
@@ -1433,10 +1582,7 @@
                     `;
                     modal.classList.add('active');
 
-                    document.getElementById('addObservationBtn').addEventListener('click', () => {
-                        abrirModalAdicionarObservacao(nomeCliente);
-                    });
-
+                    document.getElementById('addObservationBtn').addEventListener('click', () => abrirModalAdicionarObservacao(nomeCliente));
                     document.querySelectorAll('.delete-history-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
                             const id = btn.getAttribute('data-id');
@@ -1444,7 +1590,6 @@
                             abrirModalExcluirHistorico(id, nome);
                         });
                     });
-
                 } catch (error) {
                     console.error('[ERRO] Erro ao carregar histórico:', error);
                     document.getElementById('modalContent').innerHTML = `
@@ -1495,9 +1640,6 @@
                             '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
                         }
                     });
-                    console.log('[DEBUG] Máscara aplicada ao campo obsData');
-                } else {
-                    console.error('[ERRO] Elemento #obsData não encontrado no modal');
                 }
 
                 document.getElementById('saveObservationBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
@@ -1510,15 +1652,9 @@
                 const mensagem = document.getElementById('obsMessage');
 
                 let data = '';
-                if (dataRaw && dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                if (dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
                     const [dia, mes, ano] = dataRaw.split('/');
                     data = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-                    const dataValidacao = new Date(data);
-                    if (isNaN(dataValidacao.getTime()) || dataValidacao.getFullYear() < 1925 || dataValidacao.getFullYear() > new Date().getFullYear()) {
-                        mensagem.textContent = 'Data inválida.';
-                        mensagem.className = 'error-message';
-                        return;
-                    }
                 } else {
                     mensagem.textContent = 'Por favor, insira a data no formato dd/mm/aaaa.';
                     mensagem.className = 'error-message';
@@ -1532,36 +1668,22 @@
                 }
 
                 try {
-                    console.log('[DEBUG] Tentando salvar nova observação:', { cliente: nomeCliente, data, hora, observacao });
-                    await addDoc(collection(db, 'historico'), {
-                        cliente: nomeCliente,
-                        data: data,
-                        hora: hora,
-                        observacao: observacao
-                    });
+                    await addDoc(collection(db, 'historico'), { cliente: nomeCliente, data, hora, observacao });
                     mensagem.textContent = 'Observação adicionada com sucesso!';
                     mensagem.className = 'success-message';
                     setTimeout(() => {
                         closeModal();
                         abrirModalHistorico(nomeCliente);
                     }, 1500);
-                    console.log('[SUCESSO] Observação adicionada ao histórico');
                 } catch (error) {
                     console.error('[ERRO] Erro ao adicionar observação:', error);
-                    if (error.code === 'permission-denied') {
-                        mensagem.textContent = 'Erro ao adicionar observação. Verifique as permissões no Firebase.';
-                    } else if (error.code === 'unavailable') {
-                        mensagem.textContent = 'Erro ao adicionar observação. Verifique sua conexão com a internet.';
-                    } else {
-                        mensagem.textContent = 'Erro ao adicionar observação: ' + error.message;
-                    }
+                    mensagem.textContent = 'Erro ao adicionar observação: ' + error.message;
                     mensagem.className = 'error-message';
                 }
             }
 
             function abrirModalExcluirHistorico(idHistorico, nomeHistorico) {
                 const modal = document.getElementById('modal');
-                console.log(`[DEBUG] Abrindo modal de exclusão para histórico com ID: ${idHistorico}`);
                 document.getElementById('modalTitle').textContent = 'Confirmar Exclusão do Histórico';
                 document.getElementById('modalContent').innerHTML = `
                     <p>Tem certeza de que deseja excluir o histórico "${nomeHistorico}"?</p>
@@ -1576,9 +1698,7 @@
 
             async function confirmarExclusaoHistorico(idHistorico) {
                 try {
-                    console.log(`[DEBUG] Tentando excluir histórico com ID: ${idHistorico}`);
                     await deleteDoc(doc(db, 'historico', idHistorico));
-                    console.log('[SUCESSO] Histórico excluído com sucesso');
                     closeModal();
                     const nomeCliente = document.getElementById('modalTitle').textContent.replace('Histórico de ', '');
                     await abrirModalHistorico(nomeCliente);
@@ -1590,7 +1710,6 @@
 
             function abrirModalExcluir(tipo, id, nome) {
                 const modal = document.getElementById('modal');
-                console.log(`[DEBUG] Abrindo modal de exclusão para ${tipo} com ID: ${id}`);
                 document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
                 document.getElementById('modalContent').innerHTML = `
                     <p>Tem certeza de que deseja excluir "${nome}"?</p>
@@ -1604,33 +1723,29 @@
             }
 
             async function confirmarExclusao(tipo, id) {
-                const elementoMensagem = tipo === 'cliente' ? document.getElementById('cadastroMessage') : document.getElementById('agendamentoMessage');
+                const elementoMensagem = tipo === 'cliente' ? document.getElementById('cadastroMessage') : 
+                                     tipo === 'agendamento' ? document.getElementById('agendamentoMessage') : 
+                                     document.getElementById('fluxoCaixaMessage');
                 try {
-                    let nomeColecao = tipo === 'cliente' ? 'clientes' : 'agendamentos';
-                    console.log(`[DEBUG] Tentando excluir ${tipo} da coleção: ${nomeColecao}`);
-
+                    let nomeColecao = tipo === 'cliente' ? 'clientes' : tipo === 'agendamento' ? 'agendamentos' : 'fluxoCaixa';
                     await deleteDoc(doc(db, nomeColecao, id));
-                    console.log(`[SUCESSO] ${tipo} excluído com sucesso`);
                     closeModal();
                     if (tipo === 'cliente') {
                         await carregarClientes();
                         configurarAutocompletarCliente();
                         elementoMensagem.textContent = 'Cliente excluído com sucesso!';
-                    } else {
+                    } else if (tipo === 'agendamento') {
                         await carregarAgendamentos();
                         elementoMensagem.textContent = 'Agendamento excluído com sucesso!';
+                    } else {
+                        await carregarFluxoCaixa();
+                        elementoMensagem.textContent = 'Registro excluído com sucesso!';
                     }
                     elementoMensagem.className = 'success-message';
                     setTimeout(() => elementoMensagem.textContent = '', 3000);
                 } catch (error) {
                     console.error(`[ERRO] Erro ao excluir ${tipo}:`, error);
-                    if (error.code === 'permission-denied') {
-                        elementoMensagem.textContent = `Erro ao excluir ${tipo}. Verifique as permissões no Firebase e se está autenticado.`;
-                    } else if (error.code === 'unavailable') {
-                        elementoMensagem.textContent = `Erro ao excluir ${tipo}. Verifique sua conexão com a internet.`;
-                    } else {
-                        elementoMensagem.textContent = `Erro ao excluir ${tipo}: ` + error.message;
-                    }
+                    elementoMensagem.textContent = `Erro ao excluir ${tipo}: ` + error.message;
                     elementoMensagem.className = 'error-message';
                 }
             }
@@ -1650,7 +1765,6 @@
             window.closeModal = function() {
                 const modal = document.getElementById('modal');
                 modal.classList.remove('active');
-                console.log('[DEBUG] Modal fechado');
             };
         } catch (error) {
             console.error('[ERRO] Erro ao inicializar Firebase:', error);
