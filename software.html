@@ -699,17 +699,6 @@
             </div>
             <div id="fluxoCaixaMessage" class="success-message"></div>
         </form>
-        
-        <div class="form-group">
-            <h3>Filtrar Ganhos</h3>
-            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="dataInicio" placeholder="Data Início (dd/mm/aaaa)" inputmode="numeric">
-                <input type="text" id="dataFim" placeholder="Data Fim (dd/mm/aaaa)" inputmode="numeric">
-                <button onclick="filtrarGanhos()" style="padding: 10px; background: #38a169; color: white; border: none; border-radius: 8px;">Filtrar</button>
-            </div>
-            <div id="resultadoFiltro" style="margin-top: 10px;"></div>
-        </div>
-
         <div class="balance-container">
             <div class="balances">
                 <div class="balance-item">
@@ -842,42 +831,7 @@
 
                 const dataFluxo = document.getElementById('dataFluxo');
                 if (dataFluxo) {
-                    const hoje = new Date();
-                    const dia = String(hoje.getDate()).padStart(2, '0');
-                    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-                    const ano = hoje.getFullYear();
-                    dataFluxo.value = `${dia}/${mes}/${ano}`;
-
                     IMask(dataFluxo, {
-                        mask: '00/00/0000',
-                        lazy: false,
-                        placeholderChar: '_',
-                        overwrite: true,
-                        autofix: true,
-                        blocks: {
-                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
-                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
-                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
-                        }
-                    });
-                }
-
-                const dataInicio = document.getElementById('dataInicio');
-                const dataFim = document.getElementById('dataFim');
-                if (dataInicio && dataFim) {
-                    IMask(dataInicio, {
-                        mask: '00/00/0000',
-                        lazy: false,
-                        placeholderChar: '_',
-                        overwrite: true,
-                        autofix: true,
-                        blocks: {
-                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
-                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
-                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
-                        }
-                    });
-                    IMask(dataFim, {
                         mask: '00/00/0000',
                         lazy: false,
                         placeholderChar: '_',
@@ -1292,38 +1246,6 @@
                 document.getElementById('saldoAno').textContent = `R$ ${saldoAno.toFixed(2).replace('.', ',')}`;
             }
 
-            window.filtrarGanhos = function() {
-                const dataInicioRaw = document.getElementById('dataInicio').value;
-                const dataFimRaw = document.getElementById('dataFim').value;
-                const resultadoFiltro = document.getElementById('resultadoFiltro');
-
-                if (!dataInicioRaw || !dataFimRaw) {
-                    resultadoFiltro.innerHTML = '<p class="error-message">Por favor, preencha ambas as datas.</p>';
-                    return;
-                }
-
-                const dataInicio = converterDataParaFirebase(dataInicioRaw);
-                const dataFim = converterDataParaFirebase(dataFimRaw);
-
-                if (new Date(dataInicio) > new Date(dataFim)) {
-                    resultadoFiltro.innerHTML = '<p class="error-message">A data inicial deve ser anterior à data final.</p>';
-                    return;
-                }
-
-                const ganhosFiltrados = listaFluxoCaixa.filter(item => {
-                    const dataItem = new Date(item.data);
-                    return dataItem >= new Date(dataInicio) && dataItem <= new Date(dataFim);
-                });
-
-                const totalGanhos = ganhosFiltrados.reduce((sum, item) => sum + item.valor, 0);
-
-                resultadoFiltro.innerHTML = `
-                    <p class="success-message">Total de ganhos entre ${dataInicioRaw} e ${dataFimRaw}: 
-                    R$ ${totalGanhos.toFixed(2).replace('.', ',')}</p>
-                    <p>Registros encontrados: ${ganhosFiltrados.length}</p>
-                `;
-            }
-
             function configurarAutocompletarFluxoCaixa() {
                 const entradaCliente = document.getElementById('clienteFluxo');
                 const listaAutocompletar = document.getElementById('clienteFluxoAutocomplete');
@@ -1483,11 +1405,6 @@
                     mensagem.textContent = 'Registro adicionado com sucesso!';
                     mensagem.className = 'success-message';
                     e.target.reset();
-                    const hoje = new Date();
-                    const dia = String(hoje.getDate()).padStart(2, '0');
-                    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
-                    const ano = hoje.getFullYear();
-                    document.getElementById('dataFluxo').value = `${dia}/${mes}/${ano}`;
                     await carregarFluxoCaixa();
                     setTimeout(() => mensagem.textContent = '', 3000);
                 } catch (error) {
@@ -1747,187 +1664,178 @@
                 }
             }
 
-            <!-- Todo o HTML e CSS anterior permanece igual até o script -->
+            function abrirModalAdicionarObservacao(nomeCliente) {
+                const modal = document.getElementById('modal');
+                document.getElementById('modalTitle').textContent = `Adicionar Observação para ${nomeCliente}`;
+                document.getElementById('modalContent').innerHTML = `
+                    <div class="form-group">
+                        <label for="obsData">Data</label>
+                        <input type="text" id="obsData" placeholder="dd/mm/aaaa" inputmode="numeric" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="obsHora">Hora</label>
+                        <input type="time" id="obsHora" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="novaObservacao">Observação</label>
+                        <textarea id="novaObservacao" placeholder="Digite a nova observação" rows="4" required></textarea>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
+                        <button class="save-btn" id="saveObservationBtn">Salvar</button>
+                    </div>
+                    <div id="obsMessage" class="success-message"></div>
+                `;
+                modal.classList.add('active');
 
-<script type="module">
- // ... Todo o código anterior até a função abrirModalAdicionarObservacao ...
+                const obsData = document.getElementById('obsData');
+                if (obsData) {
+                    IMask(obsData, {
+                        mask: '00/00/0000',
+                        lazy: false,
+                        placeholderChar: '_',
+                        overwrite: true,
+                        autofix: true,
+                        blocks: {
+                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+                        }
+                    });
+                }
 
- function abrirModalAdicionarObservacao(nomeCliente) {
- const modal = document.getElementById('modal');
- document.getElementById('modalTitle').textContent = `Adicionar Observação para ${nomeCliente}`;
- document.getElementById('modalContent').innerHTML = `
- <div class="form-group">
- <label for="obsData">Data</label>
- <input type="text" id="obsData" placeholder="dd/mm/aaaa" inputmode="numeric" required>
- </div>
- <div class="form-group">
- <label for="obsHora">Hora</label>
- <input type="time" id="obsHora" required>
- </div>
- <div class="form-group">
- <label for="novaObservacao">Observação</label>
- <textarea id="novaObservacao" placeholder="Digite a nova observação" rows="4" required></textarea>
- </div>
- <div class="modal-buttons">
- <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
- <button class="save-btn" id="saveObservationBtn">Salvar</button>
- </div>
- <div id="obsMessage" class="success-message"></div>
- `;
- modal.classList.add('active');
+                document.getElementById('saveObservationBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
+            }
 
- const obsData = document.getElementById('obsData');
- if (obsData) {
- IMask(obsData, {
- mask: '00/00/0000',
- lazy: false,
- placeholderChar: '_',
- overwrite: true,
- autofix: true,
- blocks: {
- '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
- '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
- '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
- }
- });
- }
+            async function salvarNovaObservacao(nomeCliente) {
+                const dataRaw = document.getElementById('obsData').value;
+                const hora = document.getElementById('obsHora').value;
+                const observacao = document.getElementById('novaObservacao').value.trim();
+                const mensagem = document.getElementById('obsMessage');
 
- document.getElementById('saveObservationBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
- }
+                let data = '';
+                if (dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    const [dia, mes, ano] = dataRaw.split('/');
+                    data = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                } else {
+                    mensagem.textContent = 'Por favor, insira a data no formato dd/mm/aaaa.';
+                    mensagem.className = 'error-message';
+                    return;
+                }
 
- async function salvarNovaObservacao(nomeCliente) {
- const dataRaw = document.getElementById('obsData').value;
- const hora = document.getElementById('obsHora').value;
- const observacao = document.getElementById('novaObservacao').value.trim();
- const mensagem = document.getElementById('obsMessage');
+                if (!data || !hora || !observacao) {
+                    mensagem.textContent = 'Por favor, preencha todos os campos.';
+                    mensagem.className = 'error-message';
+                    return;
+                }
 
- if (!dataRaw || !hora || !observacao) {
- mensagem.textContent = 'Por favor, preencha todos os campos.';
- mensagem.className = 'error-message';
- return;
- }
+                try {
+                    await addDoc(collection(db, 'historico'), { cliente: nomeCliente, data, hora, observacao });
+                    mensagem.textContent = 'Observação adicionada com sucesso!';
+                    mensagem.className = 'success-message';
+                    setTimeout(() => {
+                        closeModal();
+                        abrirModalHistorico(nomeCliente);
+                    }, 1500);
+                } catch (error) {
+                    console.error('[ERRO] Erro ao adicionar observação:', error);
+                    mensagem.textContent = 'Erro ao adicionar observação: ' + error.message;
+                    mensagem.className = 'error-message';
+                }
+            }
 
- let data = '';
- if (dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
- const [dia, mes, ano] = dataRaw.split('/');
- data = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
- } else {
- mensagem.textContent = 'Formato de data inválido. Use dd/mm/aaaa.';
- mensagem.className = 'error-message';
- return;
- }
+            function abrirModalExcluirHistorico(idHistorico, nomeHistorico) {
+                const modal = document.getElementById('modal');
+                document.getElementById('modalTitle').textContent = 'Confirmar Exclusão do Histórico';
+                document.getElementById('modalContent').innerHTML = `
+                    <p>Tem certeza de que deseja excluir o histórico "${nomeHistorico}"?</p>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Não</button>
+                        <button class="confirm-btn" id="confirmDeleteHistoryBtn">Sim</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+                document.getElementById('confirmDeleteHistoryBtn').addEventListener('click', () => confirmarExclusaoHistorico(idHistorico));
+            }
 
- try {
- await addDoc(collection(db, 'historico'), {
- cliente: nomeCliente,
- data: data,
- hora: hora,
- observacao: observacao
- });
- mensagem.textContent = 'Observação salva com sucesso!';
- mensagem.className = 'success-message';
- setTimeout(() => {
- closeModal();
- abrirModalHistorico(nomeCliente); // Atualiza o histórico após salvar
- }, 1500);
- } catch (error) {
- console.error('[ERRO] Erro ao salvar observação:', error);
- mensagem.textContent = 'Erro ao salvar observação: ' + error.message;
- mensagem.className = 'error-message';
- }
- }
+            async function confirmarExclusaoHistorico(idHistorico) {
+                try {
+                    await deleteDoc(doc(db, 'historico', idHistorico));
+                    closeModal();
+                    const nomeCliente = document.getElementById('modalTitle').textContent.replace('Histórico de ', '');
+                    await abrirModalHistorico(nomeCliente);
+                } catch (error) {
+                    console.error('[ERRO] Erro ao excluir histórico:', error);
+                    alert('Erro ao excluir histórico: ' + error.message);
+                }
+            }
 
- function abrirModalExcluir(tipo, id, descricao) {
- const modal = document.getElementById('modal');
- let colecao = '';
- switch (tipo) {
- case 'cliente':
- colecao = 'clientes';
- break;
- case 'agendamento':
- colecao = 'agendamentos';
- break;
- case 'fluxoCaixa':
- colecao = 'fluxoCaixa';
- break;
- default:
- console.error('[ERRO] Tipo inválido para exclusão:', tipo);
- return;
- }
- document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
- document.getElementById('modalContent').innerHTML = `
- <p>Tem certeza de que deseja excluir: <strong>${descricao}</strong>?</p>
- <div class="modal-buttons">
- <button class="cancel-btn" onclick="closeModal()">Não</button>
- <button class="confirm-btn" onclick="excluirItem('${colecao}', '${id}', '${tipo}')">Sim</button>
- </div>
- `;
- modal.classList.add('active');
- }
+            function abrirModalExcluir(tipo, id, nome) {
+                const modal = document.getElementById('modal');
+                document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
+                document.getElementById('modalContent').innerHTML = `
+                    <p>Tem certeza de que deseja excluir "${nome}"?</p>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Não</button>
+                        <button class="confirm-btn" id="confirmDeleteBtn">Sim</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+                document.getElementById('confirmDeleteBtn').addEventListener('click', () => confirmarExclusao(tipo, id));
+            }
 
- async function excluirItem(colecao, id, tipo) {
- try {
- await deleteDoc(doc(db, colecao, id));
- closeModal();
- if (tipo === 'cliente') {
- await carregarClientes();
- configurarAutocompletarCliente();
- } else if (tipo === 'agendamento') {
- await carregarAgendamentos();
- } else if (tipo === 'fluxoCaixa') {
- await carregarFluxoCaixa();
- }
- } catch (error) {
- console.error('[ERRO] Erro ao excluir item:', error);
- alert('Erro ao excluir: ' + error.message);
- }
- }
+            async function confirmarExclusao(tipo, id) {
+                const elementoMensagem = tipo === 'cliente' ? document.getElementById('cadastroMessage') : 
+                                     tipo === 'agendamento' ? document.getElementById('agendamentoMessage') : 
+                                     document.getElementById('fluxoCaixaMessage');
+                try {
+                    let nomeColecao = tipo === 'cliente' ? 'clientes' : tipo === 'agendamento' ? 'agendamentos' : 'fluxoCaixa';
+                    await deleteDoc(doc(db, nomeColecao, id));
+                    closeModal();
+                    if (tipo === 'cliente') {
+                        await carregarClientes();
+                        configurarAutocompletarCliente();
+                        elementoMensagem.textContent = 'Cliente excluído com sucesso!';
+                    } else if (tipo === 'agendamento') {
+                        await carregarAgendamentos();
+                        elementoMensagem.textContent = 'Agendamento excluído com sucesso!';
+                    } else {
+                        await carregarFluxoCaixa();
+                        elementoMensagem.textContent = 'Registro excluído com sucesso!';
+                    }
+                    elementoMensagem.className = 'success-message';
+                    setTimeout(() => elementoMensagem.textContent = '', 3000);
+                } catch (error) {
+                    console.error(`[ERRO] Erro ao excluir ${tipo}:`, error);
+                    elementoMensagem.textContent = `Erro ao excluir ${tipo}: ` + error.message;
+                    elementoMensagem.className = 'error-message';
+                }
+            }
 
- function abrirModalExcluirHistorico(id, nome) {
- const modal = document.getElementById('modal');
- document.getElementById('modalTitle').textContent = 'Confirmar Exclusão do Histórico';
- document.getElementById('modalContent').innerHTML = `
- <p>Tem certeza de que deseja excluir o histórico de <strong>${nome}</strong>?</p>
- <div class="modal-buttons">
- <button class="cancel-btn" onclick="closeModal()">Não</button>
- <button class="confirm-btn" onclick="excluirHistorico('${id}')">Sim</button>
- </div>
- `;
- modal.classList.add('active');
- }
+                        function abrirModalDuplicado() {
+                const modal = document.getElementById('modal');
+                document.getElementById('modalTitle').textContent = 'Aviso de Agendamento Duplicado';
+                document.getElementById('modalContent').innerHTML = `
+                    <p>Este horário já está ocupado por outro agendamento. Por favor, selecione um horário diferente.</p>
+                    <div class="modal-buttons">
+                        <button class="cancel-btn" onclick="closeModal()">Ok</button>
+                    </div>
+                `;
+                modal.classList.add('active');
+            }
 
- async function excluirHistorico(id) {
- try {
- await deleteDoc(doc(db, 'historico', id));
- closeModal();
- const nomeCliente = document.getElementById('modalTitle').textContent.split('Histórico de ')[1];
- abrirModalHistorico(nomeCliente); // Atualiza o histórico após exclusão
- } catch (error) {
- console.error('[ERRO] Erro ao excluir histórico:', error);
- alert('Erro ao excluir histórico: ' + error.message);
- }
- }
+            window.closeModal = function () {
+                const modal = document.getElementById('modal');
+                modal.classList.remove('active');
+                document.getElementById('modalContent').innerHTML = '';
+            };
 
- function abrirModalDuplicado() {
- const modal = document.getElementById('modal');
- document.getElementById('modalTitle').textContent = 'Agendamento Duplicado';
- document.getElementById('modalContent').innerHTML = `
- <p>Já existe um agendamento para esta data e horário. Por favor, escolha outro horário.</p>
- <div class="modal-buttons">
- <button class="cancel-btn" onclick="closeModal()">Fechar</button>
- </div>
- `;
- modal.classList.add('active');
- }
-
- window.closeModal = function() {
- const modal = document.getElementById('modal');
- modal.classList.remove('active');
- document.getElementById('modalContent').innerHTML = '';
- };
-
- // Inicialização da aba ativa ao carregar a página
- openTab('cadastro');
-</script>
+            // Inicialização das abas ao carregar a página
+            openTab('cadastro');
+        } catch (error) {
+            console.error('[ERRO] Erro crítico na inicialização do Firebase ou aplicação:', error);
+            alert('Erro ao iniciar a aplicação. Verifique a console para mais detalhes.');
+        }
+    </script>
 </body>
 </html>
