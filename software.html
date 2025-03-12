@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/imask"></script>
     <style>
+        /* Estilos mantidos iguais ao original */
         * {
             margin: 0;
             padding: 0;
@@ -983,7 +984,7 @@
                 const mensagem = document.getElementById('passwordMessage');
 
                 if (!entradaSenhaAtual || !entradaNovaSenha) {
-                    mensagem.textContent = 'Por favor, preencha todos os campos.';
+                    mensagem.textContent = 'Por favor#abrirModalEditar favor, preencha todos os campos.';
                     mensagem.className = 'error-message';
                     return;
                 }
@@ -1120,7 +1121,6 @@
                     const dataAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
                     const agora = new Date();
 
-                    // Separar agendamentos futuros e passados
                     const agendamentosFuturos = listaAgendamentos.filter(a => {
                         const dataHoraAgendamento = new Date(`${a.data}T${a.hora}`);
                         return dataHoraAgendamento >= agora || a.data >= dataAtual;
@@ -1130,21 +1130,18 @@
                         return dataHoraAgendamento < agora && a.data < dataAtual;
                     });
 
-                    // Ordenar futuros por proximidade da data atual (crescente)
                     agendamentosFuturos.sort((a, b) => {
                         const dataHoraA = new Date(`${a.data}T${a.hora}`);
                         const dataHoraB = new Date(`${b.data}T${b.hora}`);
                         return dataHoraA - dataHoraB;
                     });
 
-                    // Ordenar passados por data decrescente (mais recente primeiro)
                     agendamentosPassados.sort((a, b) => {
                         const dataHoraA = new Date(`${a.data}T${a.hora}`);
                         const dataHoraB = new Date(`${b.data}T${b.hora}`);
                         return dataHoraB - dataHoraA;
                     });
 
-                    // Combinar as listas: futuros no topo, passados abaixo
                     listaAgendamentos = [...agendamentosFuturos, ...agendamentosPassados];
 
                     function renderizarAgendamentos(filtroData = '') {
@@ -1804,7 +1801,7 @@
         </div>
         <div class="modal-buttons">
             <button class="cancel-btn" onclick="closeModal()">Cancelar</button>
-            <button class="save-btn" id="saveObservationBtn">Salvar</button>
+            <button class="save-btn" id="salvarObservacaoBtn">Salvar</button>
         </div>
         <div id="observacaoMessage" class="success-message"></div>
     `;
@@ -1824,7 +1821,7 @@
         }
     });
 
-    document.getElementById('saveObservationBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
+    document.getElementById('salvarObservacaoBtn').addEventListener('click', () => salvarNovaObservacao(nomeCliente));
 }
 
 async function salvarNovaObservacao(nomeCliente) {
@@ -1855,83 +1852,96 @@ async function salvarNovaObservacao(nomeCliente) {
             abrirModalHistorico(nomeCliente);
         }, 1500);
     } catch (error) {
-        console.error('[ERRO] Erro ao adicionar observação:', error);
+        console.error('[ERRO] Erro ao salvar observação:', error);
         mensagem.textContent = 'Erro ao adicionar observação: ' + error.message;
         mensagem.className = 'error-message';
     }
 }
 
-function abrirModalExcluir(tipo, id, descricao) {
+window.abrirModalExcluir = function(tipo, id, descricao) {
     const modal = document.getElementById('modal');
-    document.getElementById('modalTitle').textContent = 'Confirmar Exclusão';
+    const tipoTexto = tipo === 'cliente' ? 'Cliente' : tipo === 'agendamento' ? 'Agendamento' : 'Registro de Fluxo';
+    document.getElementById('modalTitle').textContent = `Excluir ${tipoTexto}`;
     document.getElementById('modalContent').innerHTML = `
-        <p>Tem certeza de que deseja excluir: <br><strong>${descricao}</strong>?</p>
+        <p>Tem certeza que deseja excluir: <strong>${descricao}</strong>?</p>
         <div class="modal-buttons">
             <button class="cancel-btn" onclick="closeModal()">Não</button>
             <button class="confirm-btn" onclick="excluirItem('${tipo}', '${id}')">Sim</button>
         </div>
+        <div id="excluirMessage" class="success-message"></div>
     `;
     modal.classList.add('active');
-}
+};
 
 async function excluirItem(tipo, id) {
+    const mensagem = document.getElementById('excluirMessage');
+    let colecao;
+
+    switch (tipo) {
+        case 'cliente':
+            colecao = 'clientes';
+            break;
+        case 'agendamento':
+            colecao = 'agendamentos';
+            break;
+        case 'fluxoCaixa':
+            colecao = 'fluxoCaixa';
+            break;
+        default:
+            console.error('[ERRO] Tipo de item inválido:', tipo);
+            mensagem.textContent = 'Erro: Tipo de item inválido.';
+            mensagem.className = 'error-message';
+            return;
+    }
+
     try {
-        let colecao;
-        switch (tipo) {
-            case 'cliente':
-                colecao = 'clientes';
-                break;
-            case 'agendamento':
-                colecao = 'agendamentos';
-                break;
-            case 'fluxoCaixa':
-                colecao = 'fluxoCaixa';
-                break;
-            default:
-                throw new Error('Tipo de item inválido');
-        }
         await deleteDoc(doc(db, colecao, id));
-        closeModal();
-        if (tipo === 'cliente') {
-            await carregarClientes();
-            configurarAutocompletarCliente();
-        } else if (tipo === 'agendamento') {
-            await carregarAgendamentos();
-        } else if (tipo === 'fluxoCaixa') {
-            await carregarFluxoCaixa();
-        }
+        mensagem.textContent = 'Item excluído com sucesso!';
+        mensagem.className = 'success-message';
+        setTimeout(async () => {
+            closeModal();
+            if (tipo === 'cliente') await carregarClientes();
+            else if (tipo === 'agendamento') await carregarAgendamentos();
+            else if (tipo === 'fluxoCaixa') await carregarFluxoCaixa();
+        }, 1500);
     } catch (error) {
         console.error(`[ERRO] Erro ao excluir ${tipo}:`, error);
-        alert('Erro ao excluir: ' + error.message);
+        mensagem.textContent = 'Erro ao excluir: ' + error.message;
+        mensagem.className = 'error-message';
     }
 }
 
 function abrirModalExcluirHistorico(id, nome) {
     const modal = document.getElementById('modal');
-    document.getElementById('modalTitle').textContent = 'Confirmar Exclusão do Histórico';
+    document.getElementById('modalTitle').textContent = 'Excluir Registro do Histórico';
     document.getElementById('modalContent').innerHTML = `
-        <p>Tem certeza de que deseja excluir o histórico de <strong>${nome}</strong>?</p>
+        <p>Tem certeza que deseja excluir o registro: <strong>${nome}</strong>?</p>
         <div class="modal-buttons">
             <button class="cancel-btn" onclick="closeModal()">Não</button>
             <button class="confirm-btn" onclick="excluirHistorico('${id}')">Sim</button>
         </div>
+        <div id="excluirHistoricoMessage" class="success-message"></div>
     `;
     modal.classList.add('active');
 }
 
 async function excluirHistorico(id) {
+    const mensagem = document.getElementById('excluirHistoricoMessage');
     try {
-        const refHistorico = doc(db, 'historico', id);
-        const snapshotHistorico = await getDoc(refHistorico);
-        const dadosHistorico = snapshotHistorico.data();
-        const nomeCliente = dadosHistorico.cliente;
-
-        await deleteDoc(refHistorico);
-        closeModal();
-        abrirModalHistorico(nomeCliente);
+        const docRef = doc(db, 'historico', id);
+        const docSnapshot = await getDoc(docRef);
+        const dados = docSnapshot.data();
+        await deleteDoc(docRef);
+        mensagem.textContent = 'Registro excluído com sucesso!';
+        mensagem.className = 'success-message';
+        setTimeout(() => {
+            closeModal();
+            abrirModalHistorico(dados.cliente);
+        }, 1500);
     } catch (error) {
-        console.error('[ERRO] Erro ao excluir histórico:', error);
-        alert('Erro ao excluir histórico: ' + error.message);
+        console.error('[ERRO] Erro ao excluir registro do histórico:', error);
+        mensagem.textContent = 'Erro ao excluir: ' + error.message;
+        mensagem.className = 'error-message';
     }
 }
 
@@ -1947,16 +1957,11 @@ function abrirModalDuplicado() {
     modal.classList.add('active');
 }
 
-window.closeModal = function () {
+window.closeModal = function() {
     const modal = document.getElementById('modal');
     modal.classList.remove('active');
     document.getElementById('modalContent').innerHTML = '';
 };
-
-        } catch (error) {
-            console.error('[ERRO] Erro geral no Firebase:', error);
-            alert('Erro ao inicializar o sistema: ' + error.message);
-        }
     </script>
 </body>
 </html>
