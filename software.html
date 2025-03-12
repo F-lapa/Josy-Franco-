@@ -568,15 +568,31 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
-        .balance-container p {
-            font-size: 14px;
-            color: #2d3748;
-            margin-bottom: 10px;
+        .balances {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
-        .balance-container span {
-            font-weight: 600;
-            color: #38a169;
+        .balance-item {
+            background: #ffffff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            text-align: center;
+        }
+
+        .balance-item p {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .balance-item span {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ed64a6;
         }
     </style>
 </head>
@@ -676,7 +692,7 @@
             </div>
             <div class="form-group">
                 <label for="dataFluxo">Data</label>
-                <input type="date" id="dataFluxo" required>
+                <input type="text" id="dataFluxo" placeholder="dd/mm/aaaa" inputmode="numeric" required>
             </div>
             <div class="form-group">
                 <button type="submit">Registrar</button>
@@ -684,9 +700,20 @@
             <div id="fluxoCaixaMessage" class="success-message"></div>
         </form>
         <div class="balance-container">
-            <p>Saldo do Dia: <span id="saldoDia">R$ 0,00</span></p>
-            <p>Saldo do Mês: <span id="saldoMes">R$ 0,00</span></p>
-            <p>Saldo do Ano: <span id="saldoAno">R$ 0,00</span></p>
+            <div class="balances">
+                <div class="balance-item">
+                    <p>Saldo do Dia: <span id="saldoDia">R$ 0,00</span></p>
+                </div>
+                <div class="balance-item">
+                    <p>Saldo do Mês: <span id="saldoMes">R$ 0,00</span></p>
+                </div>
+                <div class="balance-item">
+                    <p>Saldo do Ano: <span id="saldoAno">R$ 0,00</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="search-container">
+            <input type="text" id="fluxoSearch" placeholder="Buscar cliente">
         </div>
         <h3 style="margin-bottom: 10px;">Registros</h3>
         <div class="list-container" id="fluxoCaixaList"></div>
@@ -799,6 +826,22 @@
                         padFractionalZeros: true,
                         normalizeZeros: true,
                         radix: ','
+                    });
+                }
+
+                const dataFluxo = document.getElementById('dataFluxo');
+                if (dataFluxo) {
+                    IMask(dataFluxo, {
+                        mask: '00/00/0000',
+                        lazy: false,
+                        placeholderChar: '_',
+                        overwrite: true,
+                        autofix: true,
+                        blocks: {
+                            '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                            '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                            '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+                        }
                     });
                 }
             });
@@ -1127,6 +1170,7 @@
 
             async function carregarFluxoCaixa() {
                 const listaFluxo = document.getElementById('fluxoCaixaList');
+                const entradaBusca = document.getElementById('fluxoSearch');
                 listaFluxo.innerHTML = '';
 
                 try {
@@ -1139,37 +1183,45 @@
 
                     listaFluxoCaixa.sort((a, b) => new Date(b.data) - new Date(a.data));
 
+                    function renderizarFluxoCaixa(filtro = '') {
+                        listaFluxo.innerHTML = '';
+                        const registrosFiltrados = listaFluxoCaixa.filter(item =>
+                            item.cliente.toLowerCase().includes(filtro.toLowerCase())
+                        );
+
+                        registrosFiltrados.forEach(item => {
+                            const elemento = document.createElement('div');
+                            elemento.className = 'list-item';
+                            const info = document.createElement('div');
+                            info.className = 'info';
+                            const dataFormatada = formatarData(item.data);
+                            info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
+                            const botaoExcluir = document.createElement('button');
+                            botaoExcluir.className = 'delete-btn';
+                            botaoExcluir.textContent = 'Excluir';
+                            botaoExcluir.onclick = (e) => {
+                                e.stopPropagation();
+                                abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`);
+                            };
+                            elemento.appendChild(info);
+                            elemento.appendChild(botaoExcluir);
+                            listaFluxo.appendChild(elemento);
+                        });
+                        atualizarSaldos();
+                    }
+
                     renderizarFluxoCaixa();
+
+                    entradaBusca.addEventListener('input', (e) => {
+                        renderizarFluxoCaixa(e.target.value);
+                    });
+
                     atualizarSaldos();
                 } catch (error) {
                     console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
                     document.getElementById('fluxoCaixaMessage').textContent = 'Erro ao carregar registros: ' + error.message;
                     document.getElementById('fluxoCaixaMessage').className = 'error-message';
                 }
-            }
-
-            function renderizarFluxoCaixa() {
-                const listaFluxo = document.getElementById('fluxoCaixaList');
-                listaFluxo.innerHTML = '';
-
-                listaFluxoCaixa.forEach(item => {
-                    const elemento = document.createElement('div');
-                    elemento.className = 'list-item';
-                    const info = document.createElement('div');
-                    info.className = 'info';
-                    const dataFormatada = formatarData(item.data);
-                    info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
-                    const botaoExcluir = document.createElement('button');
-                    botaoExcluir.className = 'delete-btn';
-                    botaoExcluir.textContent = 'Excluir';
-                    botaoExcluir.onclick = (e) => {
-                        e.stopPropagation();
-                        abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`);
-                    };
-                    elemento.appendChild(info);
-                    elemento.appendChild(botaoExcluir);
-                    listaFluxo.appendChild(elemento);
-                });
             }
 
             function atualizarSaldos() {
@@ -1321,8 +1373,18 @@
                 e.preventDefault();
                 const cliente = document.getElementById('clienteFluxo').value.trim();
                 const valorRaw = document.getElementById('valorConsulta').value.replace(',', '.');
-                const data = document.getElementById('dataFluxo').value;
+                const dataRaw = document.getElementById('dataFluxo').value;
                 const mensagem = document.getElementById('fluxoCaixaMessage');
+
+                let data = '';
+                if (dataRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                    const [dia, mes, ano] = dataRaw.split('/');
+                    data = `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
+                } else {
+                    mensagem.textContent = 'Por favor, insira a data no formato dd/mm/aaaa.';
+                    mensagem.className = 'error-message';
+                    return;
+                }
 
                 const valor = parseFloat(valorRaw);
                 if (!cliente || isNaN(valor) || !data) {
@@ -1750,25 +1812,29 @@
                 }
             }
 
-            function abrirModalDuplicado() {
+                        function abrirModalDuplicado() {
                 const modal = document.getElementById('modal');
-                document.getElementById('modalTitle').textContent = 'Aviso';
+                document.getElementById('modalTitle').textContent = 'Aviso de Agendamento Duplicado';
                 document.getElementById('modalContent').innerHTML = `
-                    <p>Já existe um agendamento marcado para este dia e horário. Por favor, escolha outro horário.</p>
+                    <p>Este horário já está ocupado por outro agendamento. Por favor, selecione um horário diferente.</p>
                     <div class="modal-buttons">
-                        <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+                        <button class="cancel-btn" onclick="closeModal()">Ok</button>
                     </div>
                 `;
                 modal.classList.add('active');
             }
 
-            window.closeModal = function() {
+            window.closeModal = function () {
                 const modal = document.getElementById('modal');
                 modal.classList.remove('active');
+                document.getElementById('modalContent').innerHTML = '';
             };
+
+            // Inicialização das abas ao carregar a página
+            openTab('cadastro');
         } catch (error) {
-            console.error('[ERRO] Erro ao inicializar Firebase:', error);
-            alert('Erro ao inicializar o Firebase. Verifique sua configuração ou conexão.');
+            console.error('[ERRO] Erro crítico na inicialização do Firebase ou aplicação:', error);
+            alert('Erro ao iniciar a aplicação. Verifique a console para mais detalhes.');
         }
     </script>
 </body>
