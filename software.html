@@ -1,159 +1,148 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Josy Franco Terapeuta</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/imask"></script>
-    <link rel="stylesheet" href="software.css">
+    <title>Sistema de Gestão - Terapia</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="header">
-        <h1>Josy Franco Terapeuta</h1>
-        <div class="header-buttons">
-            <button class="change-password-btn" title="Alterar Senha" onclick="openChangePasswordModal()">🔒</button>
-            <button class="logout-btn" title="Sair" onclick="openLogoutModal()">🚪</button>
-        </div>
-    </div>
+    <header class="header">
+        <h1>Sistema de Gestão - Terapia</h1>
+        <nav class="tab-buttons">
+            <button class="tab-button active" onclick="openTab('cadastroClientes')">Cadastro de Clientes</button>
+            <button class="tab-button" onclick="openTab('novoAgendamentos')">Novo Agendamento</button>
+            <button class="tab-button" onclick="openTab('fluxoCaixa')">Fluxo de Caixa</button>
+            <button class="tab-button" onclick="openChangePasswordModal()">Alterar Senha</button>
+            <button class="tab-button" onclick="openLogoutModal()">Sair</button>
+        </nav>
+    </header>
 
-    <div class="tab-container">
-        <button class="tab-button active" onclick="openTab('cadastro')">Cadastro</button>
-        <button class="tab-button" onclick="openTab('novoAgendamentos')">Agendamentos</button>
-        <button class="tab-button" onclick="openTab('fluxoCaixa')">Fluxo de Caixa</button>
-    </div>
-
-    <div id="cadastro" class="tab-content active">
-        <h2>Cadastrar Cliente</h2>
-        <form id="cadastroForm">
-            <div class="form-group">
-                <label for="nome">Nome Completo</label>
-                <input type="text" id="nome" placeholder="João Silva" required>
-            </div>
-            <div class="form-group">
-                <label for="telefone">Telefone</label>
-                <input type="tel" id="telefone" placeholder="(XX) 9XXXX-XXXX" maxlength="15" required>
-            </div>
-            <div class="form-group">
-                <label for="cidade">Cidade</label>
-                <input type="text" id="cidade" placeholder="Digite a cidade" required>
-            </div>
-            <div class="form-group">
-                <label for="dataNascimento">Data de Nascimento</label>
-                <input type="text" id="dataNascimento" placeholder="dd/mm/aaaa" inputmode="numeric" required>
-            </div>
-            <div class="form-group">
-                <button type="submit">Cadastrar</button>
-            </div>
-            <div id="cadastroMessage" class="success-message"></div>
-        </form>
-        <div class="search-container">
-            <input type="text" id="clientSearch" placeholder="Buscar cliente por nome">
-        </div>
-        <h3 style="margin-bottom: 10px;">Clientes</h3>
-        <div class="list-container" id="clienteList"></div>
-    </div>
-
-    <div id="novoAgendamentos" class="tab-content">
-        <h2>Novo Agendamento</h2>
-        <form id="agendamentoForm">
-            <div class="form-group autocomplete-container">
-                <label for="cliente">Cliente</label>
-                <input type="text" id="cliente" placeholder="Digite o nome do cliente" required>
-                <div id="clienteAutocomplete" class="autocomplete-list"></div>
-            </div>
-            <div class="form-group">
-                <label for="data">Data</label>
-                <input type="date" id="data" required>
-            </div>
-            <div class="form-group">
-                <label for="hora">Hora</label>
-                <input type="time" id="hora" required>
-            </div>
-            <div class="form-group">
-                <label for="tipoAgendamento">Tipo de Agendamento</label>
-                <select id="tipoAgendamento" required>
-                    <option value="">Selecione o tipo</option>
-                    <option value="Online">Online</option>
-                    <option value="Presencial">Presencial</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <button type="submit">Agendar</button>
-            </div>
-            <div id="agendamentoMessage" class="success-message"></div>
-        </form>
-        <div class="search-container">
-            <input type="text" id="dateSearch" placeholder="Buscar por data (dd/mm/aaaa)" inputmode="numeric">
-        </div>
-        <div class="filter-container">
-            <h3>Filtros</h3>
-            <div class="form-group">
-                <label for="filterTipo">Tipo de Agendamento</label>
-                <select id="filterTipo">
-                    <option value="">Todos</option>
-                    <option value="Online">Online</option>
-                    <option value="Presencial">Presencial</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="filterCliente">Cliente</label>
-                <input type="text" id="filterCliente" placeholder="Digite o nome do cliente">
-            </div>
-        </div>
-        <h3 style="margin-bottom: 10px;">Agendamentos</h3>
-        <div class="list-container" id="agendamentoList"></div>
-    </div>
-
-    <div id="fluxoCaixa" class="tab-content">
-        <h2>Fluxo de Caixa</h2>
-        <form id="fluxoCaixaForm">
-            <div class="form-group autocomplete-container">
-                <label for="clienteFluxo">Cliente</label>
-                <input type="text" id="clienteFluxo" placeholder="Digite o nome do cliente" required>
-                <div id="clienteFluxoAutocomplete" class="autocomplete-list"></div>
-            </div>
-            <div class="form-group">
-                <label for="valorConsulta">Valor da Consulta (R$)</label>
-                <input type="text" id="valorConsulta" placeholder="Ex: 150,00" inputmode="decimal" required>
-            </div>
-            <div class="form-group">
-                <label for="dataFluxo">Data</label>
-                <input type="text" id="dataFluxo" placeholder="dd/mm/aaaa" inputmode="numeric" required>
-            </div>
-            <div class="form-group">
-                <button type="submit">Registrar</button>
-            </div>
-            <div id="fluxoCaixaMessage" class="success-message"></div>
-        </form>
-        <div class="balance-container">
-            <div class="balances">
-                <div class="balance-item">
-                    <p>Saldo do Dia: <span id="saldoDia">R$ 0,00</span></p>
+    <main>
+        <section id="cadastroClientes" class="tab-content active">
+            <h2>Cadastro de Clientes</h2>
+            <form id="cadastroForm" class="form-container">
+                <div class="form-group">
+                    <label for="nome">Nome</label>
+                    <input type="text" id="nome" required>
                 </div>
-                <div class="balance-item">
-                    <p>Saldo do Mês: <span id="saldoMes">R$ 0,00</span></p>
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="tel" id="telefone" required>
                 </div>
-                <div class="balance-item">
-                    <p>Saldo do Ano: <span id="saldoAno">R$ 0,00</span></p>
+                <div class="form-group">
+                    <label for="cidade">Cidade</label>
+                    <input type="text" id="cidade" required>
+                </div>
+                <div class="form-group">
+                    <label for="dataNascimento">Data de Nascimento</label>
+                    <input type="text" id="dataNascimento" placeholder="dd/mm/aaaa" required>
+                </div>
+                <button type="submit" class="submit-btn">Cadastrar</button>
+            </form>
+            <div id="cadastroMessage" class="message"></div>
+            <h3>Clientes Cadastrados</h3>
+            <input type="text" id="clientSearch" placeholder="Buscar cliente" class="search-input">
+            <div id="clienteList" class="list-container"></div>
+        </section>
+
+        <section id="novoAgendamentos" class="tab-content">
+            <h2>Novo Agendamento</h2>
+            <form id="agendamentoForm" class="form-container">
+                <div class="form-group">
+                    <label for="cliente">Cliente</label>
+                    <input type="text" id="cliente" required>
+                    <div id="clienteAutocomplete" class="autocomplete"></div>
+                </div>
+                <div class="form-group">
+                    <label for="data">Data</label>
+                    <input type="date" id="data" required>
+                </div>
+                <div class="form-group">
+                    <label for="hora">Hora</label>
+                    <input type="time" id="hora" required>
+                </div>
+                <div class="form-group">
+                    <label for="tipoAgendamento">Tipo de Agendamento</label>
+                    <select id="tipoAgendamento" required>
+                        <option value="Presencial">Presencial</option>
+                        <option value="Online">Online</option>
+                    </select>
+                </div>
+                <button type="submit" class="submit-btn">Agendar</button>
+            </form>
+            <div id="agendamentoMessage" class="message"></div>
+            <h3>Agendamentos</h3>
+            <div class="filter-group">
+                <div class="form-group">
+                    <label for="dateSearch">Buscar por Data</label>
+                    <input type="text" id="dateSearch" placeholder="dd/mm/aaaa">
+                </div>
+                <div class="form-group">
+                    <label for="filterTipo">Filtrar por Tipo</label>
+                    <select id="filterTipo">
+                        <option value="">Todos</option>
+                        <option value="Presencial">Presencial</option>
+                        <option value="Online">Online</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterCliente">Filtrar por Cliente</label>
+                    <input type="text" id="filterCliente">
                 </div>
             </div>
-        </div>
-        <div class="search-container">
-            <input type="text" id="fluxoSearch" placeholder="Buscar cliente">
-        </div>
-        <h3 style="margin-bottom: 10px;">Registros</h3>
-        <div class="list-container" id="fluxoCaixaList"></div>
-    </div>
+            <div id="agendamentoList" class="list-container"></div>
+        </section>
 
-    <div class="modal" id="modal">
+        <section id="fluxoCaixa" class="tab-content">
+            <h2>Fluxo de Caixa</h2>
+            <div class="saldo-container">
+                <div class="saldo-item">Saldo do Dia: <span id="saldoDia">R$ 0,00</span></div>
+                <div class="saldo-item">Saldo do Mês: <span id="saldoMes">R$ 0,00</span></div>
+                <div class="saldo-item">Saldo do Ano: <span id="saldoAno">R$ 0,00</span></div>
+            </div>
+            <form id="fluxoCaixaForm" class="form-container">
+                <div class="form-group">
+                    <label for="clienteFluxo">Cliente</label>
+                    <input type="text" id="clienteFluxo" required>
+                    <div id="clienteFluxoAutocomplete" class="autocomplete"></div>
+                </div>
+                <div class="form-group">
+                    <label for="valorConsulta">Valor (R$)</label>
+                    <input type="text" id="valorConsulta" required>
+                </div>
+                <div class="form-group">
+                    <label for="dataFluxo">Data</label>
+                    <input type="text" id="dataFluxo" required>
+                </div>
+                <button type="submit" class="submit-btn">Registrar</button>
+            </form>
+            <div id="fluxoCaixaMessage" class="message"></div>
+            <h3>Registros</h3>
+            <div class="filter-group">
+                <div class="form-group">
+                    <label for="dataInicio">Data Início</label>
+                    <input type="text" id="dataInicio" placeholder="dd/mm/aaaa">
+                </div>
+                <div class="form-group">
+                    <label for="dataFim">Data Fim</label>
+                    <input type="text" id="dataFim" placeholder="dd/mm/aaaa">
+                </div>
+                <button id="filtrarBtn" class="filter-btn">Filtrar</button>
+            </div>
+            <input type="text" id="fluxoSearch" placeholder="Buscar por cliente" class="search-input">
+            <div id="fluxoCaixaList" class="list-container"></div>
+        </section>
+    </main>
+
+    <div id="modal" class="modal">
         <div class="modal-content">
             <h2 id="modalTitle"></h2>
             <div id="modalContent"></div>
         </div>
     </div>
 
+    <script src="https://unpkg.com/imask"></script>
     <script type="module" src="software.js"></script>
 </body>
 </html>
