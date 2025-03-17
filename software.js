@@ -472,8 +472,9 @@ async function carregarAgendamentos() {
 async function carregarFluxoCaixa() {
     const listaFluxo = document.getElementById('fluxoCaixaList');
     const entradaBusca = document.getElementById('fluxoSearch');
-    listaFluxo.innerHTML = '';
+    if (!listaFluxo || !entradaBusca) return;
 
+    listaFluxo.innerHTML = '';
     try {
         const querySnapshot = await getDocs(collection(db, 'fluxoCaixa'));
         listaFluxoCaixa = [];
@@ -496,7 +497,7 @@ async function carregarFluxoCaixa() {
                 const info = document.createElement('div');
                 info.className = 'info';
                 const dataFormatada = formatarData(item.data);
-                info.textContent = `${item.cliente} - ${dataFormatada} -RICS ${item.valor.toFixed(2).replace('.', ',')}`;
+                info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
                 const botaoExcluir = document.createElement('button');
                 botaoExcluir.className = 'delete-btn';
                 botaoExcluir.textContent = 'Excluir';
@@ -513,11 +514,9 @@ async function carregarFluxoCaixa() {
 
         renderizarFluxoCaixa();
 
-        entradaBusca.addEventListener('input', (e) => {
-            renderizarFluxoCaixa(e.target.value);
-        });
+        entradaBusca.oninput = (e) => renderizarFluxoCaixa(e.target.value);
 
-        atualizarSaldos(); // Atualiza os saldos ao carregar a aba
+        atualizarSaldos(); // Garante que os saldos sejam atualizados ao carregar
     } catch (error) {
         console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
         document.getElementById('fluxoCaixaMessage').textContent = 'Erro ao carregar registros: ' + error.message;
@@ -542,9 +541,13 @@ function atualizarSaldos() {
         .filter(item => item.data.startsWith(anoAtual))
         .reduce((sum, item) => sum + parseFloat(item.valor), 0);
 
-    document.getElementById('saldoDia').textContent = `R$ ${saldoDia.toFixed(2).replace('.', ',')}`;
-    document.getElementById('saldoMes').textContent = `R$ ${saldoMes.toFixed(2).replace('.', ',')}`;
-    document.getElementById('saldoAno').textContent = `R$ ${saldoAno.toFixed(2).replace('.', ',')}`;
+    const saldoDiaElement = document.getElementById('saldoDia');
+    const saldoMesElement = document.getElementById('saldoMes');
+    const saldoAnoElement = document.getElementById('saldoAno');
+
+    if (saldoDiaElement) saldoDiaElement.textContent = `R$ ${saldoDia.toFixed(2).replace('.', ',')}`;
+    if (saldoMesElement) saldoMesElement.textContent = `R$ ${saldoMes.toFixed(2).replace('.', ',')}`;
+    if (saldoAnoElement) saldoAnoElement.textContent = `R$ ${saldoAno.toFixed(2).replace('.', ',')}`;
 }
 
 function configurarAutocompletarFluxoCaixa() {
@@ -709,7 +712,7 @@ document.getElementById('fluxoCaixaForm').addEventListener('submit', async (e) =
         const hoje = new Date();
         const dataAtual = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
         document.getElementById('dataFluxo').value = dataAtual;
-        await carregarFluxoCaixa(); // Recarrega e atualiza os saldos
+        await atualizarFluxoCaixaEDados(); // Nova função para consistência
         setTimeout(() => mensagem.textContent = '', 3000);
     } catch (error) {
         console.error('[ERRO] Erro ao registrar fluxo de caixa:', error);
@@ -717,6 +720,19 @@ document.getElementById('fluxoCaixaForm').addEventListener('submit', async (e) =
         mensagem.className = 'error-message';
     }
 });
+
+async function atualizarFluxoCaixaEDados() {
+    try {
+        const querySnapshot = await getDocs(collection(db, 'fluxoCaixa'));
+        listaFluxoCaixa = [];
+        querySnapshot.forEach((doc) => {
+            listaFluxoCaixa.push({ id: doc.id, ...doc.data() });
+        });
+        await carregarFluxoCaixa();
+    } catch (error) {
+        console.error('[ERRO] Erro ao atualizar dados do fluxo de caixa:', error);
+    }
+}
 
 function abrirModalCliente(docId, cliente) {
     const modal = document.getElementById('modal');
@@ -1083,7 +1099,7 @@ window.excluirItem = async function(tipo, id) { // Exposto no escopo global
         await deleteDoc(doc(db, nomeColecao, id));
         closeModal();
         if (tipo === 'fluxoCaixa') {
-            await carregarFluxoCaixa(); // Recarrega e atualiza os saldos
+            await atualizarFluxoCaixaEDados(); // Recarrega dados e atualiza saldos
         } else if (tipo === 'agendamento') {
             await carregarAgendamentos();
         } else if (tipo === 'cliente') {
