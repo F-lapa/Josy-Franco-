@@ -120,12 +120,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const dataInicio = document.getElementById('dataInicio');
+    const dataFim = document.getElementById('dataFim');
+    if (dataInicio) {
+        IMask(dataInicio, {
+            mask: '00/00/0000',
+            lazy: false,
+            placeholderChar: '_',
+            overwrite: true,
+            autofix: true,
+            blocks: {
+                '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+            }
+        });
+    }
+    if (dataFim) {
+        IMask(dataFim, {
+            mask: '00/00/0000',
+            lazy: false,
+            placeholderChar: '_',
+            overwrite: true,
+            autofix: true,
+            blocks: {
+                '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+            }
+        });
+    }
+
     const filterTipo = document.getElementById('filterTipo');
     const filterCliente = document.getElementById('filterCliente');
     const dateSearch = document.getElementById('dateSearch');
     if (filterTipo) filterTipo.addEventListener('change', carregarAgendamentos);
     if (filterCliente) filterCliente.addEventListener('input', carregarAgendamentos);
     if (dateSearch) dateSearch.addEventListener('input', carregarAgendamentos);
+
+    const filtrarBtn = document.getElementById('filtrarBtn');
+    if (filtrarBtn) filtrarBtn.addEventListener('click', filtrarFluxoCaixaPorPeriodo);
 });
 
 window.openTab = function (tabId) {
@@ -485,43 +519,42 @@ async function carregarFluxoCaixa() {
 
         listaFluxoCaixa.sort((a, b) => new Date(b.data) - new Date(a.data));
 
-        function renderizarFluxoCaixa(filtro = '') {
-            listaFluxo.innerHTML = '';
-            const registrosFiltrados = listaFluxoCaixa.filter(item =>
-                item.cliente.toLowerCase().includes(filtro.toLowerCase())
-            );
-
-            registrosFiltrados.forEach(item => {
-                const elemento = document.createElement('div');
-                elemento.className = 'list-item';
-                const info = document.createElement('div');
-                info.className = 'info';
-                const dataFormatada = formatarData(item.data);
-                info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
-                const botaoExcluir = document.createElement('button');
-                botaoExcluir.className = 'delete-btn';
-                botaoExcluir.textContent = 'Excluir';
-                botaoExcluir.onclick = (e) => {
-                    e.stopPropagation();
-                    abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`);
-                };
-                elemento.appendChild(info);
-                elemento.appendChild(botaoExcluir);
-                listaFluxo.appendChild(elemento);
-            });
-            atualizarSaldos(); // Atualiza os saldos após renderizar
-        }
-
         renderizarFluxoCaixa();
-
         entradaBusca.oninput = (e) => renderizarFluxoCaixa(e.target.value);
-
-        atualizarSaldos(); // Garante que os saldos sejam atualizados ao carregar
+        atualizarSaldos();
     } catch (error) {
         console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
         document.getElementById('fluxoCaixaMessage').textContent = 'Erro ao carregar registros: ' + error.message;
         document.getElementById('fluxoCaixaMessage').className = 'error-message';
     }
+}
+
+function renderizarFluxoCaixa(filtro = '') {
+    const listaFluxo = document.getElementById('fluxoCaixaList');
+    listaFluxo.innerHTML = '';
+    const registrosFiltrados = listaFluxoCaixa.filter(item =>
+        item.cliente.toLowerCase().includes(filtro.toLowerCase())
+    );
+
+    registrosFiltrados.forEach(item => {
+        const elemento = document.createElement('div');
+        elemento.className = 'list-item';
+        const info = document.createElement('div');
+        info.className = 'info';
+        const dataFormatada = formatarData(item.data);
+        info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
+        const botaoExcluir = document.createElement('button');
+        botaoExcluir.className = 'delete-btn';
+        botaoExcluir.textContent = 'Excluir';
+        botaoExcluir.onclick = (e) => {
+            e.stopPropagation();
+            abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`);
+        };
+        elemento.appendChild(info);
+        elemento.appendChild(botaoExcluir);
+        listaFluxo.appendChild(elemento);
+    });
+    atualizarSaldos(); // Atualiza os saldos após renderizar
 }
 
 function atualizarSaldos() {
@@ -531,15 +564,15 @@ function atualizarSaldos() {
 
     const saldoDia = listaFluxoCaixa
         .filter(item => item.data === hoje)
-        .reduce((sum, item) => sum + parseFloat(item.valor), 0);
+        .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0);
 
     const saldoMes = listaFluxoCaixa
         .filter(item => item.data.startsWith(mesAtual))
-        .reduce((sum, item) => sum + parseFloat(item.valor), 0);
+        .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0);
 
     const saldoAno = listaFluxoCaixa
         .filter(item => item.data.startsWith(anoAtual))
-        .reduce((sum, item) => sum + parseFloat(item.valor), 0);
+        .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0);
 
     const saldoDiaElement = document.getElementById('saldoDia');
     const saldoMesElement = document.getElementById('saldoMes');
@@ -548,6 +581,57 @@ function atualizarSaldos() {
     if (saldoDiaElement) saldoDiaElement.textContent = `R$ ${saldoDia.toFixed(2).replace('.', ',')}`;
     if (saldoMesElement) saldoMesElement.textContent = `R$ ${saldoMes.toFixed(2).replace('.', ',')}`;
     if (saldoAnoElement) saldoAnoElement.textContent = `R$ ${saldoAno.toFixed(2).replace('.', ',')}`;
+}
+
+function filtrarFluxoCaixaPorPeriodo() {
+    const dataInicioRaw = document.getElementById('dataInicio').value;
+    const dataFimRaw = document.getElementById('dataFim').value;
+    const mensagem = document.getElementById('fluxoCaixaMessage');
+
+    if (!dataInicioRaw || !dataFimRaw) {
+        mensagem.textContent = 'Por favor, preencha as datas de início e fim.';
+        mensagem.className = 'error-message';
+        return;
+    }
+
+    const dataInicio = converterDataParaFirebase(dataInicioRaw);
+    const dataFim = converterDataParaFirebase(dataFimRaw);
+
+    if (new Date(dataInicio) > new Date(dataFim)) {
+        mensagem.textContent = 'A data de início deve ser anterior à data de fim.';
+        mensagem.className = 'error-message';
+        return;
+    }
+
+    const registrosFiltrados = listaFluxoCaixa.filter(item => {
+        const dataItem = new Date(item.data);
+        return dataItem >= new Date(dataInicio) && dataItem <= new Date(dataFim);
+    });
+
+    const totalPeriodo = registrosFiltrados.reduce((sum, item) => sum + parseFloat(item.valor || 0), 0);
+    mensagem.textContent = `Total no período: R$ ${totalPeriodo.toFixed(2).replace('.', ',')}`;
+    mensagem.className = 'success-message';
+
+    const listaFluxo = document.getElementById('fluxoCaixaList');
+    listaFluxo.innerHTML = '';
+    registrosFiltrados.forEach(item => {
+        const elemento = document.createElement('div');
+        elemento.className = 'list-item';
+        const info = document.createElement('div');
+        info.className = 'info';
+        const dataFormatada = formatarData(item.data);
+        info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`;
+        const botaoExcluir = document.createElement('button');
+        botaoExcluir.className = 'delete-btn';
+        botaoExcluir.textContent = 'Excluir';
+        botaoExcluir.onclick = (e) => {
+            e.stopPropagation();
+            abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${item.valor.toFixed(2).replace('.', ',')}`);
+        };
+        elemento.appendChild(info);
+        elemento.appendChild(botaoExcluir);
+        listaFluxo.appendChild(elemento);
+    });
 }
 
 function configurarAutocompletarFluxoCaixa() {
@@ -712,7 +796,7 @@ document.getElementById('fluxoCaixaForm').addEventListener('submit', async (e) =
         const hoje = new Date();
         const dataAtual = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
         document.getElementById('dataFluxo').value = dataAtual;
-        await atualizarFluxoCaixaEDados(); // Nova função para consistência
+        await carregarFluxoCaixa(); // Recarrega tudo após adicionar
         setTimeout(() => mensagem.textContent = '', 3000);
     } catch (error) {
         console.error('[ERRO] Erro ao registrar fluxo de caixa:', error);
@@ -720,19 +804,6 @@ document.getElementById('fluxoCaixaForm').addEventListener('submit', async (e) =
         mensagem.className = 'error-message';
     }
 });
-
-async function atualizarFluxoCaixaEDados() {
-    try {
-        const querySnapshot = await getDocs(collection(db, 'fluxoCaixa'));
-        listaFluxoCaixa = [];
-        querySnapshot.forEach((doc) => {
-            listaFluxoCaixa.push({ id: doc.id, ...doc.data() });
-        });
-        await carregarFluxoCaixa();
-    } catch (error) {
-        console.error('[ERRO] Erro ao atualizar dados do fluxo de caixa:', error);
-    }
-}
 
 function abrirModalCliente(docId, cliente) {
     const modal = document.getElementById('modal');
@@ -1099,7 +1170,7 @@ window.excluirItem = async function(tipo, id) { // Exposto no escopo global
         await deleteDoc(doc(db, nomeColecao, id));
         closeModal();
         if (tipo === 'fluxoCaixa') {
-            await atualizarFluxoCaixaEDados(); // Recarrega dados e atualiza saldos
+            await carregarFluxoCaixa(); // Recarrega tudo após excluir
         } else if (tipo === 'agendamento') {
             await carregarAgendamentos();
         } else if (tipo === 'cliente') {
