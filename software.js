@@ -1,3 +1,4 @@
+// software.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, updateDoc, doc, deleteDoc, query, where, getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -508,7 +509,7 @@ try {
                     elemento.appendChild(botaoExcluir);
                     listaFluxo.appendChild(elemento);
                 });
-                atualizarSaldos();
+                atualizarSaldos(); // Chama a função para atualizar os saldos após renderizar
             }
 
             renderizarFluxoCaixa();
@@ -517,7 +518,7 @@ try {
                 renderizarFluxoCaixa(e.target.value);
             });
 
-            atualizarSaldos();
+            atualizarSaldos(); // Garante que os saldos sejam atualizados ao carregar a aba
         } catch (error) {
             console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
             document.getElementById('fluxoCaixaMessage').textContent = 'Erro ao carregar registros: ' + error.message;
@@ -526,22 +527,26 @@ try {
     }
 
     function atualizarSaldos() {
-        const hoje = new Date().toISOString().split('T')[0];
-        const mesAtual = hoje.slice(0, 7);
-        const anoAtual = hoje.slice(0, 4);
+        const hoje = new Date().toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        const mesAtual = hoje.slice(0, 7); // Formato YYYY-MM
+        const anoAtual = hoje.slice(0, 4); // Formato YYYY
 
+        // Calcula o saldo do dia
         const saldoDia = listaFluxoCaixa
             .filter(item => item.data === hoje)
-            .reduce((sum, item) => sum + item.valor, 0);
+            .reduce((sum, item) => sum + parseFloat(item.valor), 0);
 
+        // Calcula o saldo do mês
         const saldoMes = listaFluxoCaixa
             .filter(item => item.data.startsWith(mesAtual))
-            .reduce((sum, item) => sum + item.valor, 0);
+            .reduce((sum, item) => sum + parseFloat(item.valor), 0);
 
+        // Calcula o saldo do ano
         const saldoAno = listaFluxoCaixa
             .filter(item => item.data.startsWith(anoAtual))
-            .reduce((sum, item) => sum + item.valor, 0);
+            .reduce((sum, item) => sum + parseFloat(item.valor), 0);
 
+        // Atualiza os elementos na interface
         document.getElementById('saldoDia').textContent = `R$ ${saldoDia.toFixed(2).replace('.', ',')}`;
         document.getElementById('saldoMes').textContent = `R$ ${saldoMes.toFixed(2).replace('.', ',')}`;
         document.getElementById('saldoAno').textContent = `R$ ${saldoAno.toFixed(2).replace('.', ',')}`;
@@ -709,7 +714,7 @@ try {
             const hoje = new Date();
             const dataAtual = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
             document.getElementById('dataFluxo').value = dataAtual;
-            await carregarFluxoCaixa();
+            await carregarFluxoCaixa(); // Recarrega os dados e atualiza os saldos automaticamente
             setTimeout(() => mensagem.textContent = '', 3000);
         } catch (error) {
             console.error('[ERRO] Erro ao registrar fluxo de caixa:', error);
@@ -1076,73 +1081,24 @@ try {
         const nomeColecao = colecoes[tipo];
         if (!nomeColecao) {
             console.error('[ERRO] Tipo de coleção inválido:', tipo);
-            alert('Tipo de item inválido para exclusão.');
             return;
         }
 
         try {
-            const referenciaDocumento = doc(db, nomeColecao, id);
-            await deleteDoc(referenciaDocumento);
-            console.log(`[SUCESSO] Item excluído da coleção ${nomeColecao} com ID: ${id}`);
-            
+            await deleteDoc(doc(db, nomeColecao, id));
             closeModal();
-            
-            const atualizacoes = {
-                'cliente': async () => {
-                    await carregarClientes();
-                    configurarAutocompletarCliente();
-                },
-                'agendamento': async () => await carregarAgendamentos(),
-                'fluxoCaixa': async () => await carregarFluxoCaixa()
-            };
-
-            if (atualizacoes[tipo]) {
-                await atualizacoes[tipo]();
+            if (tipo === 'fluxoCaixa') {
+                await carregarFluxoCaixa(); // Recarrega os dados e atualiza os saldos automaticamente
+            } else if (tipo === 'agendamento') {
+                await carregarAgendamentos();
+            } else if (tipo === 'cliente') {
+                await carregarClientes();
+                configurarAutocompletarCliente();
             }
+            console.log(`[SUCESSO] Item excluído com sucesso do ${tipo}:`, id);
         } catch (error) {
-            console.error(`[ERRO] Falha ao excluir item do tipo ${tipo} com ID ${id}:`, error);
-            alert(`Erro ao excluir ${tipo}: ${error.message}`);
-        }
-    }
-
-    function abrirModalDuplicado() {
-        const modal = document.getElementById('modal');
-        document.getElementById('modalTitle').textContent = 'Agendamento Duplicado';
-        document.getElementById('modalContent').innerHTML = `
-            <p>Já existe um agendamento para este horário. Deseja continuar mesmo assim?</p>
-            <div class="modal-buttons">
-                <button class="cancel-btn" onclick="closeModal()">Não</button>
-                <button class="confirm-btn" onclick="forcarAgendamento()">Sim</button>
-            </div>
-        `;
-        modal.classList.add('active');
-    }
-
-    async function forcarAgendamento() {
-        const cliente = document.getElementById('cliente').value.trim();
-        const data = document.getElementById('data').value;
-        const hora = document.getElementById('hora').value;
-        const tipoAgendamento = document.getElementById('tipoAgendamento').value;
-        const mensagem = document.getElementById('agendamentoMessage');
-
-        try {
-            await addDoc(collection(db, 'agendamentos'), { 
-                cliente, 
-                data, 
-                hora, 
-                tipo: tipoAgendamento, 
-                observacao: null 
-            });
-            mensagem.textContent = 'Agendamento forçado com sucesso!';
-            mensagem.className = 'success-message';
-            document.getElementById('agendamentoForm').reset();
-            await carregarAgendamentos();
-            closeModal();
-            setTimeout(() => mensagem.textContent = '', 3000);
-        } catch (error) {
-            console.error('[ERRO] Erro ao forçar agendamento:', error);
-            mensagem.textContent = 'Erro ao forçar agendamento: ' + error.message;
-            mensagem.className = 'error-message';
+            console.error(`[ERRO] Erro ao excluir item do ${tipo}:`, error);
+            alert('Erro ao excluir item: ' + error.message);
         }
     }
 
@@ -1150,7 +1106,7 @@ try {
         const modal = document.getElementById('modal');
         document.getElementById('modalTitle').textContent = 'Confirmar Exclusão do Histórico';
         document.getElementById('modalContent').innerHTML = `
-            <p>Tem certeza que deseja excluir a observação de <strong>${nome}</strong>?</p>
+            <p>Tem certeza que deseja excluir o histórico: <strong>${nome}</strong>?</p>
             <div class="modal-buttons">
                 <button class="cancel-btn" onclick="closeModal()">Não</button>
                 <button class="confirm-btn" onclick="excluirHistorico('${id}')">Sim</button>
@@ -1161,28 +1117,37 @@ try {
 
     async function excluirHistorico(id) {
         try {
-            await deleteDoc(doc(db, 'historico', id));
+            const referenciaHistorico = doc(db, 'historico', id);
+            const snapshotHistorico = await getDoc(referenciaHistorico);
+            const dadosHistorico = snapshotHistorico.data();
+            const nomeCliente = dadosHistorico.cliente;
+
+            await deleteDoc(referenciaHistorico);
             closeModal();
-            const nomeCliente = document.getElementById('modalTitle').textContent.split('Histórico de ')[1];
             abrirModalHistorico(nomeCliente);
+            console.log('[SUCESSO] Histórico excluído com sucesso:', id);
         } catch (error) {
             console.error('[ERRO] Erro ao excluir histórico:', error);
             alert('Erro ao excluir histórico: ' + error.message);
         }
     }
 
+    function abrirModalDuplicado() {
+        const modal = document.getElementById('modal');
+        document.getElementById('modalTitle').textContent = 'Agendamento Duplicado';
+        document.getElementById('modalContent').innerHTML = `
+            <p>Já existe um agendamento para este horário. Por favor, escolha outro horário.</p>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeModal()">Fechar</button>
+            </div>
+        `;
+        modal.classList.add('active');
+    }
+
     window.closeModal = function() {
         const modal = document.getElementById('modal');
         modal.classList.remove('active');
-        document.getElementById('modalContent').innerHTML = '';
     };
-
-    window.excluirItem = excluirItem;
-    window.closeModal = closeModal;
-    window.forcarAgendamento = forcarAgendamento;
-    window.excluirHistorico = excluirHistorico;
-
 } catch (error) {
-    console.error('[ERRO] Erro na inicialização do Firebase ou do script:', error);
-    alert('Erro ao inicializar o sistema: ' + error.message);
+    console.error('[ERRO] Erro geral na inicialização:', error);
 }
