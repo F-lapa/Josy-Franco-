@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -109,13 +108,21 @@
     <div id="fluxoCaixa" class="tab-content">
         <h2>Fluxo de Caixa</h2>
         <form id="fluxoCaixaForm">
+            <div class="form-group">
+                <label for="tipoTransacao">Tipo de Transação</label>
+                <select id="tipoTransacao" required>
+                    <option value="">Selecione o tipo</option>
+                    <option value="Ganho">Ganho</option>
+                    <option value="Despesa">Despesa</option>
+                </select>
+            </div>
             <div class="form-group autocomplete-container">
-                <label for="clienteFluxo">Cliente</label>
-                <input type="text" id="clienteFluxo" placeholder="Digite o nome do cliente" required>
+                <label for="clienteFluxo">Cliente/Descrição</label>
+                <input type="text" id="clienteFluxo" placeholder="Digite o nome do cliente ou descrição" required>
                 <div id="clienteFluxoAutocomplete" class="autocomplete-list"></div>
             </div>
             <div class="form-group">
-                <label for="valorConsulta">Valor da Consulta (R$)</label>
+                <label for="valorConsulta">Valor (R$)</label>
                 <input type="text" id="valorConsulta" placeholder="Ex: 150,00" inputmode="decimal" required>
             </div>
             <div class="form-group">
@@ -140,8 +147,30 @@
                 </div>
             </div>
         </div>
+        <div class="filter-container">
+            <h3>Filtrar Período</h3>
+            <div class="form-group">
+                <label for="dataInicio">Data de Início</label>
+                <input type="text" id="dataInicio" placeholder="dd/mm/aaaa" inputmode="numeric" required>
+            </div>
+            <div class="form-group">
+                <label for="dataFim">Data de Fim</label>
+                <input type="text" id="dataFim" placeholder="dd/mm/aaaa" inputmode="numeric" required>
+            </div>
+            <div class="form-group">
+                <label for="tipoFiltro">Tipo de Filtro</label>
+                <select id="tipoFiltro" required>
+                    <option value="saldo">Saldo</option>
+                    <option value="ganhos">Ganhos</option>
+                    <option value="despesas">Despesas</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button id="filtrarBtn">Filtrar</button>
+            </div>
+        </div>
         <div class="search-container">
-            <input type="text" id="fluxoSearch" placeholder="Buscar cliente">
+            <input type="text" id="fluxoSearch" placeholder="Buscar cliente ou descrição">
         </div>
         <h3 style="margin-bottom: 10px;">Registros</h3>
         <div class="list-container" id="fluxoCaixaList"></div>
