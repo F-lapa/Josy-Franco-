@@ -45,7 +45,7 @@ body {
     background: none;
     border: none;
     color: #ffffff;
-    font-size: 18探索
+    font-size: 18px;
     cursor: pointer;
     transition: all 0.3s ease;
     padding: 8px 12px;
@@ -218,10 +218,13 @@ h2 {
 
 .search-container {
     margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 .search-container input {
-    width: 100%;
+    flex: 1;
     padding: 10px;
     border: 1px solid #d6bcfa;
     border-radius: 8px;
@@ -234,6 +237,22 @@ h2 {
     border-color: #ed64a6;
     outline: none;
     box-shadow: 0 0 6px rgba(237, 100, 166, 0.3);
+}
+
+.filter-btn {
+    padding: 10px 15px;
+    background: #ed64a6;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 8px rgba(237, 100, 166, 0.3);
+}
+
+.filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(237, 100, 166, 0.5);
 }
 
 .filter-container {
@@ -493,14 +512,14 @@ h2 {
     color: #e53e3e;
 }
 
-.history-list {
+.history-list, .transaction-list {
     max-height: 300px;
     overflow-y: auto;
     margin-top: 15px;
     text-align: left;
 }
 
-.history-date {
+.history-date, .transaction-date {
     margin: 15px 0 5px;
     font-size: 16px;
     font-weight: 600;
@@ -509,7 +528,7 @@ h2 {
     padding-bottom: 5px;
 }
 
-.history-item {
+.history-item, .transaction-item {
     padding: 10px;
     background: #faf5ff;
     border-radius: 8px;
@@ -521,12 +540,12 @@ h2 {
     align-items: center;
 }
 
-.history-item span {
+.history-item span, .transaction-item span {
     font-weight: 500;
     color: #2d3748;
 }
 
-.history-item .delete-history-btn {
+.history-item .delete-history-btn, .transaction-item .delete-transaction-btn {
     padding: 6px 12px;
     background: #f56565;
     color: #ffffff;
@@ -537,7 +556,7 @@ h2 {
     transition: all 0.3s ease;
 }
 
-.history-item .delete-history-btn:hover {
+.history-item .delete-history-btn:hover, .transaction-item .delete-transaction-btn:hover {
     background: #e53e3e;
     transform: translateY(-2px);
 }
@@ -603,6 +622,26 @@ h2 {
 }
 
 .balance-item span {
+    font-size: 18px;
+    font-weight: 700;
+    color: #ed64a6;
+}
+
+.total-container {
+    margin-top: 20px;
+    padding: 10px;
+    background: #e9d8fd;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.total-container p {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.total-container span {
     font-size: 18px;
     font-weight: 700;
     color: #ed64a6;
