@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
     padding: 0;
@@ -46,7 +45,7 @@ body {
     background: none;
     border: none;
     color: #ffffff;
-    font-size: 18px;
+    font-size: 18探索
     cursor: pointer;
     transition: all 0.3s ease;
     padding: 8px 12px;
@@ -310,6 +309,10 @@ h2 {
 
 .list-item .tipo.presencial {
     background: linear-gradient(45deg, #3182ce, #1e5eb8);
+}
+
+.list-item .tipo.despesa {
+    background: linear-gradient(45deg, #e53e3e, #c53030);
 }
 
 .delete-btn {
