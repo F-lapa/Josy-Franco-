@@ -150,6 +150,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const fluxoDateFilter = document.getElementById('fluxoDateFilter');
+    if (fluxoDateFilter) {
+        IMask(fluxoDateFilter, {
+            mask: '00/00/0000',
+            lazy: false,
+            placeholderChar: '_',
+            overwrite: true,
+            autofix: true,
+            blocks: {
+                '00': { mask: IMask.MaskedRange, from: 1, to: 31 },
+                '00[1]': { mask: IMask.MaskedRange, from: 1, to: 12 },
+                '0000': { mask: IMask.MaskedRange, from: 1925, to: new Date().getFullYear() }
+            }
+        });
+    }
+
     const filterTipo = document.getElementById('filterTipo');
     const filterCliente = document.getElementById('filterCliente');
     const dateSearch = document.getElementById('dateSearch');
@@ -159,6 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const filtrarBtn = document.getElementById('filtrarBtn');
     if (filtrarBtn) filtrarBtn.addEventListener('click', filtrarFluxoCaixaPorPeriodo);
+
+    const openFluxoModalBtn = document.getElementById('openFluxoModalBtn');
+    if (openFluxoModalBtn) openFluxoModalBtn.addEventListener('click', abrirModalTransacoes);
 });
 
 window.openTab = function (tabId) {
@@ -504,8 +523,7 @@ async function carregarAgendamentos() {
 
 async function carregarFluxoCaixa() {
     const listaFluxo = document.getElementById('fluxoCaixaList');
-    const entradaBusca = document.getElementById('fluxoSearch');
-    if (!listaFluxo || !entradaBusca) return;
+    if (!listaFluxo) return;
 
     listaFluxo.innerHTML = '';
     try {
@@ -517,9 +535,7 @@ async function carregarFluxoCaixa() {
         });
 
         listaFluxoCaixa.sort((a, b) => new Date(b.data) - new Date(a.data));
-
-        renderizarFluxoCaixa();
-        entradaBusca.oninput = (e) => renderizarFluxoCaixa(e.target.value);
+        renderizarFluxoCaixa(); // Mostra apenas o dia atual por padrão
         atualizarSaldos();
     } catch (error) {
         console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
@@ -528,12 +544,11 @@ async function carregarFluxoCaixa() {
     }
 }
 
-function renderizarFluxoCaixa(filtro = '') {
+function renderizarFluxoCaixa() {
     const listaFluxo = document.getElementById('fluxoCaixaList');
     listaFluxo.innerHTML = '';
-    const registrosFiltrados = listaFluxoCaixa.filter(item =>
-        item.cliente.toLowerCase().includes(filtro.toLowerCase())
-    );
+    const hoje = new Date().toISOString().split('T')[0]; // Data atual no formato YYYY-MM-DD
+    const registrosFiltrados = listaFluxoCaixa.filter(item => item.data === hoje);
 
     registrosFiltrados.forEach(item => {
         const elemento = document.createElement('div');
@@ -542,7 +557,7 @@ function renderizarFluxoCaixa(filtro = '') {
         info.className = 'info';
         const dataFormatada = formatarData(item.data);
         const tipo = item.tipo === 'Despesa' ? 'despesa' : 'ganho';
-        info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`;
+        info.textContent = `${item.cliente} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`;
         const acoes = document.createElement('div');
         acoes.className = 'list-item-actions';
         const badgeTipo = document.createElement('span');
@@ -561,7 +576,6 @@ function renderizarFluxoCaixa(filtro = '') {
         elemento.appendChild(acoes);
         listaFluxo.appendChild(elemento);
     });
-    atualizarSaldos();
 }
 
 function atualizarSaldos() {
@@ -716,6 +730,57 @@ function configurarAutocompletarFluxoCaixa() {
             listaAutocompletar.style.display = 'none';
         }
     });
+}
+
+function abrirModalTransacoes() {
+    const dataFiltroRaw = document.getElementById('fluxoDateFilter').value;
+    const mensagemFluxo = document.getElementById('fluxoCaixaMessage');
+
+    // Validação da data inserida
+    if (!dataFiltroRaw || !dataFiltroRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        mensagemFluxo.textContent = 'Por favor, insira uma data válida no formato dd/mm/aaaa.';
+        mensagemFluxo.className = 'error-message';
+        setTimeout(() => mensagemFluxo.textContent = '', 3000);
+        return;
+    }
+
+    const dataFiltro = converterDataParaFirebase(dataFiltroRaw);
+    const transacoesDoDia = listaFluxoCaixa.filter(item => item.data === dataFiltro);
+
+    // Configuração do modal
+    const modal = document.getElementById('modal');
+    document.getElementById('modalTitle').textContent = `Transações de ${dataFiltroRaw}`;
+
+    let conteudoHTML = '<div class="transaction-list">';
+    
+    if (transacoesDoDia.length === 0) {
+        conteudoHTML += '<p>Nenhuma transação registrada para esta data.</p>';
+    } else {
+        transacoesDoDia.forEach(transacao => {
+            const tipo = transacao.tipo === 'Despesa' ? 'despesa' : 'ganho';
+            const valorFormatado = Math.abs(transacao.valor).toFixed(2).replace('.', ',');
+            conteudoHTML += `
+                <div class="transaction-item">
+                    <span>${transacao.cliente} - R$ ${valorFormatado} (${transacao.tipo})</span>
+                    <button class="delete-transaction-btn" onclick="excluirItem('fluxoCaixa', '${transacao.id}')">Excluir</button>
+                </div>
+            `;
+        });
+    }
+
+    // Cálculo do total
+    const total = transacoesDoDia.reduce((soma, item) => {
+        const valor = parseFloat(item.valor || 0);
+        return item.tipo === 'Despesa' ? soma - valor : soma + valor;
+    }, 0);
+    const totalFormatado = total.toFixed(2).replace('.', ',');
+
+    conteudoHTML += '</div>';
+    conteudoHTML += `<div class="total-container"><p>Total: <span>R$ ${totalFormatado}</span></p></div>`;
+    conteudoHTML += '<div class="modal-buttons"><button class="cancel-btn" onclick="closeModal()">Fechar</button></div>';
+
+    document.getElementById('modalContent').innerHTML = conteudoHTML;
+    modal.classList.add('active');
 }
 
 document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
