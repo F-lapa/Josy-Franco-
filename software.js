@@ -595,8 +595,12 @@ function atualizarSaldos() {
 function abrirModalFiltroPeriodo() {
     const dataInicioRaw = document.getElementById('dataInicio').value;
     const dataFimRaw = document.getElementById('dataFim').value;
-    const filtroTipo = document.getElementById('filterFluxoTipo')?.value || 'Todos';
+    const filtroTipoElement = document.getElementById('filterFluxoTipo');
+    const filtroTipo = filtroTipoElement ? filtroTipoElement.value : 'Todos'; // Garante que pegamos o valor atual
     const mensagem = document.getElementById('fluxoCaixaMessage');
+
+    console.log('[DEBUG] Filtro selecionado:', filtroTipo);
+    console.log('[DEBUG] Data início:', dataInicioRaw, 'Data fim:', dataFimRaw);
 
     if (!dataInicioRaw || !dataFimRaw) {
         mensagem.textContent = 'Por favor, preencha as datas de início e fim.';
@@ -613,17 +617,24 @@ function abrirModalFiltroPeriodo() {
         return;
     }
 
+    // Filtra por período
     let registrosFiltrados = listaFluxoCaixa.filter(item => {
         const dataItem = new Date(item.data);
         return dataItem >= new Date(dataInicio) && dataItem <= new Date(dataFim);
     });
 
+    console.log('[DEBUG] Registros após filtro de período:', registrosFiltrados.length);
+
+    // Aplica filtro de tipo
     if (filtroTipo !== 'Todos') {
         registrosFiltrados = registrosFiltrados.filter(item => {
             const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa');
+            console.log('[DEBUG] Item:', item.cliente, 'Tipo:', tipoExibicao, 'Valor:', item.valor);
             return tipoExibicao === filtroTipo;
         });
     }
+
+    console.log('[DEBUG] Registros após filtro de tipo:', registrosFiltrados.length);
 
     const modal = document.getElementById('modal');
     document.getElementById('modalTitle').textContent = `Transações de ${dataInicioRaw} a ${dataFimRaw}${filtroTipo !== 'Todos' ? ` (${filtroTipo})` : ''}`;
