@@ -4,42 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Terapia</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .tabs { overflow: hidden; border-bottom: 1px solid #ccc; }
-        .tab-button { float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; }
-        .tab-button:hover { background-color: #ddd; }
-        .tab-button.active { background-color: #ccc; }
-        .tab-content { display: none; padding: 20px; }
-        .tab-content.active { display: block; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; }
-        .list-item { padding: 10px; border-bottom: 1px solid #ddd; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .list-item-actions { display: flex; align-items: center; gap: 10px; }
-        .delete-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; cursor: pointer; }
-        .tipo { padding: 5px 10px; border-radius: 5px; color: white; }
-        .tipo.ganho { background: #28a745; }
-        .tipo.despesa { background: #ff4444; }
-        .tipo.online { background: #007bff; }
-        .tipo.presencial { background: #28a745; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal.active { display: block; }
-        .modal-content { background: white; margin: 15% auto; padding: 20px; width: 80%; max-width: 500px; }
-        .modal-buttons { margin-top: 20px; display: flex; gap: 10px; }
-        .save-btn, .cancel-btn, .confirm-btn, .delete-transaction-btn { padding: 10px; cursor: pointer; }
-        .save-btn { background: #28a745; color: white; border: none; }
-        .cancel-btn { background: #ccc; border: none; }
-        .confirm-btn { background: #ff4444; color: white; border: none; }
-        .success-message { color: green; margin-top: 10px; }
-        .error-message { color: red; margin-top: 10px; }
-        .total-container { margin-top: 20px; font-weight: bold; }
-        .transaction-list { max-height: 300px; overflow-y: auto; }
-        .transaction-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd; }
-        .autocomplete-list { position: absolute; background: white; border: 1px solid #ddd; max-height: 200px; overflow-y: auto; width: 100%; }
-        .autocomplete-item { padding: 10px; cursor: pointer; }
-        .autocomplete-item:hover { background: #f0f0f0; }
-    </style>
+    
 </head>
 <body>
     <div class="tabs">
