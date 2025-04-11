@@ -593,11 +593,20 @@ function atualizarSaldos() {
 }
 
 function abrirModalFiltroPeriodo() {
-    const dataInicioRaw = document.getElementById('dataInicio').value;
-    const dataFimRaw = document.getElementById('dataFim').value;
+    const dataInicioRaw = document.getElementById('dataInicio')?.value;
+    const dataFimRaw = document.getElementById('dataFim')?.value;
     const filtroTipoElement = document.getElementById('filterFluxoTipo');
-    const filtroTipo = filtroTipoElement ? filtroTipoElement.value : 'Todos'; // Garante que pegamos o valor atual
     const mensagem = document.getElementById('fluxoCaixaMessage');
+
+    // Verificação do elemento filterFluxoTipo
+    if (!filtroTipoElement) {
+        console.error('[ERRO] Elemento filterFluxoTipo não encontrado no DOM. Verifique se o ID está correto e se o elemento está presente.');
+        mensagem.textContent = 'Erro: Não foi possível encontrar o filtro de tipo. Verifique o HTML.';
+        mensagem.className = 'error-message';
+        return;
+    }
+
+    const filtroTipo = filtroTipoElement.value || 'Todos'; // Captura o valor do select
 
     console.log('[DEBUG] Filtro selecionado:', filtroTipo);
     console.log('[DEBUG] Data início:', dataInicioRaw, 'Data fim:', dataFimRaw);
