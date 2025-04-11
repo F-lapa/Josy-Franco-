@@ -173,9 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filterCliente) filterCliente.addEventListener('input', carregarAgendamentos);
     if (dateSearch) dateSearch.addEventListener('input', carregarAgendamentos);
 
-    const filtrarBtn = document.getElementById('filtrarBtn');
-    if (filtrarBtn) filtrarBtn.addEventListener('click', abrirModalFiltroPeriodo);
-
     const openFluxoModalBtn = document.getElementById('openFluxoModalBtn');
     if (openFluxoModalBtn) openFluxoModalBtn.addEventListener('click', () => {
         console.log('[DEBUG] Botão de pesquisa clicado, renderizando fluxo de caixa');
@@ -193,8 +190,20 @@ window.openTab = function (tabId) {
     if (abaSelecionada && botaoSelecionado) {
         abaSelecionada.classList.add('active');
         botaoSelecionado.classList.add('active');
-        if (tabId === 'fluxoCaixa') carregarFluxoCaixa();
-        else if (tabId === 'novoAgendamentos') carregarAgendamentos();
+        if (tabId === 'fluxoCaixa') {
+            carregarFluxoCaixa();
+            // Configura o evento do botão "Filtrar Período" quando a aba Fluxo de Caixa é ativada
+            const filtrarBtn = document.getElementById('filtrarBtn');
+            if (filtrarBtn) {
+                // Remove qualquer listener anterior para evitar duplicatas
+                filtrarBtn.removeEventListener('click', abrirModalFiltroPeriodo);
+                filtrarBtn.addEventListener('click', abrirModalFiltroPeriodo);
+            } else {
+                console.error('[ERRO] Botão filtrarBtn não encontrado no DOM. Verifique se o ID está correto.');
+            }
+        } else if (tabId === 'novoAgendamentos') {
+            carregarAgendamentos();
+        }
     }
 };
 
