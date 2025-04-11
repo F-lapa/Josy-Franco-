@@ -177,7 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filtrarBtn) filtrarBtn.addEventListener('click', abrirModalFiltroPeriodo);
 
     const openFluxoModalBtn = document.getElementById('openFluxoModalBtn');
-    if (openFluxoModalBtn) openFluxoModalBtn.addEventListener('click', () => renderizarFluxoCaixa()); // Apenas atualiza a lista
+    if (openFluxoModalBtn) openFluxoModalBtn.addEventListener('click', () => {
+        console.log('[DEBUG] Botão de pesquisa clicado, renderizando fluxo de caixa');
+        renderizarFluxoCaixa();
+    });
 });
 
 window.openTab = function (tabId) {
@@ -301,8 +304,9 @@ function alterarSenha() {
 async function carregarClientes() {
     const listaCliente = document.getElementById('clienteList');
     const entradaBusca = document.getElementById('clientSearch');
-    listaCliente.innerHTML = '';
+    if (!listaCliente || !entradaBusca) return;
 
+    listaCliente.innerHTML = '';
     try {
         const querySnapshot = await getDocs(collection(db, 'clientes'));
         listaClientes = [];
@@ -354,6 +358,7 @@ async function carregarClientes() {
 function configurarAutocompletarCliente() {
     const entradaCliente = document.getElementById('cliente');
     const listaAutocompletar = document.getElementById('clienteAutocomplete');
+    if (!entradaCliente || !listaAutocompletar) return;
 
     entradaCliente.addEventListener('input', (e) => {
         const filtro = e.target.value.toLowerCase();
@@ -397,8 +402,9 @@ async function carregarAgendamentos() {
     const entradaBuscaData = document.getElementById('dateSearch');
     const filtroTipo = document.getElementById('filterTipo');
     const filtroCliente = document.getElementById('filterCliente');
-    listaAgendamento.innerHTML = '';
+    if (!listaAgendamento) return;
 
+    listaAgendamento.innerHTML = '';
     try {
         const querySnapshot = await getDocs(collection(db, 'agendamentos'));
         listaAgendamentos = [];
@@ -501,11 +507,13 @@ async function carregarFluxoCaixa() {
         listaFluxoCaixa = [];
         querySnapshot.forEach((doc) => {
             const dados = doc.data();
-            listaFluxoCaixa.push({ id: doc.id, ...dados });
+            // Garante que tipo seja "Ganho" ou "Despesa"
+            const tipo = dados.tipo === 'Ganho' || dados.tipo === 'Despesa' ? dados.tipo : (dados.valor >= 0 ? 'Ganho' : 'Despesa');
+            listaFluxoCaixa.push({ id: doc.id, ...dados, tipo });
         });
 
         listaFluxoCaixa.sort((a, b) => new Date(b.data) - new Date(a.data));
-        renderizarFluxoCaixa(); // Mostra transações do dia atual por padrão
+        renderizarFluxoCaixa();
         atualizarSaldos();
     } catch (error) {
         console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
@@ -516,17 +524,19 @@ async function carregarFluxoCaixa() {
 
 function renderizarFluxoCaixa() {
     const listaFluxo = document.getElementById('fluxoCaixaList');
-    const fluxoDateFilter = document.getElementById('fluxoDateFilter').value;
+    const fluxoDateFilter = document.getElementById('fluxoDateFilter');
     const mensagemFluxo = document.getElementById('fluxoCaixaMessage');
+    if (!listaFluxo || !fluxoDateFilter || !mensagemFluxo) return;
 
-    if (!fluxoDateFilter.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+    const dataFiltroRaw = fluxoDateFilter.value;
+    if (!dataFiltroRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
         mensagemFluxo.textContent = 'Por favor, insira uma data válida no formato dd/mm/aaaa.';
         mensagemFluxo.className = 'error-message';
         setTimeout(() => mensagemFluxo.textContent = '', 3000);
         return;
     }
 
-    const dataFiltro = converterDataParaFirebase(fluxoDateFilter);
+    const dataFiltro = converterDataParaFirebase(dataFiltroRaw);
     const registrosFiltrados = listaFluxoCaixa.filter(item => item.data === dataFiltro);
     listaFluxo.innerHTML = '';
 
@@ -539,18 +549,19 @@ function renderizarFluxoCaixa() {
             const info = document.createElement('div');
             info.className = 'info';
             const dataFormatada = formatarData(item.data);
-            info.textContent = `${item.cliente} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`; // Tipo corrigido
+            const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa'); // Garante que tipo seja exibido
+            info.textContent = `${item.cliente} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${tipoExibicao})`;
             const acoes = document.createElement('div');
             acoes.className = 'list-item-actions';
             const badgeTipo = document.createElement('span');
-            badgeTipo.className = `tipo ${item.tipo.toLowerCase()}`; // Classe baseada no tipo
-            badgeTipo.textContent = item.tipo; // Texto do tipo
+            badgeTipo.className = `tipo ${tipoExibicao.toLowerCase()}`;
+            badgeTipo.textContent = tipoExibicao;
             const botaoExcluir = document.createElement('button');
             botaoExcluir.className = 'delete-btn';
             botaoExcluir.textContent = 'Excluir';
             botaoExcluir.onclick = (e) => {
                 e.stopPropagation();
-                abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`);
+                abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${tipoExibicao})`);
             };
             acoes.appendChild(badgeTipo);
             acoes.appendChild(botaoExcluir);
@@ -569,7 +580,7 @@ function atualizarSaldos() {
     const calcularSaldo = (itens) => {
         return itens.reduce((sum, item) => {
             const valor = parseFloat(item.valor || 0);
-            return sum + valor; // Soma direta, já que despesas são negativas
+            return sum + valor;
         }, 0);
     };
 
@@ -616,9 +627,10 @@ function abrirModalFiltroPeriodo() {
     } else {
         registrosFiltrados.forEach(item => {
             const dataFormatada = formatarData(item.data);
+            const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa'); // Garante que tipo seja exibido
             conteudo += `
                 <div class="transaction-item">
-                    <span>${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})</span>
+                    <span>${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${tipoExibicao})</span>
                     <button class="delete-transaction-btn" onclick="window.excluirItem('fluxoCaixa', '${item.id}')">Excluir</button>
                 </div>
             `;
@@ -637,6 +649,7 @@ function configurarAutocompletarFluxoCaixa() {
     const entradaCliente = document.getElementById('clienteFluxo');
     const listaAutocompletar = document.getElementById('clienteFluxoAutocomplete');
     const tipoTransacao = document.getElementById('tipoTransacao');
+    if (!entradaCliente || !listaAutocompletar || !tipoTransacao) return;
 
     function atualizarAutocompletar() {
         const filtro = entradaCliente.value.toLowerCase();
@@ -684,8 +697,6 @@ function configurarAutocompletarFluxoCaixa() {
         }
     });
 }
-
-// Removido abrirModalTransacoes, pois agora a pesquisa atualiza diretamente a lista
 
 document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -804,7 +815,7 @@ document.getElementById('fluxoCaixaForm').addEventListener('submit', async (e) =
     }
 
     try {
-        const valorFinal = tipoTransacao === 'Despesa' ? -valor : valor; // Despesas negativas
+        const valorFinal = tipoTransacao === 'Despesa' ? -valor : valor;
         await addDoc(collection(db, 'fluxoCaixa'), { cliente, valor: valorFinal, data, tipo: tipoTransacao });
         mensagem.textContent = 'Registro adicionado com sucesso!';
         mensagem.className = 'success-message';
