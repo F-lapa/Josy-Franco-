@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filtrarBtn) filtrarBtn.addEventListener('click', abrirModalFiltroPeriodo);
 
     const openFluxoModalBtn = document.getElementById('openFluxoModalBtn');
-    if (openFluxoModalBtn) openFluxoModalBtn.addEventListener('click', abrirModalTransacoes);
+    if (openFluxoModalBtn) openFluxoModalBtn.addEventListener('click', () => renderizarFluxoCaixa()); // Apenas atualiza a lista
 });
 
 window.openTab = function (tabId) {
@@ -517,37 +517,48 @@ async function carregarFluxoCaixa() {
 function renderizarFluxoCaixa() {
     const listaFluxo = document.getElementById('fluxoCaixaList');
     const fluxoDateFilter = document.getElementById('fluxoDateFilter').value;
-    const dataFiltro = fluxoDateFilter ? converterDataParaFirebase(fluxoDateFilter) : new Date().toISOString().split('T')[0];
+    const mensagemFluxo = document.getElementById('fluxoCaixaMessage');
+
+    if (!fluxoDateFilter.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+        mensagemFluxo.textContent = 'Por favor, insira uma data válida no formato dd/mm/aaaa.';
+        mensagemFluxo.className = 'error-message';
+        setTimeout(() => mensagemFluxo.textContent = '', 3000);
+        return;
+    }
+
+    const dataFiltro = converterDataParaFirebase(fluxoDateFilter);
+    const registrosFiltrados = listaFluxoCaixa.filter(item => item.data === dataFiltro);
     listaFluxo.innerHTML = '';
 
-    const registrosFiltrados = listaFluxoCaixa.filter(item => item.data === dataFiltro);
-
-    registrosFiltrados.forEach(item => {
-        const elemento = document.createElement('div');
-        elemento.className = 'list-item';
-        const info = document.createElement('div');
-        info.className = 'info';
-        const dataFormatada = formatarData(item.data);
-        const tipo = item.tipo === 'Despesa' ? 'despesa' : 'ganho';
-        info.textContent = `${item.cliente} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`;
-        const acoes = document.createElement('div');
-        acoes.className = 'list-item-actions';
-        const badgeTipo = document.createElement('span');
-        badgeTipo.className = `tipo ${tipo.toLowerCase()}`;
-        badgeTipo.textContent = item.tipo;
-        const botaoExcluir = document.createElement('button');
-        botaoExcluir.className = 'delete-btn';
-        botaoExcluir.textContent = 'Excluir';
-        botaoExcluir.onclick = (e) => {
-            e.stopPropagation();
-            abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`);
-        };
-        acoes.appendChild(badgeTipo);
-        acoes.appendChild(botaoExcluir);
-        elemento.appendChild(info);
-        elemento.appendChild(acoes);
-        listaFluxo.appendChild(elemento);
-    });
+    if (registrosFiltrados.length === 0) {
+        listaFluxo.innerHTML = '<p>Nenhuma transação registrada para esta data.</p>';
+    } else {
+        registrosFiltrados.forEach(item => {
+            const elemento = document.createElement('div');
+            elemento.className = 'list-item';
+            const info = document.createElement('div');
+            info.className = 'info';
+            const dataFormatada = formatarData(item.data);
+            info.textContent = `${item.cliente} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`; // Tipo corrigido
+            const acoes = document.createElement('div');
+            acoes.className = 'list-item-actions';
+            const badgeTipo = document.createElement('span');
+            badgeTipo.className = `tipo ${item.tipo.toLowerCase()}`; // Classe baseada no tipo
+            badgeTipo.textContent = item.tipo; // Texto do tipo
+            const botaoExcluir = document.createElement('button');
+            botaoExcluir.className = 'delete-btn';
+            botaoExcluir.textContent = 'Excluir';
+            botaoExcluir.onclick = (e) => {
+                e.stopPropagation();
+                abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`);
+            };
+            acoes.appendChild(badgeTipo);
+            acoes.appendChild(botaoExcluir);
+            elemento.appendChild(info);
+            elemento.appendChild(acoes);
+            listaFluxo.appendChild(elemento);
+        });
+    }
 }
 
 function atualizarSaldos() {
@@ -558,7 +569,7 @@ function atualizarSaldos() {
     const calcularSaldo = (itens) => {
         return itens.reduce((sum, item) => {
             const valor = parseFloat(item.valor || 0);
-            return sum + valor; // Soma direta, já que despesas são negativas no banco
+            return sum + valor; // Soma direta, já que despesas são negativas
         }, 0);
     };
 
@@ -605,7 +616,6 @@ function abrirModalFiltroPeriodo() {
     } else {
         registrosFiltrados.forEach(item => {
             const dataFormatada = formatarData(item.data);
-            const tipo = item.tipo === 'Despesa' ? 'despesa' : 'ganho';
             conteudo += `
                 <div class="transaction-item">
                     <span>${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})</span>
@@ -675,49 +685,7 @@ function configurarAutocompletarFluxoCaixa() {
     });
 }
 
-function abrirModalTransacoes() {
-    const dataFiltroRaw = document.getElementById('fluxoDateFilter').value;
-    const mensagemFluxo = document.getElementById('fluxoCaixaMessage');
-
-    if (!dataFiltroRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-        mensagemFluxo.textContent = 'Por favor, insira uma data válida no formato dd/mm/aaaa.';
-        mensagemFluxo.className = 'error-message';
-        setTimeout(() => mensagemFluxo.textContent = '', 3000);
-        return;
-    }
-
-    const dataFiltro = converterDataParaFirebase(dataFiltroRaw);
-    const transacoesDoDia = listaFluxoCaixa.filter(item => item.data === dataFiltro);
-
-    const modal = document.getElementById('modal');
-    document.getElementById('modalTitle').textContent = `Transações de ${dataFiltroRaw}`;
-    let conteudoHTML = '<div class="transaction-list">';
-
-    if (transacoesDoDia.length === 0) {
-        conteudoHTML += '<p>Nenhuma transação registrada para esta data.</p>';
-    } else {
-        transacoesDoDia.forEach(transacao => {
-            const tipo = transacao.tipo === 'Despesa' ? 'despesa' : 'ganho';
-            const valorFormatado = Math.abs(transacao.valor).toFixed(2).replace('.', ',');
-            conteudoHTML += `
-                <div class="transaction-item">
-                    <span>${transacao.cliente} - R$ ${valorFormatado} (${transacao.tipo})</span>
-                    <button class="delete-transaction-btn" onclick="window.excluirItem('fluxoCaixa', '${transacao.id}')">Excluir</button>
-                </div>
-            `;
-        });
-    }
-
-    const total = transacoesDoDia.reduce((soma, item) => soma + parseFloat(item.valor || 0), 0);
-    const totalFormatado = total.toFixed(2).replace('.', ',');
-    conteudoHTML += '</div>';
-    conteudoHTML += `<div class="total-container"><p>Total: <span>R$ ${totalFormatado}</span></p></div>`;
-    conteudoHTML += '<div class="modal-buttons"><button class="cancel-btn" onclick="closeModal()">Fechar</button></div>';
-
-    document.getElementById('modalContent').innerHTML = conteudoHTML;
-    modal.classList.add('active');
-    renderizarFluxoCaixa(); // Atualiza a lista principal com o dia filtrado
-}
+// Removido abrirModalTransacoes, pois agora a pesquisa atualiza diretamente a lista
 
 document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -836,7 +804,7 @@ document.getElementById('fluxoCaixaForm').addEventListener('submit', async (e) =
     }
 
     try {
-        const valorFinal = tipoTransacao === 'Despesa' ? -valor : valor; // Despesas sempre negativas
+        const valorFinal = tipoTransacao === 'Despesa' ? -valor : valor; // Despesas negativas
         await addDoc(collection(db, 'fluxoCaixa'), { cliente, valor: valorFinal, data, tipo: tipoTransacao });
         mensagem.textContent = 'Registro adicionado com sucesso!';
         mensagem.className = 'success-message';
@@ -1076,7 +1044,7 @@ function abrirModalExcluir(tipo, id, descricao) {
     modal.classList.add('active');
 }
 
-window.excluirItem = async function (tipo, id) { // Tornando a função global
+window.excluirItem = async function (tipo, id) {
     try {
         let colecao;
         let mensagemElemento;
