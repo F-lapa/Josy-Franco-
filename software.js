@@ -192,10 +192,8 @@ window.openTab = function (tabId) {
         botaoSelecionado.classList.add('active');
         if (tabId === 'fluxoCaixa') {
             carregarFluxoCaixa();
-            // Configura o evento do botão "Filtrar Período" quando a aba Fluxo de Caixa é ativada
             const filtrarBtn = document.getElementById('filtrarBtn');
             if (filtrarBtn) {
-                // Remove qualquer listener anterior para evitar duplicatas
                 filtrarBtn.removeEventListener('click', abrirModalFiltroPeriodo);
                 filtrarBtn.addEventListener('click', abrirModalFiltroPeriodo);
             } else {
@@ -607,7 +605,6 @@ function abrirModalFiltroPeriodo() {
     const filtroTipoElement = document.getElementById('filterFluxoTipo');
     const mensagem = document.getElementById('fluxoCaixaMessage');
 
-    // Verificação do elemento filterFluxoTipo
     if (!filtroTipoElement) {
         console.error('[ERRO] Elemento filterFluxoTipo não encontrado no DOM. Verifique se o ID está correto e se o elemento está presente.');
         mensagem.textContent = 'Erro: Não foi possível encontrar o filtro de tipo. Verifique o HTML.';
@@ -615,7 +612,8 @@ function abrirModalFiltroPeriodo() {
         return;
     }
 
-    const filtroTipo = filtroTipoElement.value || 'Todos'; // Captura o valor do select
+    const filtroTipo = filtroTipoElement.value || 'Todos';
+    const filtroTipoDisplay = filtroTipo === 'Ganho' ? 'Ganhos' : filtroTipo === 'Despesa' ? 'Despesas' : filtroTipo;
 
     console.log('[DEBUG] Filtro selecionado:', filtroTipo);
     console.log('[DEBUG] Data início:', dataInicioRaw, 'Data fim:', dataFimRaw);
@@ -635,7 +633,6 @@ function abrirModalFiltroPeriodo() {
         return;
     }
 
-    // Filtra por período
     let registrosFiltrados = listaFluxoCaixa.filter(item => {
         const dataItem = new Date(item.data);
         return dataItem >= new Date(dataInicio) && dataItem <= new Date(dataFim);
@@ -643,19 +640,18 @@ function abrirModalFiltroPeriodo() {
 
     console.log('[DEBUG] Registros após filtro de período:', registrosFiltrados.length);
 
-    // Aplica filtro de tipo
     if (filtroTipo !== 'Todos') {
         registrosFiltrados = registrosFiltrados.filter(item => {
             const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa');
             console.log('[DEBUG] Item:', item.cliente, 'Tipo:', tipoExibicao, 'Valor:', item.valor);
-            return tipoExibicao === filtroTipo;
+            return tipoExibicao.toLowerCase() === filtroTipo.toLowerCase();
         });
     }
 
     console.log('[DEBUG] Registros após filtro de tipo:', registrosFiltrados.length);
 
     const modal = document.getElementById('modal');
-    document.getElementById('modalTitle').textContent = `Transações de ${dataInicioRaw} a ${dataFimRaw}${filtroTipo !== 'Todos' ? ` (${filtroTipo})` : ''}`;
+    document.getElementById('modalTitle').textContent = `Transações de ${dataInicioRaw} a ${dataFimRaw}${filtroTipo !== 'Todos' ? ` (${filtroTipoDisplay})` : ''}`;
     let conteudo = '<div class="transaction-list">';
 
     if (registrosFiltrados.length === 0) {
