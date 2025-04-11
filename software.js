@@ -507,7 +507,6 @@ async function carregarFluxoCaixa() {
         listaFluxoCaixa = [];
         querySnapshot.forEach((doc) => {
             const dados = doc.data();
-            // Garante que tipo seja "Ganho" ou "Despesa"
             const tipo = dados.tipo === 'Ganho' || dados.tipo === 'Despesa' ? dados.tipo : (dados.valor >= 0 ? 'Ganho' : 'Despesa');
             listaFluxoCaixa.push({ id: doc.id, ...dados, tipo });
         });
@@ -549,7 +548,7 @@ function renderizarFluxoCaixa() {
             const info = document.createElement('div');
             info.className = 'info';
             const dataFormatada = formatarData(item.data);
-            const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa'); // Garante que tipo seja exibido
+            const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa');
             info.textContent = `${item.cliente} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${tipoExibicao})`;
             const acoes = document.createElement('div');
             acoes.className = 'list-item-actions';
@@ -596,6 +595,7 @@ function atualizarSaldos() {
 function abrirModalFiltroPeriodo() {
     const dataInicioRaw = document.getElementById('dataInicio').value;
     const dataFimRaw = document.getElementById('dataFim').value;
+    const filtroTipo = document.getElementById('filterFluxoTipo')?.value || 'Todos';
     const mensagem = document.getElementById('fluxoCaixaMessage');
 
     if (!dataInicioRaw || !dataFimRaw) {
@@ -613,13 +613,20 @@ function abrirModalFiltroPeriodo() {
         return;
     }
 
-    const registrosFiltrados = listaFluxoCaixa.filter(item => {
+    let registrosFiltrados = listaFluxoCaixa.filter(item => {
         const dataItem = new Date(item.data);
         return dataItem >= new Date(dataInicio) && dataItem <= new Date(dataFim);
     });
 
+    if (filtroTipo !== 'Todos') {
+        registrosFiltrados = registrosFiltrados.filter(item => {
+            const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa');
+            return tipoExibicao === filtroTipo;
+        });
+    }
+
     const modal = document.getElementById('modal');
-    document.getElementById('modalTitle').textContent = `Transações de ${dataInicioRaw} a ${dataFimRaw}`;
+    document.getElementById('modalTitle').textContent = `Transações de ${dataInicioRaw} a ${dataFimRaw}${filtroTipo !== 'Todos' ? ` (${filtroTipo})` : ''}`;
     let conteudo = '<div class="transaction-list">';
 
     if (registrosFiltrados.length === 0) {
@@ -627,7 +634,7 @@ function abrirModalFiltroPeriodo() {
     } else {
         registrosFiltrados.forEach(item => {
             const dataFormatada = formatarData(item.data);
-            const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa'); // Garante que tipo seja exibido
+            const tipoExibicao = item.tipo || (item.valor >= 0 ? 'Ganho' : 'Despesa');
             conteudo += `
                 <div class="transaction-item">
                     <span>${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${tipoExibicao})</span>
