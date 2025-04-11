@@ -50,9 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const entradaTelefone = document.getElementById('telefone');
-    if (entradaTelefone) {
-        IMask(entradaTelefone, { mask: '(00) 90000-0000' });
-    }
+    if (entradaTelefone) IMask(entradaTelefone, { mask: '(00) 90000-0000' });
 
     const entradaDataNascimento = document.getElementById('dataNascimento');
     if (entradaDataNascimento) {
@@ -104,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const hoje = new Date();
         const dataAtual = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
         dataFluxo.value = dataAtual;
-
         IMask(dataFluxo, {
             mask: '00/00/0000',
             lazy: false,
@@ -152,6 +149,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fluxoDateFilter = document.getElementById('fluxoDateFilter');
     if (fluxoDateFilter) {
+        const hoje = new Date();
+        const dataAtual = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`;
+        fluxoDateFilter.value = dataAtual;
         IMask(fluxoDateFilter, {
             mask: '00/00/0000',
             lazy: false,
@@ -174,14 +174,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (dateSearch) dateSearch.addEventListener('input', carregarAgendamentos);
 
     const filtrarBtn = document.getElementById('filtrarBtn');
-    if (filtrarBtn) filtrarBtn.addEventListener('click', filtrarFluxoCaixaPorPeriodo);
+    if (filtrarBtn) filtrarBtn.addEventListener('click', abrirModalFiltroPeriodo);
 
     const openFluxoModalBtn = document.getElementById('openFluxoModalBtn');
     if (openFluxoModalBtn) openFluxoModalBtn.addEventListener('click', abrirModalTransacoes);
 });
 
 window.openTab = function (tabId) {
-    console.log(`[DEBUG] Tentando abrir aba: ${tabId}`);
     const abas = document.querySelectorAll('.tab-content');
     const botoes = document.querySelectorAll('.tab-button');
     abas.forEach(aba => aba.classList.remove('active'));
@@ -191,14 +190,8 @@ window.openTab = function (tabId) {
     if (abaSelecionada && botaoSelecionado) {
         abaSelecionada.classList.add('active');
         botaoSelecionado.classList.add('active');
-        console.log(`[SUCESSO] Aba ${tabId} aberta com sucesso`);
-        if (tabId === 'fluxoCaixa') {
-            carregarFluxoCaixa();
-        } else if (tabId === 'novoAgendamentos') {
-            carregarAgendamentos();
-        }
-    } else {
-        console.error('[ERRO] Erro: Aba ou botão não encontrados', { tabId, abaSelecionada, botaoSelecionado });
+        if (tabId === 'fluxoCaixa') carregarFluxoCaixa();
+        else if (tabId === 'novoAgendamentos') carregarAgendamentos();
     }
 };
 
@@ -206,13 +199,8 @@ function formatarTelefoneExibicao(telefone) {
     const valor = telefone ? telefone.replace(/\D/g, '').substring(0, 11) : '';
     let formatado = '';
     if (valor.length > 0) {
-        formatado = '(' + valor.substring(0, 2);
-        if (valor.length > 2) {
-            formatado += ') ' + valor.substring(2, 7);
-            if (valor.length > 6) {
-                formatado += '-' + valor.substring(7, 11);
-            }
-        }
+        formatado = '(' + valor.substring(0, 2) + ') ' + valor.substring(2, 7);
+        if (valor.length > 6) formatado += '-' + valor.substring(7, 11);
     }
     return formatado || telefone || '';
 }
@@ -227,7 +215,7 @@ function converterDataParaFirebase(dataString) {
     return `${ano}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
 }
 
-window.openChangePasswordModal = function() {
+window.openChangePasswordModal = function () {
     const modal = document.getElementById('modal');
     document.getElementById('modalTitle').textContent = 'Alterar Senha';
     document.getElementById('modalContent').innerHTML = `
@@ -251,7 +239,7 @@ window.openChangePasswordModal = function() {
     document.querySelector('.save-btn').addEventListener('click', alterarSenha);
 };
 
-window.openLogoutModal = function() {
+window.openLogoutModal = function () {
     const modal = document.getElementById('modal');
     document.getElementById('modalTitle').textContent = 'Confirmar Saída';
     document.getElementById('modalContent').innerHTML = `
@@ -264,7 +252,7 @@ window.openLogoutModal = function() {
     modal.classList.add('active');
 };
 
-window.logout = function() {
+window.logout = function () {
     localStorage.removeItem('loggedIn');
     auth.signOut().then(() => {
         console.log('[SUCESSO] Logout realizado com sucesso');
@@ -275,7 +263,7 @@ window.logout = function() {
     });
 };
 
-window.togglePassword = function(inputId) {
+window.togglePassword = function (inputId) {
     const entrada = document.getElementById(inputId);
     const iconeToggle = entrada.nextElementSibling;
     if (entrada.type === 'password') {
@@ -304,7 +292,6 @@ function alterarSenha() {
         mensagem.textContent = 'Senha alterada com sucesso!';
         mensagem.className = 'success-message';
         setTimeout(() => closeModal(), 1500);
-        console.log('[DEBUG] Senha alterada para:', senhaAtual);
     } else {
         mensagem.textContent = 'Senha atual incorreta.';
         mensagem.className = 'error-message';
@@ -356,10 +343,7 @@ async function carregarClientes() {
         }
 
         renderizarClientes();
-
-        entradaBusca.addEventListener('input', (e) => {
-            renderizarClientes(e.target.value);
-        });
+        entradaBusca.addEventListener('input', (e) => renderizarClientes(e.target.value));
     } catch (error) {
         console.error('[ERRO] Erro ao carregar clientes:', error);
         document.getElementById('cadastroMessage').textContent = 'Erro ao carregar clientes: ' + error.message;
@@ -432,18 +416,12 @@ async function carregarAgendamentos() {
         listaAgendamentos.sort((a, b) => {
             const dataHoraA = new Date(`${a.data}T${a.hora}`);
             const dataHoraB = new Date(`${b.data}T${b.hora}`);
-
             const ehPassadoA = dataHoraA < dataAtual;
             const ehPassadoB = dataHoraB < dataAtual;
 
             if (ehPassadoA && !ehPassadoB) return 1;
             if (!ehPassadoA && ehPassadoB) return -1;
-
-            if (!ehPassadoA && !ehPassadoB) {
-                return dataHoraA - dataHoraB;
-            }
-
-            return dataHoraB - dataHoraA;
+            return ehPassadoA ? dataHoraB - dataHoraA : dataHoraA - dataHoraB;
         });
 
         function renderizarAgendamentos() {
@@ -460,29 +438,21 @@ async function carregarAgendamentos() {
                 agendamentosFiltrados = agendamentosFiltrados.filter(agendamento => {
                     const [ano, mes, dia] = agendamento.data.split('-');
                     const dataFormatada = `${dia}${mes}${ano}`;
-                    if (diaFiltro && filtroNumerico.length <= 2) {
-                        return dia === diaFiltro;
-                    } else if (diaFiltro && mesFiltro && filtroNumerico.length <= 4) {
-                        return dia === diaFiltro && mes === mesFiltro;
-                    } else if (diaFiltro && mesFiltro && anoFiltro && filtroNumerico.length <= 8) {
-                        return dia === diaFiltro && mes === mesFiltro && ano === anoFiltro;
-                    }
+                    if (diaFiltro && filtroNumerico.length <= 2) return dia === diaFiltro;
+                    if (diaFiltro && mesFiltro && filtroNumerico.length <= 4) return dia === diaFiltro && mes === mesFiltro;
+                    if (diaFiltro && mesFiltro && anoFiltro && filtroNumerico.length <= 8) return dia === diaFiltro && mes === mesFiltro && ano === anoFiltro;
                     return true;
                 });
             }
 
             const tipoSelecionado = filtroTipo.value;
             if (tipoSelecionado) {
-                agendamentosFiltrados = agendamentosFiltrados.filter(agendamento => 
-                    agendamento.tipo === tipoSelecionado
-                );
+                agendamentosFiltrados = agendamentosFiltrados.filter(agendamento => agendamento.tipo === tipoSelecionado);
             }
 
             const clienteFiltro = filtroCliente.value.trim().toLowerCase();
             if (clienteFiltro) {
-                agendamentosFiltrados = agendamentosFiltrados.filter(agendamento => 
-                    agendamento.cliente.toLowerCase().includes(clienteFiltro)
-                );
+                agendamentosFiltrados = agendamentosFiltrados.filter(agendamento => agendamento.cliente.toLowerCase().includes(clienteFiltro));
             }
 
             agendamentosFiltrados.forEach(agendamento => {
@@ -535,7 +505,7 @@ async function carregarFluxoCaixa() {
         });
 
         listaFluxoCaixa.sort((a, b) => new Date(b.data) - new Date(a.data));
-        renderizarFluxoCaixa(); // Mostra apenas o dia atual por padrão
+        renderizarFluxoCaixa(); // Mostra transações do dia atual por padrão
         atualizarSaldos();
     } catch (error) {
         console.error('[ERRO] Erro ao carregar fluxo de caixa:', error);
@@ -546,9 +516,11 @@ async function carregarFluxoCaixa() {
 
 function renderizarFluxoCaixa() {
     const listaFluxo = document.getElementById('fluxoCaixaList');
+    const fluxoDateFilter = document.getElementById('fluxoDateFilter').value;
+    const dataFiltro = fluxoDateFilter ? converterDataParaFirebase(fluxoDateFilter) : new Date().toISOString().split('T')[0];
     listaFluxo.innerHTML = '';
-    const hoje = new Date().toISOString().split('T')[0]; // Data atual no formato YYYY-MM-DD
-    const registrosFiltrados = listaFluxoCaixa.filter(item => item.data === hoje);
+
+    const registrosFiltrados = listaFluxoCaixa.filter(item => item.data === dataFiltro);
 
     registrosFiltrados.forEach(item => {
         const elemento = document.createElement('div');
@@ -586,7 +558,7 @@ function atualizarSaldos() {
     const calcularSaldo = (itens) => {
         return itens.reduce((sum, item) => {
             const valor = parseFloat(item.valor || 0);
-            return item.tipo === 'Despesa' ? sum - valor : sum + valor;
+            return sum + valor; // Soma direta, já que despesas são negativas no banco
         }, 0);
     };
 
@@ -594,19 +566,14 @@ function atualizarSaldos() {
     const saldoMes = calcularSaldo(listaFluxoCaixa.filter(item => item.data.startsWith(mesAtual)));
     const saldoAno = calcularSaldo(listaFluxoCaixa.filter(item => item.data.startsWith(anoAtual)));
 
-    const saldoDiaElement = document.getElementById('saldoDia');
-    const saldoMesElement = document.getElementById('saldoMes');
-    const saldoAnoElement = document.getElementById('saldoAno');
-
-    if (saldoDiaElement) saldoDiaElement.textContent = `R$ ${saldoDia.toFixed(2).replace('.', ',')}`;
-    if (saldoMesElement) saldoMesElement.textContent = `R$ ${saldoMes.toFixed(2).replace('.', ',')}`;
-    if (saldoAnoElement) saldoAnoElement.textContent = `R$ ${saldoAno.toFixed(2).replace('.', ',')}`;
+    document.getElementById('saldoDia').textContent = `R$ ${saldoDia.toFixed(2).replace('.', ',')}`;
+    document.getElementById('saldoMes').textContent = `R$ ${saldoMes.toFixed(2).replace('.', ',')}`;
+    document.getElementById('saldoAno').textContent = `R$ ${saldoAno.toFixed(2).replace('.', ',')}`;
 }
 
-function filtrarFluxoCaixaPorPeriodo() {
+function abrirModalFiltroPeriodo() {
     const dataInicioRaw = document.getElementById('dataInicio').value;
     const dataFimRaw = document.getElementById('dataFim').value;
-    const tipoFiltro = document.getElementById('tipoFiltro').value;
     const mensagem = document.getElementById('fluxoCaixaMessage');
 
     if (!dataInicioRaw || !dataFimRaw) {
@@ -629,55 +596,31 @@ function filtrarFluxoCaixaPorPeriodo() {
         return dataItem >= new Date(dataInicio) && dataItem <= new Date(dataFim);
     });
 
-    let resultado;
-    if (tipoFiltro === 'saldo') {
-        resultado = registrosFiltrados.reduce((sum, item) => {
-            const valor = parseFloat(item.valor || 0);
-            return item.tipo === 'Despesa' ? sum - valor : sum + valor;
-        }, 0);
-        mensagem.textContent = `Saldo no período: R$ ${resultado.toFixed(2).replace('.', ',')}`;
-    } else if (tipoFiltro === 'ganhos') {
-        resultado = registrosFiltrados
-            .filter(item => item.tipo === 'Ganho')
-            .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0);
-        mensagem.textContent = `Ganhos no período: R$ ${resultado.toFixed(2).replace('.', ',')}`;
-    } else if (tipoFiltro === 'despesas') {
-        resultado = registrosFiltrados
-            .filter(item => item.tipo === 'Despesa')
-            .reduce((sum, item) => sum + parseFloat(item.valor || 0), 0);
-        mensagem.textContent = `Despesas no período: R$ ${resultado.toFixed(2).replace('.', ',')}`;
+    const modal = document.getElementById('modal');
+    document.getElementById('modalTitle').textContent = `Transações de ${dataInicioRaw} a ${dataFimRaw}`;
+    let conteudo = '<div class="transaction-list">';
+
+    if (registrosFiltrados.length === 0) {
+        conteudo += '<p>Nenhuma transação encontrada neste período.</p>';
+    } else {
+        registrosFiltrados.forEach(item => {
+            const dataFormatada = formatarData(item.data);
+            const tipo = item.tipo === 'Despesa' ? 'despesa' : 'ganho';
+            conteudo += `
+                <div class="transaction-item">
+                    <span>${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})</span>
+                    <button class="delete-transaction-btn" onclick="window.excluirItem('fluxoCaixa', '${item.id}')">Excluir</button>
+                </div>
+            `;
+        });
     }
 
-    mensagem.className = 'success-message';
-
-    const listaFluxo = document.getElementById('fluxoCaixaList');
-    listaFluxo.innerHTML = '';
-    registrosFiltrados.forEach(item => {
-        const elemento = document.createElement('div');
-        elemento.className = 'list-item';
-        const info = document.createElement('div');
-        info.className = 'info';
-        const dataFormatada = formatarData(item.data);
-        const tipo = item.tipo === 'Despesa' ? 'despesa' : 'ganho';
-        info.textContent = `${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`;
-        const acoes = document.createElement('div');
-        acoes.className = 'list-item-actions';
-        const badgeTipo = document.createElement('span');
-        badgeTipo.className = `tipo ${tipo.toLowerCase()}`;
-        badgeTipo.textContent = item.tipo;
-        const botaoExcluir = document.createElement('button');
-        botaoExcluir.className = 'delete-btn';
-        botaoExcluir.textContent = 'Excluir';
-        botaoExcluir.onclick = (e) => {
-            e.stopPropagation();
-            abrirModalExcluir('fluxoCaixa', item.id, `${item.cliente} - ${dataFormatada} - R$ ${Math.abs(item.valor).toFixed(2).replace('.', ',')} (${item.tipo})`);
-        };
-        acoes.appendChild(badgeTipo);
-        acoes.appendChild(botaoExcluir);
-        elemento.appendChild(info);
-        elemento.appendChild(acoes);
-        listaFluxo.appendChild(elemento);
-    });
+    const total = registrosFiltrados.reduce((sum, item) => sum + parseFloat(item.valor || 0), 0);
+    conteudo += '</div>';
+    conteudo += `<div class="total-container"><p>Total: <span>R$ ${total.toFixed(2).replace('.', ',')}</span></p></div>`;
+    conteudo += '<div class="modal-buttons"><button class="cancel-btn" onclick="closeModal()">Fechar</button></div>';
+    document.getElementById('modalContent').innerHTML = conteudo;
+    modal.classList.add('active');
 }
 
 function configurarAutocompletarFluxoCaixa() {
@@ -736,8 +679,7 @@ function abrirModalTransacoes() {
     const dataFiltroRaw = document.getElementById('fluxoDateFilter').value;
     const mensagemFluxo = document.getElementById('fluxoCaixaMessage');
 
-    // Validação da data inserida
-    if (!dataFiltroRaw || !dataFiltroRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+    if (!dataFiltroRaw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
         mensagemFluxo.textContent = 'Por favor, insira uma data válida no formato dd/mm/aaaa.';
         mensagemFluxo.className = 'error-message';
         setTimeout(() => mensagemFluxo.textContent = '', 3000);
@@ -747,12 +689,10 @@ function abrirModalTransacoes() {
     const dataFiltro = converterDataParaFirebase(dataFiltroRaw);
     const transacoesDoDia = listaFluxoCaixa.filter(item => item.data === dataFiltro);
 
-    // Configuração do modal
     const modal = document.getElementById('modal');
     document.getElementById('modalTitle').textContent = `Transações de ${dataFiltroRaw}`;
-
     let conteudoHTML = '<div class="transaction-list">';
-    
+
     if (transacoesDoDia.length === 0) {
         conteudoHTML += '<p>Nenhuma transação registrada para esta data.</p>';
     } else {
@@ -762,25 +702,21 @@ function abrirModalTransacoes() {
             conteudoHTML += `
                 <div class="transaction-item">
                     <span>${transacao.cliente} - R$ ${valorFormatado} (${transacao.tipo})</span>
-                    <button class="delete-transaction-btn" onclick="excluirItem('fluxoCaixa', '${transacao.id}')">Excluir</button>
+                    <button class="delete-transaction-btn" onclick="window.excluirItem('fluxoCaixa', '${transacao.id}')">Excluir</button>
                 </div>
             `;
         });
     }
 
-    // Cálculo do total
-    const total = transacoesDoDia.reduce((soma, item) => {
-        const valor = parseFloat(item.valor || 0);
-        return item.tipo === 'Despesa' ? soma - valor : soma + valor;
-    }, 0);
+    const total = transacoesDoDia.reduce((soma, item) => soma + parseFloat(item.valor || 0), 0);
     const totalFormatado = total.toFixed(2).replace('.', ',');
-
     conteudoHTML += '</div>';
     conteudoHTML += `<div class="total-container"><p>Total: <span>R$ ${totalFormatado}</span></p></div>`;
     conteudoHTML += '<div class="modal-buttons"><button class="cancel-btn" onclick="closeModal()">Fechar</button></div>';
 
     document.getElementById('modalContent').innerHTML = conteudoHTML;
     modal.classList.add('active');
+    renderizarFluxoCaixa(); // Atualiza a lista principal com o dia filtrado
 }
 
 document.getElementById('cadastroForm').addEventListener('submit', async (e) => {
@@ -817,8 +753,8 @@ document.getElementById('cadastroForm').addEventListener('submit', async (e) => 
         setTimeout(() => mensagem.textContent = '', 3000);
     } catch (error) {
         console.error('[ERRO] Erro ao cadastrar cliente:', error);
-        document.getElementById('cadastroMessage').textContent = 'Erro ao cadastrar cliente: ' + error.message;
-        document.getElementById('cadastroMessage').className = 'error-message';
+        mensagem.textContent = 'Erro ao cadastrar cliente: ' + error.message;
+        mensagem.className = 'error-message';
     }
 });
 
@@ -860,8 +796,8 @@ document.getElementById('agendamentoForm').addEventListener('submit', async (e) 
         setTimeout(() => mensagem.textContent = '', 3000);
     } catch (error) {
         console.error('[ERRO] Erro ao agendar:', error);
-        document.getElementById('agendamentoMessage').textContent = 'Erro ao realizar agendamento: ' + error.message;
-        document.getElementById('agendamentoMessage').className = 'error-message';
+        mensagem.textContent = 'Erro ao realizar agendamento: ' + error.message;
+        mensagem.className = 'error-message';
     }
 });
 
@@ -900,7 +836,7 @@ document.getElementById('fluxoCaixaForm').addEventListener('submit', async (e) =
     }
 
     try {
-        const valorFinal = tipoTransacao === 'Despesa' ? -Math.abs(valor) : Math.abs(valor);
+        const valorFinal = tipoTransacao === 'Despesa' ? -valor : valor; // Despesas sempre negativas
         await addDoc(collection(db, 'fluxoCaixa'), { cliente, valor: valorFinal, data, tipo: tipoTransacao });
         mensagem.textContent = 'Registro adicionado com sucesso!';
         mensagem.className = 'success-message';
@@ -948,9 +884,7 @@ function abrirModalCliente(docId, cliente) {
     modal.classList.add('active');
 
     const editTelefone = document.getElementById('editTelefone');
-    if (editTelefone) {
-        IMask(editTelefone, { mask: '(00) 90000-0000' });
-    }
+    if (editTelefone) IMask(editTelefone, { mask: '(00) 90000-0000' });
 
     const editDataNascimento = document.getElementById('editDataNascimento');
     if (editDataNascimento) {
@@ -1136,13 +1070,13 @@ function abrirModalExcluir(tipo, id, descricao) {
         <p>Tem certeza de que deseja excluir: <br><strong>${descricao}</strong>?</p>
         <div class="modal-buttons">
             <button class="cancel-btn" onclick="closeModal()">Não</button>
-            <button class="confirm-btn" onclick="excluirItem('${tipo}', '${id}')">Sim</button>
+            <button class="confirm-btn" onclick="window.excluirItem('${tipo}', '${id}')">Sim</button>
         </div>
     `;
     modal.classList.add('active');
 }
 
-async function excluirItem(tipo, id) {
+window.excluirItem = async function (tipo, id) { // Tornando a função global
     try {
         let colecao;
         let mensagemElemento;
@@ -1179,7 +1113,7 @@ async function excluirItem(tipo, id) {
         console.error(`[ERRO] Erro ao excluir ${tipo}:`, error);
         alert(`Erro ao excluir ${tipo}: ` + error.message);
     }
-}
+};
 
 async function abrirModalHistorico(nomeCliente) {
     const modal = document.getElementById('modal');
@@ -1196,9 +1130,7 @@ async function abrirModalHistorico(nomeCliente) {
             querySnapshot.forEach((doc) => {
                 const dados = doc.data();
                 const dataFormatada = formatarData(dados.data);
-                if (!historicoPorData[dataFormatada]) {
-                    historicoPorData[dataFormatada] = [];
-                }
+                if (!historicoPorData[dataFormatada]) historicoPorData[dataFormatada] = [];
                 historicoPorData[dataFormatada].push({ id: doc.id, ...dados });
             });
 
@@ -1237,6 +1169,5 @@ async function excluirHistorico(id) {
 }
 
 window.closeModal = function () {
-    const modal = document.getElementById('modal');
-    modal.classList.remove('active');
+    document.getElementById('modal').classList.remove('active');
 };
