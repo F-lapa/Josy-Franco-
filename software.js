@@ -1182,3 +1182,6 @@ async function excluirHistorico(id) {
 window.closeModal = function () {
     document.getElementById('modal').classList.remove('active');
 };
+ if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
