@@ -219,6 +219,9 @@
             localStorage.setItem('userPassword', newPassword);
             validCredentials.userPassword = newPassword;
         }
+         if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
     </script>
 </body>
 </html>
