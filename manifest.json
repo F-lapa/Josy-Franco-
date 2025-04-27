@@ -1,11 +1,22 @@
 {
-  "name": "App Josy Franco",
+  "id": "/",
+  "name": "Josy Franco App",
   "short_name": "Josy",
+  "description": "Aplicativo oficial Josy Franco",
   "start_url": "/index.html",
-  "icons": [{
-    "src": "/icon.png",
-    "sizes": "192x192",
-    "type": "image/png"
-  }],
-  "display": "standalone"
+  "background_color": "#ffffff",
+  "theme_color": "#3367D6",
+  "display": "standalone",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
