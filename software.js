@@ -1182,6 +1182,18 @@ async function excluirHistorico(id) {
 window.closeModal = function () {
     document.getElementById('modal').classList.remove('active');
 };
- if('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js');
-  }
+ // Registro do Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(reg => console.log('SW registrado'))
+        .catch(err => console.error('SW erro:', err));
+    }
+
+    // Solicitação de permissão para notificações
+    function requestPushPermission() {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          configurePush();
+        }
+      });
+    }
